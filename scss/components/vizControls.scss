@@ -1,0 +1,80 @@
+@mixin chartButtons {
+	position: relative;
+	padding: 3px;
+	margin: 0px;
+	border-bottom-left-radius: 7px;
+	border-bottom-right-radius: 7px;
+	border: 3px solid transparent;
+	text-align: center;
+	color: #555;
+
+
+
+
+	&.selected {
+		background-color: white;
+		color: #222;
+	}
+
+	img {
+		display:block;
+		pointer-events: none;
+		margin: 0 auto;
+	}
+
+
+
+}
+
+#mapChartToggle {
+	position: fixed;
+	right: 270px;
+	top: 100px;
+	z-index: 10000;
+	font-family: 'Roboto Condensed', sans-serif;
+
+	div {
+		background-color: #aaa;
+		@include chartButtons;
+		display: inline-block;
+		background-repeat: no-repeat;
+		padding: 0 10px;
+		margin: 0 3px;
+		font-size: 1.3em;
+		border-left: 1px silver solid;
+		border-right: 1px silver solid;
+		border-bottom: 1px silver solid;
+		text-transform: uppercase;
+		cursor: pointer;
+
+		.tooltip {
+			font-size: 14px;
+			text-transform: none;
+		    visibility: hidden;
+		    width: 240px;
+		    background-color: #eee;
+		    color: black;
+		    text-align: center;
+		    border-radius: 6px;
+		    padding: 5px;
+		    text-shadow: none;
+
+		    /* Position the tooltip */
+		    position: absolute;
+		    left: -80px;
+		    top: 45px;
+		    z-index: 1;
+		}
+
+		&:hover {
+			background-color: white;
+			color: #222;
+
+		    .tooltip {
+		        visibility: visible;
+		    }
+		}
+	}
+
+
+}

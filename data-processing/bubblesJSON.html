@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Dorling Cartogram</title>
+<style>
+  body { background-color: #a0a0a6; }
+  circle { stroke: #222; stroke-width: 1px; }
+</style>
+<body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script>
+
+var projection = d3.geoAlbersUsa(),
+  path = d3.geoPath().projection(projection);
+
+var year, 
+  congress = 83,
+  congresses_data = {},
+  metroDistricts = {},
+  metro_data,
+  congresses,
+  radius = 5, 
+  namesAndAbbrs = [{"name": "Alabama", "abbreviation": "AL"}, {"name": "Alaska", "abbreviation": "AK"}, {"name": "American Samoa", "abbreviation": "AS"}, {"name": "Arizona", "abbreviation": "AZ"}, {"name": "Arkansas", "abbreviation": "AR"}, {"name": "California", "abbreviation": "CA"}, {"name": "Colorado", "abbreviation": "CO"}, {"name": "Connecticut", "abbreviation": "CT"}, {"name": "Delaware", "abbreviation": "DE"}, {"name": "District Of Columbia", "abbreviation": "DC"}, {"name": "Federated States Of Micronesia", "abbreviation": "FM"}, {"name": "Florida", "abbreviation": "FL"}, {"name": "Georgia", "abbreviation": "GA"}, {"name": "Guam", "abbreviation": "GU"}, {"name": "Hawaii", "abbreviation": "HI"}, {"name": "Idaho", "abbreviation": "ID"}, {"name": "Illinois", "abbreviation": "IL"}, {"name": "Indiana", "abbreviation": "IN"}, {"name": "Iowa", "abbreviation": "IA"}, {"name": "Kansas", "abbreviation": "KS"}, {"name": "Kentucky", "abbreviation": "KY"}, {"name": "Louisiana", "abbreviation": "LA"}, {"name": "Maine", "abbreviation": "ME"}, {"name": "Marshall Islands", "abbreviation": "MH"}, {"name": "Maryland", "abbreviation": "MD"}, {"name": "Massachusetts", "abbreviation": "MA"}, {"name": "Michigan", "abbreviation": "MI"}, {"name": "Minnesota", "abbreviation": "MN"}, {"name": "Mississippi", "abbreviation": "MS"}, {"name": "Missouri", "abbreviation": "MO"}, {"name": "Montana", "abbreviation": "MT"}, {"name": "Nebraska", "abbreviation": "NE"}, {"name": "Nevada", "abbreviation": "NV"}, {"name": "New Hampshire", "abbreviation": "NH"}, {"name": "New Jersey", "abbreviation": "NJ"}, {"name": "New Mexico", "abbreviation": "NM"}, {"name": "New York", "abbreviation": "NY"}, {"name": "North Carolina", "abbreviation": "NC"}, {"name": "North Dakota", "abbreviation": "ND"}, {"name": "Northern Mariana Islands", "abbreviation": "MP"}, {"name": "Ohio", "abbreviation": "OH"}, {"name": "Oklahoma", "abbreviation": "OK"}, {"name": "Oregon", "abbreviation": "OR"}, {"name": "Palau", "abbreviation": "PW"}, {"name": "Pennsylvania", "abbreviation": "PA"}, {"name": "Puerto Rico", "abbreviation": "PR"}, {"name": "Rhode Island", "abbreviation": "RI"}, {"name": "South Carolina", "abbreviation": "SC"}, {"name": "South Dakota", "abbreviation": "SD"}, {"name": "Tennessee", "abbreviation": "TN"}, {"name": "Texas", "abbreviation": "TX"}, {"name": "Utah", "abbreviation": "UT"}, {"name": "Vermont", "abbreviation": "VT"}, {"name": "Virgin Islands", "abbreviation": "VI"}, {"name": "Virginia", "abbreviation": "VA"}, {"name": "Washington", "abbreviation": "WA"}, {"name": "West Virginia", "abbreviation": "WV"}, {"name": "Wisconsin", "abbreviation": "WI"}, {"name": "Wyoming", "abbreviation": "WY"} ],
+  enclosing_circle_radii ={"3": 2.154, "4": 2.4, "5": 2.7, "6": 3, "7": 3, "8": 3.304, "9": 3.613, "10": 3.813, "11": 3.923, "12": 4.029, "13": 4.236, "14": 4.328, "15": 4.521, "16": 4.615, "17": 4.8, "18": 4.9, "19": 4.9, "20": 5.2, "21": 5.3, "22": 5.5, "23": 5.6, "24": 5.7, "25": 5.8, "26": 5.9, "27": 6, "28": 6.1, "29": 6.2, "30": 6.2, "31": 6.3, "32": 6.5, "33": 6.5, "34": 6.7, "35": 6.7, "36": 6.8 },
+  results = [],
+  width = 960,
+  height = 500;
+
+// initialize svg and the blur filter
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g");
+var filter = svg.append("defs")
+  .append("filter")
+    .attr("id", "blur")
+  .append("feGaussianBlur")
+    .attr("stdDeviation", 5);
+
+const runSimulation = function(year) {
+  console.log('running ' + year);
+
+  svg.datum(congresses_data[year].notCity);
+
+  var node = svg.selectAll("circle")
+      .data(d => d)
+    .enter().append("circle")
+      .attr("r", d => d.r)
+      .attr("id", d => d.district)
+      .attr("class", d => d.class)
+      .style("fill", d => d.color)
+      .style("stroke-width", d => (d.class == 'city') ? 0.5 : 0);
+
+  // run the simulation starting with the non-city districts and the city nodes
+  var simulation = d3.forceSimulation(congresses_data[year].notCity)
+    .force("collide", d3.forceCollide().radius(function(d) { return d.r + 2; }).strength(0.02).iterations(20))
+    .on('tick', function() {
+      node
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+    })
+    .on('end', () => {
+      // get the city nodes so you can place the city districtsion
+      let cityXYs = getCityXYs();
+      let citiesFinished = cityXYs.map(cx => false);
+      cityXYs.forEach((cityXY, i) => {
+        let cityNodes = congresses_data[year].cities[cityXY.city].map(cn => {
+          // you need to figure out how far the city node has moved relative to its actual location
+          const centroid = metroDistricts[year].cities[cityXY.city].coords,
+            offsets = [centroid[0]-cityXY.x, centroid[1] - cityXY.y];
+          cn.x -= offsets[0];
+          cn.y -= offsets[1];
+          return cn;
+        });
+        var cityGroup = svg.append("g");
+        cityGroup.datum(cityNodes);
+
+        var bubbles = cityGroup.selectAll("circle")
+              .data(function(d) { return d; })
+            .enter().append("circle")
+              .attr("r", 5)
+              .attr("id", function(d) { return d.id; })
+              //.attr("district", function(d) { return d.district; })
+              .attr("class", function(d) { return d.class; })
+              .style("fill", function(d) { return d.color; })
+              .style("stroke-width", 0 );
+
+         // plot and move the each city (and each city is run individually)
+         d3.forceSimulation(cityNodes)
+            .force("collide", d3.forceCollide().radius(function(d) { return d.r + 2; }).strength(0.02).iterations(20))
+            .force("forceY", d3.forceY().y(cityXY.y).strength(0.5))
+            .force("forceX", d3.forceX().x(cityXY.x).strength(0.5))
+            .on('tick', function() {
+              bubbles
+                .attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+            })
+            .on('end', () => {
+              // mark the city as finished 
+              citiesFinished[i] = true;
+
+              // if finished 
+              if (!citiesFinished.includes(false)) {
+                // record the results
+                results.push(getXYs(parseInt(year)));
+
+                // output results if you're done
+                if (parseInt(year) == 1960) {
+                  console.log(results);
+                } 
+                // do the next congress
+                else {
+                  svg.selectAll("circle").remove();
+                  runSimulation(parseInt(year) + 2);
+                }
+              }
+            });
+          });
+    });
+};
+
+// use the following function to retrieve the xys
+const getXYs = function(year) {
+  var xys = { "year": year, "districts": [], "cities": [] };
+
+  var dorlings = svg.selectAll("circle:not(.city)");
+  dorlings.each(d => xys.districts.push({ 
+    id: d.id, 
+    district: d.district,
+    x: (d.x - width / 2) / projection.scale(), 
+    y: (d.y - height / 2) / projection.scale(),
+    xOrigin: (d.xOrigin - width / 2) / projection.scale(),
+    yOrigin: (d.yOrigin - height / 2) / projection.scale(),
+  }));
+
+  var citiesBubbles = svg.selectAll("circle.city");
+  citiesBubbles.each(d => xys.cities.push({ 
+    id: d.id, 
+    x: (d.x - width / 2) / projection.scale(), 
+    y: (d.y - height / 2) / projection.scale(),
+    xOrigin: (d.xOrigin - width / 2) / projection.scale(),
+    yOrigin: (d.yOrigin - height / 2) / projection.scale(),
+    r: d.r / projection.scale()
+  }));
+
+  return xys;
+};
+
+const getCityXYs = function() {
+  var dorlings = svg.selectAll("circle").filter(".city");
+  var xys = [];
+  dorlings.each(d => xys.push({ 
+    city: d.id, 
+    x: d.x, 
+    y: d.y
+  }));
+
+  return xys;
+};
+
+const getColor = function(party, percent) {
+  party = party || '';
+  if (percent == -1) { return "gold"; }
+  var repColor = d3.scaleLinear().domain([-1, 0.5, 1]).range(['#FACFCF', '#FACFCF', '#eb3f3f']),
+    demColor = d3.scaleLinear().domain([-1, 0.5, 1]).range(['#D2D2F8', '#D2D2F8', '#4a4ae4']);
+  return (party.toLowerCase().includes('republican')) ? repColor(percent) : (party.toLowerCase().includes('democrat')) ? demColor(percent) : 'green';
+};
+
+const getRegularizedParty = function(party) { 
+  party = party || '';
+  return (party.toLowerCase().includes('republican')) ? 'republican' : (party.toLowerCase().includes('democrat')) ? 'democrat' : 'third'; 
+};
+
+const geographyURL = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json",
+  congressURL = "https://digitalscholarshiplab.carto.com/api/v2/sql?format=GeoJSON&q=SELECT congress::numeric, st_centroid(the_geom) as the_geom, id, statename, district, party_of_v, case when total_vote > 0 then victor_vot / total_vote else -1 end as percent_vote FROM digitalscholarshiplab.congressional_data",
+  metroURL = "https://digitalscholarshiplab.carto.com/api/v2/sql?format=JSON&q=with intersecting as (SELECT congress::numeric, metro_areas.name as metro, id, st_x(st_centroid(congressional_data.the_geom)) as lng, st_y(st_centroid(congressional_data.the_geom)) as lat FROM digitalscholarshiplab.congressional_data join metro_areas on id is not null and floor(metro_areas.year / 10) = floor(congressional_data.year / 10) and  st_contains(metro_areas.the_geom, st_centroid(congressional_data.the_geom))) select * from intersecting where metro || congress in (select metro || congress as metrocongress from intersecting group by (metro, congress) having count(*) >= 3)";
+
+d3.json(geographyURL, function(err, geojson) {
+  svg.append("path")
+    .attr("d", path(geojson))
+    .style("fill", 'white')
+    .attr("filter", "url(#blur)");
+
+  // get all congressional data
+  d3.json(congressURL, (err, cd) => {
+    const raw_congress_data = cd.features;
+
+    // get disricts where there are three or more in a metro area
+    d3.json(metroURL, (err, md) => {
+      // make a lookup list of congresses and ids
+      md.rows.forEach(election => {
+        const year = 1786 + election.congress * 2;
+        metroDistricts[year] = metroDistricts[year] || {
+          ids: {},
+          cities: {}
+        };
+        metroDistricts[year].ids[election.id] = election.metro;
+        metroDistricts[year].cities[election.metro] = metroDistricts[year].cities[election.metro] || { elections: [] };
+        metroDistricts[year].cities[election.metro].elections.push(election); 
+      });
+
+      // calculates coords to place the city--an average
+      Object.keys(metroDistricts).forEach(year => {
+        Object.keys(metroDistricts[year].cities).forEach(metro => {
+          const avgLat = metroDistricts[year].cities[metro].elections.map(e => e.lat).reduce((accumulator, currentValue) => accumulator + currentValue) / metroDistricts[year].cities[metro].elections.length,
+            avgLng = metroDistricts[year].cities[metro].elections.map(e => e.lng).reduce((accumulator, currentValue) => accumulator + currentValue) / metroDistricts[year].cities[metro].elections.length;
+          metroDistricts[year].cities[metro].coords = [avgLng, avgLat];
+        });
+      });
+
+      console.log(metroDistricts);
+
+      // sort the congress_data into individual congresses
+      raw_congress_data.forEach(election => {
+        if (election.properties.id) {
+          election.properties.regularized_party_of_victory = getRegularizedParty(election.properties.party_of_v);
+          election.properties.district = (namesAndAbbrs.find(s => s.name == election.properties.statename)) ? namesAndAbbrs.find(s => s.name == election.properties.statename).abbreviation + election.properties.district : null;
+
+          const year = 1786 + election.properties.congress * 2,
+            pathD = path({type:"Point", coordinates: election.geometry.coordinates}),
+            point = [parseFloat(pathD.substr(1,7)), parseFloat(pathD.substr(pathD.indexOf(',') + 1,7))],
+            node = {
+              x: point[0],
+              y: point[1],
+              r: 5,
+              color: getColor(election.properties.party_of_v, election.properties.percent_vote),
+              id: election.properties.id,
+              district: election.properties.district,
+              xOrigin: point[0],
+              yOrigin: point[1]
+            };
+          congresses_data[year] = congresses_data[year] || { 
+            notCity: Object.keys(metroDistricts[year].cities).map(city => {
+              const pathD = path({type:"Point", coordinates: metroDistricts[year].cities[city].coords}),
+                point = [parseFloat(pathD.substr(1,7)), parseFloat(pathD.substr(pathD.indexOf(',') + 1,7))];
+              return {
+                x: point[0],
+                y: point[1],
+                r: enclosing_circle_radii[metroDistricts[year].cities[city].elections.length] * 8,
+                id: city,
+                class: 'city',
+                color: 'transparent',
+                xOrigin: point[0],
+                yOrigin: point[1]
+              };
+            }),
+            cities: {},
+          };
+
+          if (Object.keys(metroDistricts[year].ids).includes(election.properties.id)) {
+            congresses_data[year].cities[metroDistricts[year].ids[election.properties.id]] = congresses_data[year].cities[metroDistricts[year].ids[election.properties.id]] || [];
+            congresses_data[year].cities[metroDistricts[year].ids[election.properties.id]].push(node);
+          } else {
+            congresses_data[year].notCity.push(node);
+          }
+        }
+      });
+
+      console.log(congresses_data);
+      congresses = Object.keys(congresses_data);
+
+      // map each congress
+      runSimulation(congresses[0]);
+    });
+  });
+});
+
+</script>
+
+

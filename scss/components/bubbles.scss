@@ -1,0 +1,8 @@
+.flipped {
+  animation: hideshow 2s ease infinite;
+}
+
+@keyframes hideshow {
+  from { stroke-width: 1; stroke-opacity: 1;}
+  to { stroke-width: 15; stroke-opacity: 0; }
+}
