@@ -1,6 +1,8 @@
 // import node modules
 import * as React from 'react';
 
+import * as d3 from 'd3';
+
 // utils
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
 import AppDispatcher from './utils/AppDispatcher';
@@ -9,6 +11,7 @@ import { getColorForParty, getColorForMargin, yearForCongress } from './utils/He
 import Bubble from './components/Bubble.jsx';
 import District from './components/District.jsx';
 import VizControls from './components/VizControls.jsx';
+import StateDistGraph from './components/StateDistGraph.jsx';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
@@ -73,7 +76,21 @@ class App extends React.Component {
   }
 
   render () {
-    console.log(DistrictsStore.getElectionDistricts(this.state.selectedYear));
+    //console.log(DistrictsStore.getPartyDistributionByStateOrganized(this.state.selectedYear));
+
+    var y = d3.scaleLinear()
+      .domain([1860, 1996])
+      .range([1000, 0]);
+    var x = d3.scaleLinear()
+      .domain([-350, 350])
+      .range([-100, 100]);
+    var area = d3.area()
+      .y(d => y(d.data.year))
+      .x0(d => x(d[0]))
+      .x1(d => x(d[1]))
+      .curve(d3.curveCatmullRom);
+
+
     return (
       <div>
         <header>
@@ -153,6 +170,51 @@ class App extends React.Component {
           id='sidebar'
           style={{ height: DimensionsStore.getDimensions().sidebarHeight }}
         >
+          <svg 
+            width={200}
+            height={1000}
+          >
+            <g transform='translate(100 0)'>
+
+            { DistrictsStore.getPartyCounts().map((partyCount, i) => 
+              <path
+                d={area(partyCount)}
+                fill={(i <= 10) ? getColorForParty('democrat') : (i == 11) ? getColorForMargin('democrat', 0.8) : (i == 12) ? 'green' : (i == 13) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
+                key={'timelineParty' + i}
+              />
+            )}
+            
+
+            { DistrictsStore.getCongressYears().map(year => 
+              <text
+                x={0}
+                y={y(year)}
+                fill='white'
+                textAnchor='middle'
+                key={'year' + year}
+              >
+                {(year %10 == 0) ? year : '•'}
+              </text>
+            )}
+
+            { DistrictsStore.getCongressYears().map(year => 
+              <rect
+                x={-100}
+                y={y(year)}
+                width={200}
+                height={y(1860) - y(1862)}
+                stroke='#999'
+                strokeWidth={0}
+                fill='transparent'
+                key={'clickbox'+year}
+                id={year}
+                onClick={ this.onYearSelected }
+              />
+            )}
+
+            </g>
+          </svg>
+
           <ul>
             { DistrictsStore.getYears().map(year => 
               <li
@@ -171,7 +233,18 @@ class App extends React.Component {
           id='info'
           style={{ width: DimensionsStore.getDimensions().infoWidth }}
         >
-          info
+          <svg
+            height={600}
+            width={2000}
+          >
+            
+            { DistrictsStore.getPartyDistributionByStateOrganized(this.state.selectedYear).map(stateData => 
+              <StateDistGraph
+                { ...stateData }
+                key={ 'graphFor' + stateData.state }
+              />
+            )}
+          </svg>
 
         </aside>
       </div>

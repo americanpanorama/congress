@@ -1,0 +1,186 @@
+<!-- run python -m SimpleHTTPServer from command line in this directory for this to work so you can use require --> 
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Dorling Cartogram</title>
+<style>
+  body { background-color: #a0a0a6; }
+  circle { stroke: #222; stroke-width: 1px; }
+</style>
+<body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script>
+
+var projection = d3.geoAlbersUsa(),
+  path = d3.geoPath().projection(projection);
+
+var year, 
+  congress = 83,
+  metroDistricts = {},
+  metro_data,
+  congresses,
+  results = [],
+  width = 960,
+  height = 500;
+
+// initialize svg and the blur filter
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g");
+
+const runSimulation = function(year) {
+  if (!congresses_data[year] && year <= 1988) {
+    runSimulation(parseInt(year) + 2);
+  } else {
+    console.log('running ' + year);
+
+    svg.datum(congresses_data[year].notCity);
+
+    var node = svg.selectAll("circle")
+        .data(d => d)
+      .enter().append("circle")
+        .attr("r", d => d.r)
+        .attr("id", d => d.district)
+        .attr("class", d => d.class)
+        .style("fill", d => d.color)
+        .style("stroke-width", d => (d.class == 'city') ? 0.5 : 0);
+
+    // run the simulation starting with the non-city districts and the city nodes
+    var simulation = d3.forceSimulation(congresses_data[year].notCity)
+      .force("collide", d3.forceCollide().radius(function(d) { return d.r + 2; }).strength(0.02).iterations(20))
+      .on('tick', function() {
+        node
+          .attr("cx", function(d) { return d.x; })
+          .attr("cy", function(d) { return d.y; });
+      })
+      .on('end', () => {
+        // get the city nodes so you can place the city districtsion
+        let cityXYs = getCityXYs();
+        if (cityXYs.length == 0) {
+          results.push(getXYs(parseInt(year)));
+          svg.selectAll("circle").remove();
+          runSimulation(parseInt(year) + 2);
+        } else {
+          let citiesFinished = cityXYs.map(cx => false);
+          cityXYs.forEach((cityXY, i) => {
+            let cityNodes = congresses_data[year].cities[cityXY.city].map(cn => {
+              // you need to calculate how far the city node has moved relative to its actual location
+              const offsets = [cityXY.xOrigin-cityXY.x, cityXY.yOrigin - cityXY.y];
+              cn.x -= offsets[0];
+              cn.y -= offsets[1];
+              return cn;
+            });
+            var cityGroup = svg.append("g");
+            cityGroup.datum(cityNodes);
+
+            var bubbles = cityGroup.selectAll("circle")
+                  .data(function(d) { return d; })
+                .enter().append("circle")
+                  .attr("r", 5)
+                  .attr("id", function(d) { return d.id; })
+                  //.attr("district", function(d) { return d.district; })
+                  .attr("class", function(d) { return d.class; })
+                  .style("fill", function(d) { return d.color; })
+                  .style("stroke-width", 0 );
+
+             // plot and move the each city (and each city is run individually)
+             d3.forceSimulation(cityNodes)
+                .force("collide", d3.forceCollide().radius(function(d) { return d.r + 2; }).strength(0.02).iterations(20))
+                .force("forceY", d3.forceY().y(cityXY.y).strength(0.5))
+                .force("forceX", d3.forceX().x(cityXY.x).strength(0.5))
+                .on('tick', function() {
+                  bubbles
+                    .attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
+                })
+                .on('end', () => {
+                  // mark the city as finished 
+                  citiesFinished[i] = true;
+
+                  // if finished 
+                  if (!citiesFinished.includes(false)) {
+                    // record the results
+                    results.push(getXYs(parseInt(year)));
+
+                    // output results if you're done
+                    if (parseInt(year) == 1960) {
+                      console.log(results);
+                    } 
+                    // do the next congress
+                    else {
+                      svg.selectAll("circle").remove();
+                      runSimulation(parseInt(year) + 2);
+                    }
+                  }
+                });
+              });
+        }
+      });
+  }
+
+};
+
+// use the following function to retrieve the xys
+const getXYs = function(year) {
+  var xys = { "year": year, "districts": [], "cities": [] };
+
+  var dorlings = svg.selectAll("circle:not(.city)");
+  dorlings.each(d => xys.districts.push({ 
+    id: d.id, 
+    district: d.district,
+    x: (d.x - width / 2) / projection.scale(), 
+    y: (d.y - height / 2) / projection.scale(),
+    xOrigin: (d.xOrigin - width / 2) / projection.scale(),
+    yOrigin: (d.yOrigin - height / 2) / projection.scale(),
+  }));
+
+  var citiesBubbles = svg.selectAll("circle.city");
+  citiesBubbles.each(d => xys.cities.push({ 
+    id: d.id, 
+    x: (d.x - width / 2) / projection.scale(), 
+    y: (d.y - height / 2) / projection.scale(),
+    xOrigin: (d.xOrigin - width / 2) / projection.scale(),
+    yOrigin: (d.yOrigin - height / 2) / projection.scale(),
+    r: d.r / projection.scale()
+  }));
+
+  return xys;
+};
+
+const getCityXYs = function() {
+  var dorlings = svg.selectAll("circle").filter(".city");
+  var xys = [];
+  dorlings.each(d => xys.push({ 
+    city: d.id, 
+    x: d.x, 
+    y: d.y,
+    xOrigin: d.xOrigin,
+    yOrigin: d.yOrigin,
+  }));
+
+  return xys;
+};
+
+const geographyURL = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json",
+  nodesURL = 'http://localhost:8000/dorlingNodes.json';
+
+d3.json(geographyURL, function(err, geojson) {
+  svg.append("path")
+    .attr("d", path(geojson))
+    .style("fill", 'white');
+
+    d3.json(nodesURL, (err, nodes) => {
+      congresses_data = nodes;
+
+      congresses = Object.keys(congresses_data);
+
+      // map each congress
+      runSimulation(congresses[0]);
+    });
+});
+
+</script>
+
+

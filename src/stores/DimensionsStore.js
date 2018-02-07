@@ -13,6 +13,7 @@ const DimensionsStore = {
 		sidebarWidth: 250,
 		sidebarHeight: 100, // placeholder
 		infoWidth: 100,
+		infoHeight: 200,
 	},
 
 	computeComponentDimensions () {

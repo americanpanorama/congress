@@ -12,21 +12,21 @@ export const getColorForMargin = function(party, percent) {
     return "gold";
   }
 
-  var repColor = d3.scaleLinear()
+  var getRepColor = d3.scaleLinear()
       .domain([-1, 0.5, 1])
-      .range(['#FACFCF', '#FACFCF', '#eb3f3f']);
+      .range(['#FACFCF', '#FACFCF', repColor]);
 
-  var demColor = d3.scaleLinear()
+  var getDemColor = d3.scaleLinear()
       .domain([-1, 0.5, 1])
-      .range(['#D2D2F8', '#D2D2F8', '#4a4ae4']);
+      .range(['#D2D2F8', '#D2D2F8', demColor]);
 
 
   if (party.toLowerCase().includes('republican')) {
-    return repColor(percent);
+    return getRepColor(percent);
   }
 
   if (party.toLowerCase().includes('democrat')) {
-    return demColor(percent);
+    return getDemColor(percent);
   }
 
   return 'orange'
