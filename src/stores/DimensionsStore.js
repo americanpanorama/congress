@@ -10,10 +10,12 @@ const DimensionsStore = {
 		windowHeight: window.innerHeight,
 		windowWidth: window.innerWidth,
 		headerHeight: 100,
-		sidebarWidth: 250,
+		sidebarWidth: 400,
 		sidebarHeight: 100, // placeholder
 		infoWidth: 100,
 		infoHeight: 200,
+		timelineHeight: window.innerHeight - 100,
+		timelineWidth: 350,
 	},
 
 	computeComponentDimensions () {
@@ -23,7 +25,9 @@ const DimensionsStore = {
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
 		this.data.mapHeight = this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding * 2;
-		this.data.mapWidth = this.data.windowWidth - this.data.gutterPadding * 2;
+		this.data.mapWidth = this.data.windowWidth - this.data.timelineWidth - this.data.gutterPadding * 2;
+
+		this.data.timelineHeight = this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding * 2;
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
 
@@ -32,14 +36,21 @@ const DimensionsStore = {
 
 	getMapDimensions: function() {
 		return {
-			width: 960,
-			height: 500
+			width: this.data.mapWidth,
+			height: this.data.mapHeight
 		};
 	},
 
 	getMapScale: function() { return Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000); },
 
-	getDimensions: function() { return this.data; }
+	getDimensions: function() { return this.data; },
+
+	getSVGArc(padding, radius, sweepFlag) {
+		sweepFlag = (sweepFlag) ? sweepFlag : 1; 
+		return 'M ' + padding + ',' + radius + ' A ' + (radius-padding) + ',' + (radius-padding) + ' 0 0, ' + sweepFlag + ' ' + (radius*2 - padding) + ',' + radius; 
+	},
+
+	getTitleLabelArc(radius) { return this.getSVGArc(12, radius); },
 
 
 

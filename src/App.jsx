@@ -6,12 +6,14 @@ import * as d3 from 'd3';
 // utils
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
 import AppDispatcher from './utils/AppDispatcher';
-import { getColorForParty, getColorForMargin, yearForCongress } from './utils/HelperFunctions';
+import { getColorForParty, getColorForMargin, yearForCongress, congressForYear, ordinalSuffixOf } from './utils/HelperFunctions';
 
 import Bubble from './components/Bubble.jsx';
 import District from './components/District.jsx';
 import VizControls from './components/VizControls.jsx';
 import StateDistGraph from './components/StateDistGraph.jsx';
+import Timeline from './components/Timeline.jsx';
+import ZoomControls from './components/ZoomControls.jsx';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
@@ -23,15 +25,21 @@ class App extends React.Component {
   constructor (props) {
     super(props);
 
+    // initialize state
+    const theHash = HashManager.getState();
+    const [x,y,z] = (theHash.xyz) ? theHash.xyz.split('/') : [0,0,1];
     this.state = {
-      selectedYear: 1952,
-      selectedView: 'cartogram',
-      winnerView: false,
-      dorling: true
+      selectedYear: theHash.year || 1952,
+      selectedView: theHash.view || 'cartogram',
+      winnerView: theHash.show == 'winner',
+      dorling: theHash.view != 'map',
+      zoom: z,
+      x: x,
+      y: y,
     };
 
     // bind handlers
-    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged'];
+    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove'];
     handlers.forEach(handler => { this[handler] = this[handler].bind(this); });
   }
 
@@ -44,6 +52,10 @@ class App extends React.Component {
     //window.addEventListener('resize', this.onWindowResize);
     DistrictsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
     DimensionsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
+    this.setState({
+      x: DimensionsStore.getDimensions().mapWidth/2,
+      y: DimensionsStore.getDimensions().mapHeight/2,
+    });
   }
 
   componentDidUpdate () { this.changeHash(); }
@@ -64,6 +76,83 @@ class App extends React.Component {
     });
   }
 
+  onZoomIn(event) {
+    event.preventDefault();
+    const z = Math.min(this.state.zoom * 1.62, 18),
+      centerX = (event.target.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().width  / 2 - this.state.x : event.nativeEvent.offsetX - this.state.x,
+      centerY = (event.target.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().height  / 2 - this.state.y : event.nativeEvent.offsetY - this.state.y,
+      x = DimensionsStore.getMapDimensions().width  / 2 - centerX / this.state.zoom * z,
+      y = DimensionsStore.getMapDimensions().height / 2 - centerY / this.state.zoom * z;
+    this.setState({
+      zoom: z,
+      x: x,
+      y: y
+    });
+  }
+
+  zoomOut() {
+    const z = Math.max(this.state.zoom / 1.62, 1),
+      x = DimensionsStore.getMapDimensions().width  / 2 - (DimensionsStore.getMapDimensions().width  / 2 - this.state.x) / this.state.zoom * z,
+      y = DimensionsStore.getMapDimensions().height  / 2 - (DimensionsStore.getMapDimensions().height  / 2 - this.state.y) / this.state.zoom * z;
+    this.setState({
+      zoom: z,
+      x: x,
+      y: y
+    });
+  }
+
+  handleMouseUp() {
+    this.dragging = false;
+    this.coords = {};
+  }
+
+  handleMouseDown(e) {
+    this.dragging = true;
+    //Set coords
+    this.coords = {x: e.pageX, y:e.pageY};
+  }
+
+  handleMouseMove(e) {
+    //If we are dragging
+    if (this.dragging) {
+      e.preventDefault();
+      //Get mouse change differential
+      var xDiff = this.coords.x - e.pageX,
+        yDiff = this.coords.y - e.pageY;
+      //Update to our new coordinates
+      this.coords.x = e.pageX;
+      this.coords.y = e.pageY;
+      //Adjust our x,y based upon the x/y diff from before
+      var x = this.state.x - xDiff,       
+        y = this.state.y - yDiff,
+        z = this.state.zoom;
+      //Re-render
+      this.setState({
+        zoom: z,
+        x: x,
+        y: y
+      });
+    }
+  }
+
+
+  // zoomToState(e) {
+  //   const b = GeographyStore.getBoundsForState(e.target.id),
+  //     centroid = GeographyStore.getCentroidForState(e.target.id),
+  //     z = .8 / Math.max((b[1][0] - b[0][0]) / DimensionsStore.getMainPaneWidth(), (b[1][1] - b[0][1]) / DimensionsStore.getNationalMapHeight()),
+  //     x = (DimensionsStore.getMainPaneWidth() / 2) - (DimensionsStore.getMainPaneWidth() * z * (centroid[0] / DimensionsStore.getMainPaneWidth())),
+  //     y = (DimensionsStore.getNationalMapHeight() / 2) - (DimensionsStore.getNationalMapHeight() * z * (centroid[1] /  DimensionsStore.getNationalMapHeight()));
+  //   AppActions.mapMoved(x,y,z);
+  // }
+
+  resetView() { 
+    this.setState({
+      zoom: 1,
+      x: DimensionsStore.getMapDimensions().width/2,
+      y: DimensionsStore.getMapDimensions().height/2
+    });
+  }
+
   toggleView(e) { this.setState({ winnerView: !this.state.winnerView }); }
 
   toggleDorling() { 
@@ -71,25 +160,18 @@ class App extends React.Component {
   }
 
   changeHash () {
-    //let hash = {};
-    //HashManager.updateHash(hash);
+    const vizState = { 
+      year: this.state.selectedYear,
+      view: this.state.selectedView,
+      xyz: [this.state.x, this.state.y, this.state.zoom].join('/'),
+      show: (this.state.winnerView) ? 'winner' : 'strength'
+    };
+
+    HashManager.updateHash(vizState);
   }
 
   render () {
     //console.log(DistrictsStore.getPartyDistributionByStateOrganized(this.state.selectedYear));
-
-    var y = d3.scaleLinear()
-      .domain([1860, 1996])
-      .range([1000, 0]);
-    var x = d3.scaleLinear()
-      .domain([-350, 350])
-      .range([-100, 100]);
-    var area = d3.area()
-      .y(d => y(d.data.year))
-      .x0(d => x(d[0]))
-      .x1(d => x(d[1]))
-      .curve(d3.curveCatmullRom);
-
 
     return (
       <div>
@@ -103,7 +185,11 @@ class App extends React.Component {
         >
           <g
             { ...DimensionsStore.getMapDimensions() }
-            transform={ 'translate(' + DimensionsStore.getDimensions().mapWidth/2 + ' ' + DimensionsStore.getDimensions().mapHeight/2 + ')' }
+            onDoubleClick={ this.onZoomIn }
+            onMouseUp={this.handleMouseUp }
+            onMouseDown={this.handleMouseDown }
+            onMouseMove={this.handleMouseMove }
+            transform={ 'translate(' + this.state.x + ' ' + this.state.y + ') scale(' + this.state.zoom + ')' }
           >
             <g
               transform={ 'translate(-' + DimensionsStore.getDimensions().mapWidth/2 + ' -' + DimensionsStore.getDimensions().mapHeight/2 + ')' }
@@ -114,10 +200,10 @@ class App extends React.Component {
                     d={ DistrictsStore.getPath(d.the_geojson) }
                     key={ 'polygon' + d.id }
                     fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
-                    fillOpacity={ (this.state.selectedView =='cartogram') ? 0.05 : 1 }
-                    stroke={ getColorForParty(d.regularized_party_of_victory) }
-                    strokeWidth={0.1}
-                    strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 0.25}
+                    fillOpacity={ (this.state.selectedView =='cartogram') ? 0.1 : 1 }
+                    stroke={ 'white' }
+                    strokeWidth={0.5}
+                    strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 1}
                     selectedView={ this.state.selectedView }
                   />
                 );
@@ -131,6 +217,7 @@ class App extends React.Component {
                     cx={(this.state.dorling) ? d.x : d.xOrigin }
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={(this.state.dorling) ? d.r : 0.01 }
+                    cityLabel={ d.id }
                     color='transparent'
                     stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'black' }
                     key={d.id || 'missing' + i}
@@ -144,7 +231,7 @@ class App extends React.Component {
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={ DimensionsStore.getDimensions().districtR }
                     color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
-                    stroke={ 'transparent' }
+                    stroke={ (this.state.selectedView == 'map') ? 'transparent' : getColorForParty(d.regularized_party_of_victory) }
                     label={ (d.flipped) ? 'F' : ''}
                     labelColor={ getColorForParty(d.regularized_party_of_victory) }
                     key={d.id}
@@ -156,64 +243,33 @@ class App extends React.Component {
             }
 
           </g>
-
-
-
         </svg>
+
+        <ZoomControls
+          onZoomIn={ this.onZoomIn }
+          onZoomOut={ this.zoomOut }
+          resetView={ this.resetView }
+        />
 
         <VizControls
           selectedView={ this.state.selectedView }
           onViewSelected={ this.onViewSelected }
+          toggleView={ this.toggleView }
         />
 
         <aside 
           id='sidebar'
           style={{ height: DimensionsStore.getDimensions().sidebarHeight }}
         >
-          <svg 
-            width={200}
-            height={1000}
-          >
-            <g transform='translate(100 0)'>
 
-            { DistrictsStore.getPartyCounts().map((partyCount, i) => 
-              <path
-                d={area(partyCount)}
-                fill={(i <= 10) ? getColorForParty('democrat') : (i == 11) ? getColorForMargin('democrat', 0.8) : (i == 12) ? 'green' : (i == 13) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
-                key={'timelineParty' + i}
-              />
-            )}
-            
+          <Timeline
+            partyCount={ DistrictsStore.getPartyCounts() }
+            congressYears={ DistrictsStore.getCongressYears() }
+            onYearSelected={ this.onYearSelected }
+            selectedYear={ this.state.selectedYear }
+            partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
+          />
 
-            { DistrictsStore.getCongressYears().map(year => 
-              <text
-                x={0}
-                y={y(year)}
-                fill='white'
-                textAnchor='middle'
-                key={'year' + year}
-              >
-                {(year %10 == 0) ? year : '•'}
-              </text>
-            )}
-
-            { DistrictsStore.getCongressYears().map(year => 
-              <rect
-                x={-100}
-                y={y(year)}
-                width={200}
-                height={y(1860) - y(1862)}
-                stroke='#999'
-                strokeWidth={0}
-                fill='transparent'
-                key={'clickbox'+year}
-                id={year}
-                onClick={ this.onYearSelected }
-              />
-            )}
-
-            </g>
-          </svg>
 
           <ul>
             { DistrictsStore.getYears().map(year => 
@@ -233,6 +289,9 @@ class App extends React.Component {
           id='info'
           style={{ width: DimensionsStore.getDimensions().infoWidth }}
         >
+          <div>
+            <h2>Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress</h2>
+          </div>
           <svg
             height={600}
             width={2000}

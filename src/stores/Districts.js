@@ -22,6 +22,7 @@ const DistrictsStore = {
     districts: [],
     congressDistricts: {},
     theMap: null,
+    rawPartyCounts: [],
     partyCounts: [],
     congressYears: [],
   },
@@ -214,6 +215,8 @@ const DistrictsStore = {
     }
   },
 
+  getRawPartyCounts(year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year == year) : this.data.rawPartyCounts; },
+
   getPartyCountForYearAndParty(year, party) {
     return Object.keys(Elections[year]).reduce((accumulator, state) => {
         return accumulator + Object.keys(Elections[year][state]).reduce((accumulator2, districtNum) => {
@@ -222,7 +225,7 @@ const DistrictsStore = {
       }, 0);
   },
 
-  parsePartyCounts() {
+  parseRawPartyCounts() {
     let counts = [];
     Object.keys(Elections).map(year => {
       if (year != 'NaN') {
@@ -252,17 +255,17 @@ const DistrictsStore = {
         });
       }
     });
+    this.data.rawPartyCounts = counts;
+  },
+
+  parsePartyCounts() {
     function offset(series, order) {
       series.forEach(partyCounts => {
         if (partyCounts.key == 'demAboveMargin') {
           partyCounts = partyCounts.map((stackData,i) => {
-            if (false && i > 0 && partyCounts[i-1].data.demAboveMargin == 0) {
-              stackData[0] = -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-              stackData[1] = 0;
-            } else {
-              stackData[0] = -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-              stackData[1] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-            }
+            stackData[0] = -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount/2);
+            // a little hacky, but set this to zero so that you can prevent gaps between curves that don't match because they don't share all points
+            stackData[1] = 0; //-1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
           });
         }
         if (partyCounts.key == 'demBelowMargin') {
@@ -289,7 +292,7 @@ const DistrictsStore = {
               stackData[0] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
               stackData[1] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
             } else {
-              stackData[0] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
+              stackData[0] = 0; //stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
               stackData[1] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin + stackData.data.repAboveMargin;
             }
           });
@@ -299,18 +302,18 @@ const DistrictsStore = {
     const stack = d3.stack()
       .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'repBelowMargin', 'repAboveMargin'])
       .offset(offset);
-    var stackedData = stack(counts);
+    var stackedData = stack(this.data.rawPartyCounts);
     // split the margins into separate series
     let demMajorityYears = stackedData[0].filter(yd => yd.data.demAboveMargin > 0).map(yd => yd.data.year),
       demStartYears = demMajorityYears.filter((year, i) => i == 0 || !demMajorityYears.includes(year - 2)),
       demEndYears = demMajorityYears.filter((year, i) => i == demMajorityYears.length -1 || !demMajorityYears.includes(year + 2)),
       demSpans = demStartYears.map((sy, i) => [sy, demEndYears[i]]),
       demSeries = [];
-    console.log(demMajorityYears, demStartYears, demEndYears, demSpans);
     demSpans.forEach(span => {
       const startIndex = stackedData[0].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[0].findIndex(yd => yd.data.year == span[1]);
-      demSeries.push(stackedData[0].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1));
+        endIndex = stackedData[0].findIndex(yd => yd.data.year == span[1]),
+        aDemSeries = stackedData[0].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+      demSeries.push(aDemSeries);
     });
 
     let repMajorityYears = stackedData[4].filter(yd => yd.data.repAboveMargin > 0).map(yd => yd.data.year),
@@ -320,17 +323,15 @@ const DistrictsStore = {
       repSeries = [];
     repSpans.forEach(span => {
       const startIndex = stackedData[4].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[4].findIndex(yd => yd.data.year == span[1]);
-      repSeries.push(stackedData[4].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1));
+        endIndex = stackedData[4].findIndex(yd => yd.data.year == span[1]),
+        aRepSeries = stackedData[4].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+      repSeries.push(aRepSeries);
     });
 
     delete(stackedData[4]);
-    stackedData = stackedData.concat(repSeries);
-
     delete(stackedData[0]);
+    stackedData = repSeries.concat(stackedData);
     stackedData = demSeries.concat(stackedData);
-
-    console.log(stackedData);
 
     this.data.partyCounts = stackedData;
   },
@@ -348,6 +349,7 @@ AppDispatcher.register((action) => {
 
       DistrictsStore.parseBubbles();
       DistrictsStore.loadDistrictsForCongress(year);
+      DistrictsStore.parseRawPartyCounts();
       DistrictsStore.parsePartyCounts();
       break;
     case AppActionTypes.congressSelected:

@@ -55,6 +55,28 @@ export default class Bubble extends React.Component {
   render () {
     return (
       <g transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}>
+        { (this.props.cityLabel) ? 
+          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' }>
+            <defs>
+              <path 
+                id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
+                d={ DimensionsStore.getTitleLabelArc(this.state.r) }
+              />
+            </defs>
+            <text 
+              stroke='transparent'
+              fontSize={ 12 }
+              textAnchor='middle'
+            >
+              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='45%'>
+                { this.props.cityLabel }
+              </textPath>
+            </text>
+
+          </g> : ''
+        }
+
+
         <circle className='dorling'
 
           r={ this.state.r }
@@ -79,6 +101,7 @@ export default class Bubble extends React.Component {
             x={ -3 }
             y={ 5 }
             fill='white'
+            stroke='transparent'
             style={{ 
               fontSize: 12, 
               weight: 400,

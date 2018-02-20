@@ -10,6 +10,12 @@ export default class LegendAndControls extends React.Component {
     return (
       <div id='mapChartToggle'>
         <div
+          onClick={ this.props.toggleView }
+        >
+          strength or winner
+        </div>
+
+        <div
           className={ (this.props.selectedView == 'map') ? 'selected' : '' }
           onClick={ this.props.onViewSelected }
           id='map'

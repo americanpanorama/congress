@@ -3,7 +3,11 @@ body,
 html {
   height: 100%;
   width: 100%;
+  background-color: #eee;
+  color: black;
 }
+
+
 
 body {
 }
@@ -21,7 +25,7 @@ aside#sidebar {
 	position: fixed;
 	right: 0;
 	top: 100px;
-	width: 250px;
+	width: 300px;
 }
 
 aside#info{

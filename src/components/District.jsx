@@ -44,8 +44,8 @@ export default class District extends React.Component {
         d={ this.props.d }
         fill={ this.state.color }
         fillOpacity={ this.state.fillOpacity }
-        stroke={ this.state.stroke }
-        strokeWidth={0.1}
+        stroke={ this.state.color || this.state.stroke }
+        strokeWidth={ 0.5 }
         strokeOpacity={ this.state.strokeOpacity }
       />
     );
