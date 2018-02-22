@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 
-const repColor = '#eb3f3f';
+const repColor = '#DB504A';
 const repColorLight = '#FACFCF';
-const demColor = '#4a4ae4';
+const demColor = '#717EC3';
 const demColorLight = '#D2D2F8';
 const thirdColor = 'orange';
 
@@ -14,13 +14,21 @@ export const getColorForMargin = function(party, percent) {
     return "gold";
   }
 
+  var repColorAdjustment = d3.scaleLinear()
+    .domain([-1, 1])
+    .range(['white', repColor]);
+
+  var demColorAdjustment = d3.scaleLinear()
+    .domain([-1, 1])
+    .range(['white', demColor]);
+
   var getRepColor = d3.scaleLinear()
       .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', repColorLight, repColor]);
+      .range(['silver', 'silver', repColorAdjustment(0.3), repColor]);
 
   var getDemColor = d3.scaleLinear()
       .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', demColorLight, demColor]);
+      .range(['silver', 'silver', demColorAdjustment(0.3), demColor]);
 
 
   if (party.toLowerCase().includes('republican')) {

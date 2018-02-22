@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import AppDispatcher from '../utils/AppDispatcher';
 import { AppActionTypes } from '../utils/AppActionCreator';
 
+import * as topojson from 'topojson-client';
 import CartoDBLoader from '../utils/CartoDBLoader';
 import * as d3 from 'd3';
 
@@ -30,6 +31,52 @@ const DistrictsStore = {
   dataLoader: CartoDBLoader,
 
   loadDistrictsForCongress: function(year) {
+    const congress = congressForYear(year);
+    this.data.congressDistricts[year] = this.data.congressDistricts[year] || [];
+
+    fetch('static/districts-topojson/' + congress + '.json')
+      .then(
+        (response) => {
+          if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' +
+              response.status);
+            return;
+          }
+
+          // Examine the text in the response
+          response.json().then((data) => {
+            console.log(data);
+            data.objects = {
+              type: 'GeometryCollection',
+              geometries: Object.keys(data.objects).map(k => data.objects[k])
+            };
+            console.log(data);
+            const theGeoJson = topojson.feature(data, data.objects);
+            console.log(theGeoJson);
+            theGeoJson.features.forEach(d => {
+              this.data.districts[d.properties.id] = {
+                id: d.properties.id,
+                statename: d.properties.statename,
+                district: d.properties.district,
+                startcong: d.properties.startcong,
+                endcong: d.properties.endcong,
+                the_geojson: d.geometry
+              };
+              this.data.congressDistricts[year].push(d.properties.id);
+            });
+
+            console.log(this.data.districts);
+
+            this.emit(AppActionTypes.storeChanged);
+          });
+        }
+      )
+      .catch(function(err) {
+        console.log('Fetch Error :-S', err);
+      });    
+  },
+
+  loadDistrictsForCongressOLD: function(year) {
     const congress = congressForYear(year);
     // load only if the congress hasn't been loaded yet 
     if (year && congress && !this.data.congressDistricts[congress]) {

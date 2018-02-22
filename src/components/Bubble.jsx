@@ -14,11 +14,37 @@ export default class Bubble extends React.Component {
       stroke: this.props.stroke,
       cx: this.props.cx,
       cy: this.props.cy,
+      dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r),
       windowDimensions: DimensionsStore.getMapDimensions()
     };
   }
 
   componentWillReceiveProps(nextProps) {
+    function pathTween(d1, precision) {
+      return function() {
+        var path0 = this,
+            path1 = path0.cloneNode(),
+            n0 = path0.getTotalLength(),
+            n1 = (path1.setAttribute("d", d1), path1).getTotalLength();
+
+        // Uniform sampling of distance based on specified precision.
+        var distances = [0], i = 0, dt = precision / Math.max(n0, n1);
+        while ((i += dt) < 1) distances.push(i);
+        distances.push(1);
+
+        // Compute point-interpolators at each distance.
+        var points = distances.map(function(t) {
+          var p0 = path0.getPointAtLength(t * n0),
+              p1 = path1.getPointAtLength(t * n1);
+          return d3.interpolate([p0.x, p0.y], [p1.x, p1.y]);
+        });
+
+        return function(t) {
+          return t < 1 ? "M" + points.map(function(p) { return p(t); }).join("L") : d1;
+        };
+      };
+    }
+
     if (this.props.r !== nextProps.r || this.props.color !== nextProps.color || this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx || this.props.cy !== nextProps.cy ) {
       d3.select(ReactDOM.findDOMNode(this))
         .transition()
@@ -35,6 +61,34 @@ export default class Bubble extends React.Component {
           });
         });
 
+      d3.select(this.refs['cityLabel'])
+        .transition()
+        .duration(1000)
+        .ease(d3.easeSin)
+          .attr('transform', 'translate(' + (-1 * nextProps.r) + ' ' + (-1 * nextProps.r) + ')');
+
+      d3.select(this.refs['cityLabelArc'])
+        .transition()
+        .duration(1000)
+        .ease(d3.easeSin)
+          .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
+        // .transition()
+        // //.delay(1000)
+        // .duration(1000)
+        // .ease(d3.easeSin)
+        //   .attrTween('d', () => {
+        //     console.log('now');
+        //     const xEnd = (this.props.r - (this.props.r-12) * Math.cos(0.2)),
+        //       yEnd = Math.abs(this.props.r + (this.props.r-12) * Math.sin(0.2)),
+        //       yStart = this.props.r,
+        //       interiorR = this.props.r - 12;
+        //     return function(t) {
+        //       let path = 'M ' + (12 + t * -32) + ', ' +  (yStart - t*yStart) + ' A ' + (interiorR - t*interiorR) + ' ' + (interiorR - t*interiorR) + ', 0 1, 1 ' + ((xEnd - t*xEnd + t*300)) + ' ' + (yEnd - t*yEnd); 
+        //       console.log(t, path);
+        //       return path;
+        //     };
+        //   });
+
       d3.select(this.refs['bubble'])
         .transition()
         .duration(1000)
@@ -44,7 +98,6 @@ export default class Bubble extends React.Component {
           .style('stroke', nextProps.stroke)
         .on('end', () => {
           this.setState({
-            r: nextProps.r,
             stroke: nextProps.stroke
             //windowDimensions: DimensionsStore.getMapDimensions()
           });
@@ -56,19 +109,21 @@ export default class Bubble extends React.Component {
     return (
       <g transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}>
         { (this.props.cityLabel) ? 
-          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' }>
+          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' } ref='cityLabel'>
             <defs>
               <path 
                 id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
-                d={ DimensionsStore.getTitleLabelArc(this.state.r) }
+                d={ this.state.dCityLabel }
+                ref='cityLabelArc'
               />
             </defs>
             <text 
               stroke='transparent'
               fontSize={ 12 }
-              textAnchor='middle'
+              textAnchor='start'
+              fill='black'
             >
-              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='45%'>
+              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='0%'>
                 { this.props.cityLabel }
               </textPath>
             </text>

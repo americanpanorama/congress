@@ -38296,6 +38296,221 @@
  },
  "1920": {
   "null": {
+   "1": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7043
+   },
+   "2": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9992
+   },
+   "3": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9712
+   },
+   "4": {
+    "party_of_victory": "REPUBLICAN - DEMOCRAT (USE CODE 2641)",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8455
+   },
+   "5": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9991
+   },
+   "6": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8331
+   },
+   "7": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9811
+   },
+   "8": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9958
+   },
+   "9": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.597
+   },
+   "10": {
+    "party_of_victory": "REPUBLICAN-DEMOCRAT-PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8264
+   },
+   "11": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9999
+   },
+   "12": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9582
+   },
+   "13": {
+    "party_of_victory": "DEMOCRAT-REPUBLICAN (USE CODE 2637)",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6458
+   },
+   "14": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7604
+   },
+   "15": {
+    "party_of_victory": "DEMOCRAT",
+    "regularized_party_of_victory": "democrat",
+    "percent_vote": 0.9988
+   },
+   "16": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8476
+   },
+   "17": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6263
+   },
+   "18": {
+    "party_of_victory": "DEMOCRAT",
+    "regularized_party_of_victory": "democrat",
+    "percent_vote": 0.3122
+   },
+   "19": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5621
+   },
+   "20": {
+    "party_of_victory": "DEMOCRAT-REPUBLICAN (USE CODE 2637)",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5717
+   },
+   "21": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6338
+   },
+   "22": {
+    "party_of_victory": "DEMOCRAT",
+    "regularized_party_of_victory": "democrat",
+    "percent_vote": 0.4569
+   },
+   "23": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5895
+   },
+   "24": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7334
+   },
+   "25": {
+    "party_of_victory": "PROHIBITION",
+    "regularized_party_of_victory": "third",
+    "percent_vote": 0.4304
+   },
+   "26": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5599
+   },
+   "27": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7135
+   },
+   "28": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5638
+   },
+   "29": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8822
+   },
+   "30": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.9145
+   },
+   "31": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8981
+   },
+   "32": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.8013
+   },
+   "33": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6456
+   },
+   "34": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6977
+   },
+   "35": {
+    "party_of_victory": "MODERN REPUBLICAN",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6502
+   },
+   "36": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6744
+   },
+   "37": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6802
+   },
+   "38": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6596
+   },
+   "39": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7113
+   },
+   "40": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.6949
+   },
+   "41": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.5449
+   },
+   "42": {
+    "party_of_victory": "DEMOCRAT",
+    "regularized_party_of_victory": "democrat",
+    "percent_vote": 0.4834
+   },
+   "43": {
+    "party_of_victory": "REPUBLICAN AND PROHIBITION",
+    "regularized_party_of_victory": "republican",
+    "percent_vote": 0.7442
+   },
    "NaN": {
     "party_of_victory": "DEMOCRAT",
     "regularized_party_of_victory": "democrat",

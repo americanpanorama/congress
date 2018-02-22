@@ -78,6 +78,11 @@ raw_metros.features.forEach(m => {
       geometry: m.geometry
     });
   });
+
+  // use 1940 for each previous decade
+  for (let d = 1790; d <= 1940; d += 10) {
+    metros[d] = metros['1950'];
+  }
 });
 
 console.log('initializing elections ...');
@@ -87,7 +92,7 @@ const election_data = raw_elections.features
   .map(e => {
     const year = 1786 + parseInt(e.properties.CONGRESS) * 2;
       stateAbbr = getStateAbbr(e.properties.STATENAME),
-      metro = (year >= 1950 && metros[[Math.floor(year/10) * 10]] && metros[[Math.floor(year/10) * 10]][stateAbbr]) ? getMetro(year, centroids[e.properties.ID], e.properties.ID, metros[getDecade(year)][stateAbbr]) : false;
+      metro = (metros[[Math.floor(year/10) * 10]] && metros[[Math.floor(year/10) * 10]][stateAbbr]) ? getMetro(year, centroids[e.properties.ID], e.properties.ID, metros[getDecade(year)][stateAbbr]) : false;
 
     if (metro) {
       metrosCountsByYear[year] = metrosCountsByYear[year] || {};
@@ -161,7 +166,7 @@ election_data.forEach(election => {
       return {
         x: point[0],
         y: point[1],
-        r: enclosing_circle_radii[cityData.count] * 8,
+        r: enclosing_circle_radii[cityData.count] * 8 + 5,
         id: cityData.city,
         class: 'city',
         color: 'transparent',

@@ -182,7 +182,7 @@ export default class Timeline extends React.Component {
 				{ this.props.partyCount.map((partyCount, i) => 
 					<path
 						d={area(partyCount)}
-						fill={(i < 10) ? getColorForParty('democrat') : (i == 19) ? getColorForMargin('democrat', 0.8) : (i == 20) ? 'green' : (i == 21) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
+						fill={(i < 11) ? getColorForParty('democrat') : (i == 20) ? getColorForMargin('democrat', 0.8) : (i == 21) ? 'green' : (i == 22) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
 						key={'timelineParty' + i}
 					/>
 				)}

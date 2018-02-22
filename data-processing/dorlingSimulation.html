@@ -1,4 +1,4 @@
-<!-- run python -m SimpleHTTPServer from command line in this directory for this to work so you can use require --> 
+<!-- run `python -m SimpleHTTPServer` from command line in this directory for this to work so you can use require --> 
 
 <!DOCTYPE html>
 <meta charset="utf-8">
@@ -22,7 +22,8 @@ var year,
   congresses,
   results = [],
   width = 960,
-  height = 500;
+  height = 500,
+  lastYear = 1994;
 
 // initialize svg and the blur filter
 var svg = d3.select("body").append("svg")
@@ -31,7 +32,7 @@ var svg = d3.select("body").append("svg")
   .append("g");
 
 const runSimulation = function(year) {
-  if (!congresses_data[year] && year <= 1988) {
+  if (!congresses_data[year] && year < lastYear) {
     runSimulation(parseInt(year) + 2);
   } else {
     console.log('running ' + year);
@@ -58,10 +59,20 @@ const runSimulation = function(year) {
       .on('end', () => {
         // get the city nodes so you can place the city districtsion
         let cityXYs = getCityXYs();
-        if (cityXYs.length == 0) {
+        if (cityXYs.length == 0 && parseInt(year) <= lastYear) {
           results.push(getXYs(parseInt(year)));
-          svg.selectAll("circle").remove();
-          runSimulation(parseInt(year) + 2);
+
+          console.log(results);
+          
+          // output results if you're done
+          if (parseInt(year) == lastYear) {
+            console.log(results);
+          } 
+          // do the next congress
+          else {
+            svg.selectAll("circle").remove();
+            runSimulation(parseInt(year) + 2);
+          }
         } else {
           let citiesFinished = cityXYs.map(cx => false);
           cityXYs.forEach((cityXY, i) => {
@@ -103,9 +114,10 @@ const runSimulation = function(year) {
                   if (!citiesFinished.includes(false)) {
                     // record the results
                     results.push(getXYs(parseInt(year)));
+                    console.log(results);
 
                     // output results if you're done
-                    if (parseInt(year) == 1960) {
+                    if (parseInt(year) == lastYear) {
                       console.log(results);
                     } 
                     // do the next congress

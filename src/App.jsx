@@ -2,6 +2,7 @@
 import * as React from 'react';
 
 import * as d3 from 'd3';
+import * as topojson from 'topojson-client';
 
 // utils
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
@@ -18,6 +19,8 @@ import ZoomControls from './components/ZoomControls.jsx';
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
 import HashManager from './stores/HashManager';
+
+import StatesTopoJson from '../data/states.json';
 
 // main app container
 class App extends React.Component {
@@ -60,7 +63,10 @@ class App extends React.Component {
 
   componentDidUpdate () { this.changeHash(); }
 
-  storeChanged() { this.setState({}); }
+  storeChanged() { 
+    console.log(this.state);
+    this.setState({}); 
+  }
 
   onYearSelected(e) { 
     AppActions.congressSelected(e.target.id);
@@ -171,7 +177,7 @@ class App extends React.Component {
   }
 
   render () {
-    //console.log(DistrictsStore.getPartyDistributionByStateOrganized(this.state.selectedYear));
+    console.log(StatesTopoJson);
 
     return (
       <div>
@@ -201,13 +207,22 @@ class App extends React.Component {
                     key={ 'polygon' + d.id }
                     fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
                     fillOpacity={ (this.state.selectedView =='cartogram') ? 0.1 : 1 }
-                    stroke={ 'white' }
+                    stroke={ '#eee' }
                     strokeWidth={0.5}
                     strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 1}
                     selectedView={ this.state.selectedView }
                   />
                 );
               })}
+
+              { topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features.map(s =>
+                <path
+                  d={ DistrictsStore.getPath(s.geometry) }
+                  fill='transparent'
+                  stroke='#eee'
+                  strokeWidth={ 1.5 }
+                />
+              )}
             </g>
 
             { (true || this.state.selectedView == 'cartogram') ?
@@ -269,20 +284,6 @@ class App extends React.Component {
             selectedYear={ this.state.selectedYear }
             partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
           />
-
-
-          <ul>
-            { DistrictsStore.getYears().map(year => 
-              <li
-                id={year}
-                onClick={ this.onYearSelected }
-                key={'year' + year} 
-              >
-                {year}
-              </li>
-            )}
-            <li onClick={ this.toggleView }>strength or winner</li>
-          </ul>
         </aside>
 
         <aside

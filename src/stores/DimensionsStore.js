@@ -47,7 +47,9 @@ const DimensionsStore = {
 
 	getSVGArc(padding, radius, sweepFlag) {
 		sweepFlag = (sweepFlag) ? sweepFlag : 1; 
-		return 'M ' + padding + ',' + radius + ' A ' + (radius-padding) + ',' + (radius-padding) + ' 0 0, ' + sweepFlag + ' ' + (radius*2 - padding) + ',' + radius; 
+		const xEnd = (radius - (radius-12) * Math.cos(0.2)),
+			yEnd = Math.abs(radius + (radius-12) * Math.sin(0.2));
+		return 'M ' + padding + ',' + radius + ' A ' + (radius-padding) + ' ' + (radius-padding) + ', 0 1, ' + sweepFlag + ' ' + xEnd + ',' + yEnd; 
 	},
 
 	getTitleLabelArc(radius) { return this.getSVGArc(12, radius); },
