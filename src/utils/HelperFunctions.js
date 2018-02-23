@@ -4,7 +4,7 @@ const repColor = '#DB504A';
 const repColorLight = '#FACFCF';
 const demColor = '#717EC3';
 const demColorLight = '#D2D2F8';
-const thirdColor = 'orange';
+const thirdColor = '#98B9AB';
 
 export const getColorForParty = function(party) { return (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : thirdColor; };
 
@@ -22,6 +22,10 @@ export const getColorForMargin = function(party, percent) {
     .domain([-1, 1])
     .range(['white', demColor]);
 
+  var thirdColorAdjustment = d3.scaleLinear()
+    .domain([-1, 1])
+    .range(['white', thirdColor]);
+
   var getRepColor = d3.scaleLinear()
       .domain([-1, 0.5, 0.54, 1])
       .range(['silver', 'silver', repColorAdjustment(0.3), repColor]);
@@ -30,6 +34,10 @@ export const getColorForMargin = function(party, percent) {
       .domain([-1, 0.5, 0.54, 1])
       .range(['silver', 'silver', demColorAdjustment(0.3), demColor]);
 
+  var getThirdColor = d3.scaleLinear()
+      .domain([-1, 0.5, 0.54, 1])
+      .range(['silver', 'silver', thirdColorAdjustment(0.3), thirdColor]);
+
 
   if (party.toLowerCase().includes('republican')) {
     return getRepColor(percent);
@@ -37,6 +45,10 @@ export const getColorForMargin = function(party, percent) {
 
   if (party.toLowerCase().includes('democrat')) {
     return getDemColor(percent);
+  }
+
+  if (party.toLowerCase().includes('third')) {
+    return getThirdColor(percent);
   }
 
   return 'orange'

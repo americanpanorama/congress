@@ -11,10 +11,10 @@ import { getColorForParty, getColorForMargin, yearForCongress, congressForYear, 
 
 import Bubble from './components/Bubble.jsx';
 import District from './components/District.jsx';
-import VizControls from './components/VizControls.jsx';
 import StateDistGraph from './components/StateDistGraph.jsx';
 import Timeline from './components/Timeline.jsx';
 import ZoomControls from './components/ZoomControls.jsx';
+import MapLegend from './components/MapLegend.jsx';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
@@ -63,10 +63,7 @@ class App extends React.Component {
 
   componentDidUpdate () { this.changeHash(); }
 
-  storeChanged() { 
-    console.log(this.state);
-    this.setState({}); 
-  }
+  storeChanged() { this.setState({}); }
 
   onYearSelected(e) { 
     AppActions.congressSelected(e.target.id);
@@ -74,8 +71,7 @@ class App extends React.Component {
   }
 
   onViewSelected(e) {
-    const selectedView = e.target.id;
-
+    const selectedView = (this.state.selectedView == 'map') ? 'cartogram' : 'map';
     this.setState({ 
       selectedView: selectedView,
       dorling: (selectedView == 'map') ? false : (selectedView == 'cartogram') ? true : this.state.dorling,
@@ -177,7 +173,7 @@ class App extends React.Component {
   }
 
   render () {
-    console.log(StatesTopoJson);
+    //console.log(DistrictsStore.getStates(this.state.selectedYear));
 
     return (
       <div>
@@ -215,14 +211,16 @@ class App extends React.Component {
                 );
               })}
 
-              { topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features.map(s =>
+              { DistrictsStore.getStates(this.state.selectedYear).map(s =>
                 <path
                   d={ DistrictsStore.getPath(s.geometry) }
                   fill='transparent'
                   stroke='#eee'
                   strokeWidth={ 1.5 }
+                  key={'stateBoundaries'+s.properties.name}
                 />
               )}
+
             </g>
 
             { (true || this.state.selectedView == 'cartogram') ?
@@ -266,9 +264,10 @@ class App extends React.Component {
           resetView={ this.resetView }
         />
 
-        <VizControls
+        <MapLegend
           selectedView={ this.state.selectedView }
           onViewSelected={ this.onViewSelected }
+          winnerView={ this.state.winnerView }
           toggleView={ this.toggleView }
         />
 

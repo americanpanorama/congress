@@ -3,7 +3,6 @@ import AppDispatcher from '../utils/AppDispatcher';
 import { AppActionTypes } from '../utils/AppActionCreator';
 
 import * as topojson from 'topojson-client';
-import CartoDBLoader from '../utils/CartoDBLoader';
 import * as d3 from 'd3';
 
 import { yearForCongress, congressForYear, getStateAbbr } from '../utils/HelperFunctions';
@@ -11,6 +10,8 @@ import { yearForCongress, congressForYear, getStateAbbr } from '../utils/HelperF
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
 import SpatialIds from '../../data/spatialids.json';
+import StatesTopoJson from '../../data/states.json';
+import Slivers from '../../data/sliversTJ.json';
 //import Districts from '../../data/congressional_districts.json';
 
 import DimensionsStore from './DimensionsStore';
@@ -21,14 +22,14 @@ const DistrictsStore = {
   data: {
     bubbleCoords: [],
     districts: [],
+    states:[],
     congressDistricts: {},
     theMap: null,
     rawPartyCounts: [],
     partyCounts: [],
     congressYears: [],
+    slivers: []
   },
-
-  dataLoader: CartoDBLoader,
 
   loadDistrictsForCongress: function(year) {
     const congress = congressForYear(year);
@@ -45,14 +46,11 @@ const DistrictsStore = {
 
           // Examine the text in the response
           response.json().then((data) => {
-            console.log(data);
             data.objects = {
               type: 'GeometryCollection',
               geometries: Object.keys(data.objects).map(k => data.objects[k])
             };
-            console.log(data);
             const theGeoJson = topojson.feature(data, data.objects);
-            console.log(theGeoJson);
             theGeoJson.features.forEach(d => {
               this.data.districts[d.properties.id] = {
                 id: d.properties.id,
@@ -65,8 +63,6 @@ const DistrictsStore = {
               this.data.congressDistricts[year].push(d.properties.id);
             });
 
-            console.log(this.data.districts);
-
             this.emit(AppActionTypes.storeChanged);
           });
         }
@@ -76,25 +72,18 @@ const DistrictsStore = {
       });    
   },
 
-  loadDistrictsForCongressOLD: function(year) {
-    const congress = congressForYear(year);
-    // load only if the congress hasn't been loaded yet 
-    if (year && congress && !this.data.congressDistricts[congress]) {
-      this.dataLoader.query([
-        {
-          query: "SELECT st_asgeojson(the_geom) as the_geojson, startcong, endcong, district, statename, id, st_area(the_geom::geography) * 0.0000003861 as area FROM districts where startcong <= " + congress + " and endcong >= " + congress,
-          format: 'JSON'
-        }
-      ]).then((responses) => {
-        this.data.congressDistricts[year] = [];
-        responses[0].forEach(d => {
-          d.the_geojson = JSON.parse(d.the_geojson);
-          this.data.districts[d.id] = d;
-          this.data.congressDistricts[year].push(d.id);
-        });
-        this.emit(AppActionTypes.storeChanged);
-      });
-    }
+  parseStates: function() { 
+    console.log(Slivers);
+    Slivers.objects = {
+      type: 'GeometryCollection',
+      geometries: Object.keys(Slivers.objects).map(k => Slivers.objects[k])
+    };
+    console.log(Slivers);
+    const theGeoJson = topojson.feature(Slivers, Slivers.objects);
+    this.data.slivers = theGeoJson;
+
+    this.data.states = topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features; 
+    this.emit(AppActionTypes.storeChanged);
   },
 
   parseBubbles: function() {
@@ -264,6 +253,8 @@ const DistrictsStore = {
 
   getRawPartyCounts(year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year == year) : this.data.rawPartyCounts; },
 
+  getStates(year) { return this.data.states.filter(state => state.properties.year <= year && !(year >= 1863 && state.properties.name == 'Virginia' && state.properties.year == 1864)); },
+
   getPartyCountForYearAndParty(year, party) {
     return Object.keys(Elections[year]).reduce((accumulator, state) => {
         return accumulator + Object.keys(Elections[year][state]).reduce((accumulator2, districtNum) => {
@@ -382,6 +373,10 @@ const DistrictsStore = {
 
     this.data.partyCounts = stackedData;
   },
+
+  getSlivers() {
+    return this.data.slivers;
+  },
 }
 
 // Mixin EventEmitter functionality
@@ -398,6 +393,7 @@ AppDispatcher.register((action) => {
       DistrictsStore.loadDistrictsForCongress(year);
       DistrictsStore.parseRawPartyCounts();
       DistrictsStore.parsePartyCounts();
+      DistrictsStore.parseStates();
       break;
     case AppActionTypes.congressSelected:
       DistrictsStore.loadDistrictsForCongress(action.year);
