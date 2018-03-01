@@ -13,7 +13,7 @@ const DimensionsStore = {
 		sidebarWidth: 400,
 		sidebarHeight: 100, // placeholder
 		infoWidth: 100,
-		infoHeight: 200,
+		infoHeight: 300,
 		timelineHeight: window.innerHeight - 100,
 		timelineWidth: 350,
 	},
@@ -24,10 +24,11 @@ const DimensionsStore = {
 		this.data.sidebarHeight =this.data.windowHeight - this.data.headerHeight;
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-		this.data.mapHeight = this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding * 2;
+		this.data.mapHeight = this.data.windowHeight - this.data.headerHeight - this.data.infoHeight - this.data.gutterPadding * 2;
 		this.data.mapWidth = this.data.windowWidth - this.data.timelineWidth - this.data.gutterPadding * 2;
 
 		this.data.timelineHeight = this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding * 2;
+		this.data.timelineWidth = window.innerWidth - this.data.gutterPadding * 2;
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
 

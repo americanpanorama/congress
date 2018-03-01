@@ -172,6 +172,8 @@ export default class MapLegend extends React.Component {
 						x={0}
 						y={12}
 						textAnchor='start'
+						onClick={ this.props.onPartySelected }
+						id='democrat'
 					>
 						Democratic
 					</text>
@@ -203,6 +205,8 @@ export default class MapLegend extends React.Component {
 						x={0}
 						y={32}
 						textAnchor='start'
+						onClick={ this.props.onPartySelected }
+						id='republican'
 					>
 						Republican
 					</text>
@@ -233,6 +237,8 @@ export default class MapLegend extends React.Component {
 						x={0}
 						y={52}
 						textAnchor='start'
+						onClick={ this.props.onPartySelected }
+						id='third'
 					>
 						Third
 					</text>

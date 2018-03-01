@@ -23,6 +23,7 @@ const DistrictsStore = {
     bubbleCoords: [],
     districts: [],
     states:[],
+    elections: Elections,
     congressDistricts: {},
     theMap: null,
     rawPartyCounts: [],
@@ -90,25 +91,30 @@ const DistrictsStore = {
     this.data.bubbleCoords = bubbleXYs.map(yearData => {
       return {
         year: yearData.year,
-        districts: yearData.districts.filter(d => d.id).map((d, i) => {
-          const state = d.district.substring(0,2),
-            district = parseInt(d.district.substring(2)),
-            regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
-            previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
-            previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
-            flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
-          return {
-            id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
-            x: d.x * DimensionsStore.getMapScale(),
-            y: d.y * DimensionsStore.getMapScale(),
-            xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
-            yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
-            state: state,
-            regularized_party_of_victory: regularized_party_of_victory,
-            percent_vote: Elections[yearData.year][state][district].percent_vote,
-            flipped: flipped,
-          };
-        }),
+        districts: yearData.districts
+          .filter(d => d.id)
+          .map((d, i) => {
+            const state = d.district.substring(0,2),
+              district = parseInt(d.district.substring(2)),
+              regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
+              previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
+              previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
+              flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
+            return {
+              id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
+              x: d.x * DimensionsStore.getMapScale(),
+              y: d.y * DimensionsStore.getMapScale(),
+              xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
+              yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
+              state: state,
+              district: district,
+              districtId: d.id,
+              regularized_party_of_victory: regularized_party_of_victory,
+              percent_vote: Elections[yearData.year][state][district].percent_vote,
+              flipped: flipped,
+            };
+          })
+          .sort((a,b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
         cities: yearData.cities.map(d => {
           return {
             id: d.id,
@@ -161,7 +167,24 @@ const DistrictsStore = {
     return districts;
   },
 
-  getYears: function() { return this.data.bubbleCoords.map(yearData => yearData.year); },
+  getElectionDataForDistrict: function(year, id) {
+    const yearData = this.data.bubbleCoords.find(d => parseInt(d.year) == parseInt(year));
+    return (yearData) ? yearData.districts.find(d => d.districtId == id) : false;
+  },
+
+  getYears: function() { return Object.keys(Elections).map(y => parseInt(y)); },
+
+  getPreviousElectionYear: function(year) { 
+    const electionYears = this.getYears(),
+      iCurrent = electionYears.indexOf(parseInt(year));
+    return (iCurrent == 0) ? false : electionYears[iCurrent-1];
+  },
+
+  getNextElectionYear: function(year) { 
+    const electionYears = this.getYears(),
+      iCurrent = electionYears.indexOf(parseInt(year));
+    return (iCurrent + 1 == electionYears.length) ? false : electionYears[iCurrent+1];
+  },
 
   getDistrictId(year, spatialId)  {
     let districtId;
@@ -377,6 +400,18 @@ const DistrictsStore = {
   getSlivers() {
     return this.data.slivers;
   },
+
+  getPreviousAndNext3(year, spatialId) {
+    let theSeven = {};
+    console.log(year);
+    for (let y = parseInt(year) - 6; y <= parseInt(year) + 6; y = y+2) {
+      let districtId = this.getDistrictId(y, spatialId);
+      theSeven[y] = this.getElectionDataForDistrict(y, districtId);
+    }
+
+    return theSeven;
+  },
+
 }
 
 // Mixin EventEmitter functionality

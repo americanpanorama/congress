@@ -107,7 +107,12 @@ export default class Bubble extends React.Component {
 
   render () {
     return (
-      <g transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}>
+      <g 
+        transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}
+        onMouseEnter={(this.props.onDistrictInspected) ? this.props.onDistrictInspected : () => false}
+        onMouseLeave={(this.props.onDistrictInspected) ? this.props.onDistrictUninspected : () => false}
+        id={this.props.id}
+      >
         { (this.props.cityLabel) ? 
           <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' } ref='cityLabel'>
             <defs>
@@ -141,7 +146,8 @@ export default class Bubble extends React.Component {
             // strokeWidth: this.props.strokeWidth,
             // strokeOpacity: ((this.props.percentFamiliesOfColor >= this.props.pocSpan[0] && this.props.percentFamiliesOfColor <= this.props.pocSpan[1]) && (this.props.highlightedCities.length == 0 || this.props.highlightedCities.includes(this.props.city_id))) ? 1 : 0,
             stroke: this.state.stroke,
-            strokeWidth: 0.33
+            strokeWidth: 0.33,
+            fillOpacity: this.props.fillOpacity || 1
           } }
           // onClick={ (this.props.hasProjectGeojson) ? this.props.onCityClicked : this.props.onCityClicked}
           // onMouseEnter={ this.props.onCityHover }

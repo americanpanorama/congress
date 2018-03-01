@@ -8,21 +8,21 @@ export default class Timeline extends React.Component {
 
 	render() {
 
-		var y = d3.scaleLinear()
-			.domain([2014, 1790])
-			.range([DimensionsStore.getDimensions().timelineHeight - 50, 0]);
 		var x = d3.scaleLinear()
+			.domain([1790, 2016])
+			.range([50, DimensionsStore.getDimensions().timelineWidth - 50]);
+		var y = d3.scaleLinear()
 			.domain([-350, 350])
 			.range([-125, 125]);
 		var area = d3.area()
-			.y(d => y(d.data.year))
-			.x0(d => x(d[0]))
-			.x1(d => x(d[1]))
+			.x(d => x(d.data.year))
+			.y0(d => y(d[0]))
+			.y1(d => y(d[1]))
 			.curve(d3.curveCatmullRom);
 
 		return (
 			<svg 
-				width={350}
+				width={2000}
 				height={ DimensionsStore.getDimensions().timelineHeight}
 			>
 
@@ -177,19 +177,19 @@ export default class Timeline extends React.Component {
 
 
 
-				<g transform='translate(175 100)'>
+				<g transform='translate(0 125)'>
 
 				{ this.props.partyCount.map((partyCount, i) => 
 					<path
 						d={area(partyCount)}
-						fill={(i < 11) ? getColorForParty('democrat') : (i == 20) ? getColorForMargin('democrat', 0.8) : (i == 21) ? 'green' : (i == 22) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
+						fill={(i < 10) ? getColorForParty('democrat') : (i == 19) ? getColorForMargin('democrat', 0.8) : (i == 20) ? 'green' : (i == 21) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
 						key={'timelineParty' + i}
 					/>
 				)}
 
 				<text
-					x={x(0 - this.props.partyCountForSelectedYear.demAboveMargin - this.props.partyCountForSelectedYear.demBelowMargin) - 5}
-					y={y(this.props.selectedYear)}
+					x={y(0 - this.props.partyCountForSelectedYear.demAboveMargin - this.props.partyCountForSelectedYear.demBelowMargin) - 5}
+					y={x(this.props.selectedYear)}
 					textAnchor='end'
 					fill='black'
 				>
@@ -260,6 +260,38 @@ export default class Timeline extends React.Component {
 					/>
 				)}
 
+				</g>
+
+				<g transform={'translate(0 250)'}>
+					<line
+						x1={x(1790)}
+						x2={x(2016)}
+						y1={10}
+						y2={10}
+						stroke='black'
+					/>
+
+					{ Array.from({length: 115}, (v, i) => yearForCongress(i+1)).map(year => 
+						<line
+							x1={x(year)}
+							x2={x(year)}
+							y1={5}
+							y2={10}
+							stroke='black'
+							key={'tickFor'+year}
+						/>
+					)}
+
+					{ Array.from({length: (2020-1790)/10}, (v, i) => 1790+i*10).map(year => 
+						<text
+							x={x(year)}
+							y={25}
+							textAnchor='middle'
+							key={'yearFor'+year}
+						>
+							{year}
+						</text>
+					)}
 				</g>
 			</svg>
 		);
