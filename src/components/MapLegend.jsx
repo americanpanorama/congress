@@ -77,16 +77,20 @@ export default class MapLegend extends React.Component {
 
 		return (
 			<svg 
-				width={350}
-				height={150}
+				width={300}
+				height={DimensionsStore.getDimensions().mapLegendHeight}
 				id='legend'
+				style={{
+					right: DimensionsStore.getDimensions().sidebarWidth,
+					bottom: DimensionsStore.getDimensions().timelineHeight + DimensionsStore.getDimensions().gutterPadding * 1.5
+				}}
 			>
-
+				{/* JSX Comment 
 				<rect
 					width={350}
 					height={150}
 					fill='#eee'
-				/>
+				/> */}
 
 				<defs>
 					<linearGradient id="DemGradient">
@@ -106,74 +110,16 @@ export default class MapLegend extends React.Component {
 					</linearGradient>
 				</defs>
 
-				<g 
-					transform='translate(260 20)'
-					onClick={ this.props.onViewSelected }
-				>
-					<text
-						x={-10}
-						textAnchor='end'
-						fontSize={20}
-						fill={(this.props.selectedView == 'cartogram') ? 'black' : 'grey'}
-					>
-						CARTOGRAM
-					</text>
-					<text
-						x={0}
-						textAnchor='middle'
-						fontSize={20}
-						fill='grey'
-					>
-						↔
-					</text>
-					<text
-						x={10}
-						textAnchor='start'
-						fontSize={20}
-						fill={(this.props.selectedView == 'map') ? 'black' : 'grey'}
-					>
-						MAP
-					</text>
-				</g>
-
-				<g 
-					transform='translate(260 50)'
-					onClick={ this.props.toggleView}
-				>
-					<text
-						x={-10}
-						textAnchor='end'
-						fontSize={20}
-						fill={ (!this.props.winnerView) ? 'black' : 'grey'}
-					>
-						STRENGTH OF VICTORY
-					</text>
-					<text
-						x={0}
-						textAnchor='middle'
-						fontSize={20}
-						fill='grey'
-					>
-						↔
-					</text>
-					<text
-						x={10}
-						textAnchor='start'
-						fontSize={20}
-						fill={ (this.props.winnerView) ? 'black' : 'grey'}
-					>
-						WINNER
-					</text>
-				</g>
-
-				<g transform='translate(200 70)'>
+				<g transform='translate(200 0)'>
 
 					<text
 						x={0}
-						y={12}
+						y={DimensionsStore.getDimensions().mapLegendFontSize + DimensionsStore.getDimensions().mapLegendGutter}
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='democrat'
+						fill='#eee'
+						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
 					>
 						Democratic
 					</text>
@@ -181,9 +127,9 @@ export default class MapLegend extends React.Component {
 					{ (this.props.selectedView == 'map') ?
 						<rect 
 							x={ this.state.gradientX }
-							y={0}
+							y={ DimensionsStore.getDimensions().mapLegendGutter }
 							width={ this.state.gradientWidth }
-							height={15}
+							height={ DimensionsStore.getDimensions().mapLegendSymbolHeight}
 							fill={ this.state.demFill }
 							ref='demGradient'
 						/> :
@@ -203,10 +149,12 @@ export default class MapLegend extends React.Component {
 
 					<text
 						x={0}
-						y={32}
+						y={DimensionsStore.getDimensions().mapLegendGutter * 2 +  DimensionsStore.getDimensions().mapLegendSymbolHeight * 2}
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='republican'
+						fill='#eee'
+						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
 					>
 						Republican
 					</text>
@@ -214,9 +162,9 @@ export default class MapLegend extends React.Component {
 					{ (this.props.selectedView == 'map') ?
 						<rect 
 							x={ this.state.gradientX }
-							y={20}
+							y={DimensionsStore.getDimensions().mapLegendGutter * 2 +  DimensionsStore.getDimensions().mapLegendSymbolHeight}
 							width={ this.state.gradientWidth }
-							height={15}
+							height={ DimensionsStore.getDimensions().mapLegendSymbolHeight}
 							fill={ this.state.repFill }
 							ref='repGradient'
 						/> :
@@ -235,10 +183,12 @@ export default class MapLegend extends React.Component {
 
 					<text
 						x={0}
-						y={52}
+						y={DimensionsStore.getDimensions().mapLegendGutter * 3 +  DimensionsStore.getDimensions().mapLegendSymbolHeight * 3}
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='third'
+						fill='#eee'
+						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
 					>
 						Third
 					</text>
@@ -246,9 +196,9 @@ export default class MapLegend extends React.Component {
 					{ (this.props.selectedView == 'map') ?
 						<rect 
 							x={ this.state.gradientX }
-							y={40}
+							y={DimensionsStore.getDimensions().mapLegendGutter * 3 +  DimensionsStore.getDimensions().mapLegendSymbolHeight * 2}
 							width={ this.state.gradientWidth }
-							height={15}
+							height={ DimensionsStore.getDimensions().mapLegendSymbolHeight}
 							fill={ this.state.thirdFill }
 							ref='thirdGradient'
 						/> :
@@ -272,6 +222,7 @@ export default class MapLegend extends React.Component {
 								y={0}
 								textAnchor='middle'
 								fontSize={11}
+								fill='#eee'
 							>
 								&#60;=50%
 							</text>
@@ -281,6 +232,7 @@ export default class MapLegend extends React.Component {
 								y={0}
 								textAnchor='middle'
 								fontSize={11}
+								fill='#eee'
 							>
 								75%
 							</text>
@@ -290,6 +242,7 @@ export default class MapLegend extends React.Component {
 								y={0}
 								textAnchor='middle'
 								fontSize={11}
+								fill='#eee'
 							>
 								100%
 							</text>

@@ -88,47 +88,53 @@ const DistrictsStore = {
   },
 
   parseBubbles: function() {
-    this.data.bubbleCoords = bubbleXYs.map(yearData => {
-      return {
-        year: yearData.year,
-        districts: yearData.districts
-          .filter(d => d.id)
-          .map((d, i) => {
-            const state = d.district.substring(0,2),
-              district = parseInt(d.district.substring(2)),
-              regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
-              previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
-              previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
-              flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
+    this.data.bubbleCoords = bubbleXYs
+      .map(yearData => {
+        return {
+          year: yearData.year,
+          districts: yearData.districts
+            .filter(d => d.id)
+            .map((d, i) => {
+              const state = d.district.substring(0,2),
+                district = parseInt(d.district.substring(2));
+              if (!Elections[yearData.year][state][district]) {
+                return;
+              }
+              const regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
+                previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
+                previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
+                flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
+              return {
+                id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
+                x: d.x * DimensionsStore.getMapScale(),
+                y: d.y * DimensionsStore.getMapScale(),
+                xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
+                yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
+                state: state,
+                district: district,
+                districtId: d.id,
+                regularized_party_of_victory: regularized_party_of_victory,
+                percent_vote: Elections[yearData.year][state][district].percent_vote,
+                flipped: flipped,
+              };
+            })
+            .sort((a,b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
+          cities: yearData.cities.map(d => {
             return {
-              id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
+              id: d.id,
               x: d.x * DimensionsStore.getMapScale(),
               y: d.y * DimensionsStore.getMapScale(),
               xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
               yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
-              state: state,
-              district: district,
-              districtId: d.id,
-              regularized_party_of_victory: regularized_party_of_victory,
-              percent_vote: Elections[yearData.year][state][district].percent_vote,
-              flipped: flipped,
+              r: d.r * DimensionsStore.getMapScale()
             };
-          })
-          .sort((a,b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
-        cities: yearData.cities.map(d => {
-          return {
-            id: d.id,
-            x: d.x * DimensionsStore.getMapScale(),
-            y: d.y * DimensionsStore.getMapScale(),
-            xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
-            yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
-            r: d.r * DimensionsStore.getMapScale()
-          };
-        }),
-      };
-    });
+          }),
+        };
+      });
     this.emit(AppActionTypes.storeChanged);
   },
+
+  hasYearLoaded: function(year) { return this.data.congressDistricts[year] && this.data.congressDistricts[year].length > 0; },
 
   getPartyCounts: function() { return this.data.partyCounts; },
 
@@ -143,6 +149,7 @@ const DistrictsStore = {
   getVisibleBounds: function() { return this.data.theMap.getBounds(); },
 
   getProjection: function() {
+    console.log(d3.geoAlbersUsa().scale);
     return d3.geoAlbersUsa()
       .scale(DimensionsStore.getMapScale())
       .translate([DimensionsStore.getDimensions().mapWidth/2, DimensionsStore.getDimensions().mapHeight/2]);
@@ -156,7 +163,7 @@ const DistrictsStore = {
     const districts = [],
       opacity = d3.scaleLinear().domain([0,10000,600000]).range([1,0.2,0.2]);
     Object.keys(this.data.districts).forEach(id => {
-      if (this.data.congressDistricts[year] && this.data.congressDistricts[year].includes(id) && Elections[year][getStateAbbr(this.data.districts[id].statename)]) {
+      if (this.data.congressDistricts[year] && this.data.congressDistricts[year].includes(id) && Elections[year][getStateAbbr(this.data.districts[id].statename)] && Elections[year][getStateAbbr(this.data.districts[id].statename)][this.data.districts[id].district]) {
         let d = this.data.districts[id];
         d.regularized_party_of_victory = Elections[year][getStateAbbr(d.statename)][d.district].regularized_party_of_victory;
         d.percent_vote = Elections[year][getStateAbbr(d.statename)][d.district].percent_vote;
@@ -285,6 +292,10 @@ const DistrictsStore = {
         }, 0);
       }, 0);
   },
+
+  getMaxTopOffset() { return Math.max(...this.data.rawPartyCounts.map(yd => yd.thirdCount/2 + yd.demBelowMargin + yd.demAboveMargin)); },
+
+  getMaxBottomOffset() { return Math.max(...this.data.rawPartyCounts.map(yd => yd.thirdCount/2 + yd.repBelowMargin + yd.repAboveMargin)); },
 
   parseRawPartyCounts() {
     let counts = [];

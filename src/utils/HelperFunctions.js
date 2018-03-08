@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 
-const repColor = '#DB504A';
+const repColor = '#FB6765';
 const repColorLight = '#FACFCF';
-const demColor = '#717EC3';
+const demColor = '#717EFF';
 const demColorLight = '#D2D2F8';
 const thirdColor = '#98B9AB';
 
@@ -16,15 +16,15 @@ export const getColorForMargin = function(party, percent) {
 
   var repColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['white', repColor]);
+    .range(['#eee', repColor]);
 
   var demColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['white', demColor]);
+    .range(['#eee', demColor]);
 
   var thirdColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['white', thirdColor]);
+    .range(['#eee', thirdColor]);
 
   var getRepColor = d3.scaleLinear()
       .domain([-1, 0.5, 0.54, 1])

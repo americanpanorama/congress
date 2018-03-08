@@ -48,7 +48,7 @@ export default class Bubble extends React.Component {
     if (this.props.r !== nextProps.r || this.props.color !== nextProps.color || this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx || this.props.cy !== nextProps.cy ) {
       d3.select(ReactDOM.findDOMNode(this))
         .transition()
-        .duration(1000)
+        .duration(2000)
         .ease(d3.easeSin)
           .attr('r', nextProps.r)
           .attr('transform', 'translate(' + nextProps.cx + ' ' + nextProps.cy + ')')
@@ -63,18 +63,18 @@ export default class Bubble extends React.Component {
 
       d3.select(this.refs['cityLabel'])
         .transition()
-        .duration(1000)
+        .duration(2000)
         .ease(d3.easeSin)
           .attr('transform', 'translate(' + (-1 * nextProps.r) + ' ' + (-1 * nextProps.r) + ')');
 
       d3.select(this.refs['cityLabelArc'])
         .transition()
-        .duration(1000)
+        .duration(2000)
         .ease(d3.easeSin)
           .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
         // .transition()
-        // //.delay(1000)
-        // .duration(1000)
+        // //.delay(2000)
+        // .duration(2000)
         // .ease(d3.easeSin)
         //   .attrTween('d', () => {
         //     console.log('now');
@@ -91,7 +91,7 @@ export default class Bubble extends React.Component {
 
       d3.select(this.refs['bubble'])
         .transition()
-        .duration(1000)
+        .duration(2000)
         .ease(d3.easeSin)
           .attr('r', nextProps.r)
           .style('fill', nextProps.color)
@@ -113,30 +113,6 @@ export default class Bubble extends React.Component {
         onMouseLeave={(this.props.onDistrictInspected) ? this.props.onDistrictUninspected : () => false}
         id={this.props.id}
       >
-        { (this.props.cityLabel) ? 
-          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' } ref='cityLabel'>
-            <defs>
-              <path 
-                id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
-                d={ this.state.dCityLabel }
-                ref='cityLabelArc'
-              />
-            </defs>
-            <text 
-              stroke='transparent'
-              fontSize={ 12 }
-              textAnchor='start'
-              fill='black'
-            >
-              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='0%'>
-                { this.props.cityLabel }
-              </textPath>
-            </text>
-
-          </g> : ''
-        }
-
-
         <circle className='dorling'
 
           r={ this.state.r }
@@ -156,6 +132,29 @@ export default class Bubble extends React.Component {
           ref='bubble'
           className={ 'dorling ' + this.props.className }
         />
+
+        { (this.props.cityLabel) ? 
+          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' } ref='cityLabel'>
+            <defs>
+              <path 
+                id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
+                d={ this.state.dCityLabel }
+                ref='cityLabelArc'
+              />
+            </defs>
+            <text 
+              stroke='transparent'
+              fontSize={ 12 }
+              textAnchor='start'
+              fill='white'
+            >
+              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='0%'>
+                { this.props.cityLabel }
+              </textPath>
+            </text>
+
+          </g> : ''
+        }
 
         { (this.props.label) ?
           <text

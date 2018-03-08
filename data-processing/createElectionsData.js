@@ -31,5 +31,5 @@ raw_elections.features.forEach(e => {
 
 fs.writeFile('elections.json', JSON.stringify(elections, null, ' '), (err) => {
   if (err) throw err;
-  console.log('COMPLETE');
+  console.log('wrote to file: elections.json');
 });

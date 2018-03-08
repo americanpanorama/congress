@@ -22,7 +22,7 @@ export default class District extends React.Component {
       d3.select(ReactDOM.findDOMNode(this))
         .transition()
         .ease(d3.easeSin)
-        .duration(1000)
+        .duration(2000)
         .style('fill', nextProps.fill)
         .style('stroke', nextProps.stroke)
         .style('fill-opacity', nextProps.fillOpacity)

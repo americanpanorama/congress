@@ -3,8 +3,11 @@ body,
 html {
   height: 100%;
   width: 100%;
-  background-color: #eee;
-  color: black;
+  background-color: #233036;
+  color: #eee;
+  margin: 0;
+  padding: 0;
+  font-family: 'Saira Condensed', sans-serif;
 }
 
 
@@ -13,32 +16,44 @@ body {
 }
 
 header {
-	height: 100px;
 	margin: 0;
+	font-family: 'PT Serif';
+	text-align: center;
+
+	h1 {
+		text-transform: uppercase;
+	}
 
 	* {
 		margin: 0;
+		line-height: 1;
 	}
 }
 
 aside#sidebar {
 	position: fixed;
-	right: 0;
-	top: 100px;
-	width: 300px;
+	background-color: #38444a;
+	color: white;
 }
 
 aside#info{
 	position: fixed;
-	left: 0;
-	bottom: 0px;
-	height: 300px;
 }
 
 #legend {
 	position: fixed;
-	left: 20px;
-	bottom: 200px;
+	background-color: #233036;
+
+}
+
+#vizControl, #winnerControl {
+	display: inline-block;
+	text-transform: uppercase;
+	padding: 0 15px;
+	position: fixed;
+	background-color: rgba(35, 48, 54, 0.9);
+	border-bottom-right-radius: 10px;
+	border-bottom-left-radius: 10px;
 }
 
 /*::-webkit-scrollbar { width: 0px;}

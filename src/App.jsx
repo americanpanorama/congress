@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
+import ToggleButton from 'react-toggle-button'
 
 // utils
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
@@ -15,6 +16,7 @@ import StateDistGraph from './components/StateDistGraph.jsx';
 import Timeline from './components/Timeline.jsx';
 import ZoomControls from './components/ZoomControls.jsx';
 import MapLegend from './components/MapLegend.jsx';
+
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
@@ -69,8 +71,14 @@ class App extends React.Component {
   storeChanged() { this.setState({}); }
 
   onYearSelected(e) { 
-    AppActions.congressSelected(e.target.id);
-    this.setState({ selectedYear: e.target.id }); 
+    const year = e.target.id;
+    AppActions.congressSelected(year);
+    // don't set state until the districts have been loaded
+    setTimeout(() => {
+      if (DistrictsStore.hasYearLoaded(year)) {
+        this.setState({ selectedYear: year }); 
+      }
+    }, 50);
   }
 
   onPartySelected(e) { 
@@ -193,12 +201,25 @@ class App extends React.Component {
       let id = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).id;
       DistrictsStore.getPreviousAndNext3(this.state.selectedYear, id);
     }
-    //console.log(DistrictsStore.getPreviousElectionYear(this.state.selectedYear));
+    console.log(DistrictsStore.getMaxTopOffset());
 
     return (
       <div>
-        <header>
-          <h1>The People's House: Electing the House of Representatives</h1>
+        <header
+          style={{
+            height: DimensionsStore.getDimensions().headerHeight,
+            width: DimensionsStore.getDimensions().mapWidth,
+            margin: DimensionsStore.getDimensions().gutterPadding
+          }}
+        >
+          <h1 style={{ 
+            fontSize: DimensionsStore.getDimensions().headerTitleFontSize,
+            marginTop: DimensionsStore.getDimensions().headerGutter
+          }}>The People's House</h1>
+          <h2 style={{ 
+            fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
+            marginTop: DimensionsStore.getDimensions().headerGutter
+          }}>Electing the House of Representatives</h2>
         </header>
         <svg 
           width={ DimensionsStore.getDimensions().mapWidth }
@@ -216,26 +237,32 @@ class App extends React.Component {
             <g
               transform={ 'translate(-' + DimensionsStore.getDimensions().mapWidth/2 + ' -' + DimensionsStore.getDimensions().mapHeight/2 + ')' }
             >
-              { DistrictsStore.getElectionDistricts(this.state.selectedYear).map(d => {
-                return (
-                  <District
-                    d={ DistrictsStore.getPath(d.the_geojson) }
-                    key={ 'polygon' + d.id }
-                    fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
-                    fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
-                    stroke={ '#eee' }
-                    strokeWidth={0.5}
-                    strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 1}
-                    selectedView={ this.state.selectedView }
-                  />
-                );
-              })}
+              { (true || this.state.selectedView == 'map') ?
+                <g>
+                  { DistrictsStore.getElectionDistricts(this.state.selectedYear).map(d => {
+                    return (
+                      <District
+                        d={ DistrictsStore.getPath(d.the_geojson) }
+                        key={ 'polygon' + d.id }
+                        fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
+                        fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
+                        stroke={  '#eee' }
+                        strokeWidth={0.5}
+                        strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 1}
+                        selectedView={ this.state.selectedView }
+                      />
+                    );
+                  })}
+                </g> : ''
+              }
+
 
               { DistrictsStore.getStates(this.state.selectedYear).map(s =>
                 <path
                   d={ DistrictsStore.getPath(s.geometry) }
                   fill='transparent'
-                  stroke='#eee'
+                  stroke={ '#eee'}
+                  strokeOpacity={ (this.state.selectedView =='cartogram') ? 0.2 : 1 }
                   strokeWidth={ 1.5 }
                   key={'stateBoundaries'+s.properties.name}
                 />
@@ -251,8 +278,9 @@ class App extends React.Component {
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={(this.state.dorling) ? d.r : 0.01 }
                     cityLabel={ d.id }
-                    color='transparent'
-                    stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'black' }
+                    color='#11181b'
+                    fillOpacity={0.8}
+                    stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'transparent' }
                     key={d.id || 'missing' + i}
                     id={d.id}
                   />
@@ -297,30 +325,13 @@ class App extends React.Component {
 
         <aside 
           id='sidebar'
-          style={{ height: DimensionsStore.getDimensions().sidebarHeight }}
+          style={{ 
+            width: DimensionsStore.getDimensions().sidebarWidth,
+            height: DimensionsStore.getDimensions().sidebarHeight,
+            bottom: DimensionsStore.getDimensions().gutterPadding,
+            right: DimensionsStore.getDimensions().gutterPadding
+          }}
         >
-
-          <Timeline
-            partyCount={ DistrictsStore.getPartyCounts() }
-            congressYears={ DistrictsStore.getCongressYears() }
-            onYearSelected={ this.onYearSelected }
-            selectedYear={ this.state.selectedYear }
-            partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
-          />
-        </aside>
-
-        <aside
-          id='info'
-          style={{ width: DimensionsStore.getDimensions().infoWidth }}
-        >
-          <Timeline
-            partyCount={ DistrictsStore.getPartyCounts() }
-            congressYears={ DistrictsStore.getCongressYears() }
-            onYearSelected={ this.onYearSelected }
-            selectedYear={ this.state.selectedYear }
-            partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
-          />
-
 
           <h2>
             { (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? 
@@ -340,8 +351,150 @@ class App extends React.Component {
 
             </div> : ''
           }
+        </aside>
+
+        <aside
+          id='info'
+          style={{ 
+            width: DimensionsStore.getDimensions().timelineWidth,
+            height: DimensionsStore.getDimensions().timelineHeight,
+            bottom: DimensionsStore.getDimensions().gutterPadding,
+            left: DimensionsStore.getDimensions().gutterPadding
+          }}
+        >
+          <Timeline
+            partyCount={ DistrictsStore.getPartyCounts() }
+            topOffset={ DistrictsStore.getMaxTopOffset() }
+            bottomOffset={ DistrictsStore.getMaxBottomOffset() }
+            congressYears={ DistrictsStore.getCongressYears() }
+            onYearSelected={ this.onYearSelected }
+            selectedYear={ this.state.selectedYear }
+            partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
+          />
+
+
+
 
         </aside>
+
+        <div 
+          id='vizControl' 
+          style={{
+            right: DimensionsStore.getDimensions().vizControlsRight,
+            fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
+            verticalAlign: 'top',
+            lineHeight: '1em'
+          }}
+        >
+          <span style={{ 
+              color: (this.state.selectedView == 'cartogram') ? '#F0B67F' : '#aaa',
+              verticalAlign: 'top',
+              lineHeight: '1em'
+            }} 
+            onClick={ this.onViewSelected }
+          >
+            Cartogram
+          </span>
+          <ToggleButton
+            value={ this.state.selectedView == 'map' }
+            onToggle={ this.onViewSelected }
+            inactiveLabel={''}
+            activeLabel={''}
+            containerStyle={{
+              display:'inline-block',
+              //transform: 'translateY(5px)',
+              width: DimensionsStore.getDimensions().vizControlTrackHeight * 2,
+              marginRight: 5,
+              marginLeft: 5,
+            }} 
+            colors={{
+              activeThumb: { base: '#eee' },
+              inactiveThumb: { base: '#eee' },
+              active: { base: '#777' },
+              inactive: { base: '#777' }
+            }}
+            activeLabelStyle={{ fontSize: 1 }}
+            inactiveLabelStyle={{ fontSize: 1 }}
+            trackStyle={{
+              height: DimensionsStore.getDimensions().vizControlTrackHeight,
+              width: DimensionsStore.getDimensions().vizControlTrackHeight * 2
+            }}
+            thumbStyle={{
+              height: DimensionsStore.getDimensions().vizControlTrackHeight ,
+              width: DimensionsStore.getDimensions().vizControlTrackHeight,
+            }}
+            thumbAnimateRange={[0, DimensionsStore.getDimensions().vizControlTrackHeight]}
+          />
+          <span 
+            style={{ 
+              color: (this.state.selectedView == 'map') ? '#F0B67F' : '#aaa',
+              verticalAlign: 'top',
+              lineHeight: '1em'
+            }} 
+            onClick={ this.onViewSelected }
+          >
+            Map
+          </span>
+        </div>
+
+        <div 
+          id='winnerControl'
+          style={{
+            left: DimensionsStore.getDimensions().winnerControlLeft,
+            fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
+            verticalAlign: 'top',
+            lineHeight: '1em'
+          }}
+        >
+          <span 
+            style={{ 
+              color: (this.state.winnerView) ? '#F0B67F' : '#aaa',
+              fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
+              verticalAlign: 'top',
+              lineHeight: '1em'
+            }} 
+            onClick={ this.toggleView }
+          >
+            Winner </span>
+          <ToggleButton
+            value={ !this.state.winnerView }
+            onToggle={ this.toggleView }
+             inactiveLabel={''}
+            activeLabel={''}
+            containerStyle={{
+              display:'inline-block',
+              //transform: 'translateY(5px)',
+              width: DimensionsStore.getDimensions().vizControlTrackHeight * 2,
+              marginRight: 5,
+              marginLeft: 5,
+            }} 
+            colors={{
+              activeThumb: { base: '#eee' },
+              inactiveThumb: { base: '#eee' },
+              active: { base: '#777' },
+              inactive: { base: '#777' }
+            }}
+            activeLabelStyle={{ fontSize: 1 }}
+            inactiveLabelStyle={{ fontSize: 1 }}
+            trackStyle={{
+              height: DimensionsStore.getDimensions().vizControlTrackHeight,
+              width: DimensionsStore.getDimensions().vizControlTrackHeight * 2
+            }}
+            thumbStyle={{
+              height: DimensionsStore.getDimensions().vizControlTrackHeight ,
+              width: DimensionsStore.getDimensions().vizControlTrackHeight,
+            }}
+            thumbAnimateRange={[0, DimensionsStore.getDimensions().vizControlTrackHeight]}
+          />
+          <span 
+            style={{ 
+              color: (!this.state.winnerView) ? '#F0B67F' : '#aaa',
+              fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
+              verticalAlign: 'top',
+              lineHeight: '1em'
+            }} 
+            onClick={ this.toggleView }> Strength of Victory</span>
+        </div>
       </div>
     );
   }

@@ -10,27 +10,44 @@ const DimensionsStore = {
 		windowHeight: window.innerHeight,
 		windowWidth: window.innerWidth,
 		headerHeight: 100,
-		sidebarWidth: 400,
 		sidebarHeight: 100, // placeholder
 		infoWidth: 100,
 		infoHeight: 300,
-		timelineHeight: window.innerHeight - 100,
 		timelineWidth: 350,
 	},
 
 	computeComponentDimensions () {
 		this.data.windowHeight = window.innerHeight;
 		this.data.windowWidth = window.innerWidth;
-		this.data.sidebarHeight =this.data.windowHeight - this.data.headerHeight;
+
+		this.data.gutterPadding = this.data.windowHeight * 0.01;
+
+		this.data.headerHeight = this.data.windowHeight * 1/12 - this.data.gutterPadding * 1.5;
+		this.data.headerGutter = this.data.headerHeight * 0.01;
+		this.data.headerTitleFontSize = this.data.headerHeight / 2 - this.data.headerGutter * 1.5;
+		this.data.headerSubtitleFontSize = this.data.headerHeight / 3 - this.data.headerGutter * 1.5;
+
+		this.data.sidebarHeight =this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding;
+		this.data.sidebarWidth = this.data.windowWidth / 4 - this.data.gutterPadding * 1.5;
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-		this.data.mapHeight = this.data.windowHeight - this.data.headerHeight - this.data.infoHeight - this.data.gutterPadding * 2;
-		this.data.mapWidth = this.data.windowWidth - this.data.timelineWidth - this.data.gutterPadding * 2;
+		this.data.mapHeight = this.data.windowHeight * 2/3 - this.data.gutterPadding;
+		this.data.mapWidth = this.data.windowWidth * 3/4 - this.data.gutterPadding * 1.5;
 
-		this.data.timelineHeight = this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding * 2;
-		this.data.timelineWidth = window.innerWidth - this.data.gutterPadding * 2;
+		this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
+
+		this.data.mapLegendHeight = this.data.mapHeight / 12;
+		this.data.mapLegendGutter = this.data.mapLegendHeight * 0.02;
+		this.data.mapLegendFontSize = this.data.mapLegendHeight / 4 - this.data.mapLegendGutter;
+		this.data.mapLegendSymbolHeight = this.data.mapLegendFontSize;
+
+		this.data.timelineWidth = this.data.mapWidth;
+		this.data.timelineHeight = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
+
+		this.data.vizControlsRight = this.data.sidebarWidth + this.data.gutterPadding*3 + this.data.mapWidth/2;
+		this.data.winnerControlLeft = this.data.gutterPadding*2 + this.data.mapWidth/2;
 
 		this.emit(AppActionTypes.storeChanged);
 	},
@@ -42,7 +59,7 @@ const DimensionsStore = {
 		};
 	},
 
-	getMapScale: function() { return Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000); },
+	getMapScale: function() { return Math.min(this.data.mapWidth/960* 1075, this.data.mapHeight/500 * 1075); },
 
 	getDimensions: function() { return this.data; },
 
