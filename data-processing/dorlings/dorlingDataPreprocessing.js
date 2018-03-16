@@ -2,12 +2,12 @@ var fs = require('fs'),
   d3 = require("d3");
 
 // load raw data files
-const raw_elections = require('./raw-data/elections.json'),
-  raw_centroids = require('./raw-data/centroids.json'),
-  raw_metros = require('./raw-data/metro_areas.json'),
-  raw_parties = require('./raw-data/party_codebook.json');
+const elections = require('./data/elections.json'),
+  raw_centroids = require('./data/centroids.json'),
+  raw_metros = require('./data/metro_areas.json'),
+  raw_parties = require('./data/party_codebook.json');
 
-// initialize variables
+// initialize variablesc
 var projection = d3.geoAlbersUsa(),
   path = d3.geoPath().projection(projection);
 
@@ -36,7 +36,7 @@ const getMetro = function(year, centroid, id, metros) {
     if (d3.geoContains(m.geometry, centroid)) {
       city = m.name;
     }
-  });
+  }); 
   return city;
 };
 
@@ -73,47 +73,88 @@ raw_metros.features.forEach(m => {
     state = (state.length == 2) ? state : stateAltNames[state];
     metros[m.properties.year][state] = metros[m.properties.year][state] || [];
     metros[m.properties.year][state].push({
-    name: m.properties.name,
+      name: m.properties.name,
       centroid: [m.properties.lng, m.properties.lat],
       geometry: m.geometry
     });
   });
-
-  // use 1940 for each previous decade
-  for (let d = 1790; d <= 1940; d += 10) {
-    metros[d] = metros['1950'];
-  }
 });
+// use 1940 for each previous decade
+for (let d = 1790; d <= 1940; d += 10) {
+  metros[d] = metros['1950'];
+}
+metros['1990'] = metros['1980'];
+metros['2000'] = metros['1980'];
+metros['2010'] = metros['1980'];
 
 console.log('initializing elections ...');
-const election_data = raw_elections.features
-  // filter out elections without a centroid or id
-  .filter(e => centroids[e.properties.ID] && e.properties.ID)
-  .map(e => {
-    const year = 1786 + parseInt(e.properties.CONGRESS) * 2;
-      stateAbbr = getStateAbbr(e.properties.STATENAME),
-      metro = (metros[[Math.floor(year/10) * 10]] && metros[[Math.floor(year/10) * 10]][stateAbbr]) ? getMetro(year, centroids[e.properties.ID], e.properties.ID, metros[getDecade(year)][stateAbbr]) : false;
 
-    if (metro) {
-      metrosCountsByYear[year] = metrosCountsByYear[year] || {};
-      metrosCountsByYear[year][metro] = metrosCountsByYear[year][metro] || 0;
-      metrosCountsByYear[year][metro] += 1;
-    }
+let election_data = [];
+Object.keys(elections).forEach(year => {
+  Object.keys(elections[year]).forEach(state => {
+    Object.keys(elections[year][state]).forEach(district => {
+      year = parseInt(year);
+      let decade = getDecade(year),
+        centroid = centroids[elections[year][state][district].id];
 
-    return {
-      congress: parseInt(e.properties.CONGRESS),
-      year: year,
-      districtNum: parseInt(e.properties.DISTRICT),
-      centroid: centroids[e.properties.ID],
-      state: stateAbbr,
-      district: stateAbbr + parseInt(e.properties.DISTRICT),
-      id: e.properties.ID,
-      party: parties[e.properties.PARTY_OF_1],
-      regularized_party_of_victory: getRegularizedParty(parties[e.properties.PARTY_OF_1]),
-      percent_vote: (e.properties.TOTAL_VOTE && e.properties.VICTOR_VOT) ?  parseInt(e.properties.VICTOR_VOT) / parseInt(e.properties.TOTAL_VOTE) : -1,
-      metro: metro
-    };  
+      if (centroid) {
+        let metro = (metros[decade] && metros[decade][state]) ? getMetro(metros[decade][state], centroid, elections[year][state][district].id, metros[decade][state]) : false;
+
+        if (metro) {
+          metrosCountsByYear[year] = metrosCountsByYear[year] || {};
+          metrosCountsByYear[year][metro] = metrosCountsByYear[year][metro] || 0;
+          metrosCountsByYear[year][metro] += 1;
+        }
+
+        elections[year][state][district].year = year;
+        elections[year][state][district].districtNum = parseInt(district);
+        elections[year][state][district].district = state + district;
+        elections[year][state][district].centroid = centroid;
+        elections[year][state][district].party = elections[year][state][district].party_of_victory;
+        elections[year][state][district].metro = metro;
+
+        election_data.push(elections[year][state][district]);
+      } else {
+        //console.log('no centroid for: ' + elections[year][state][district].id);
+      }
+
+      
+    });
   });
+});
+//console.log(raw_elections, centroids);
+// const election_data = raw_elections
+//   // filter out elections without a centroid or id
+//   .map(e => {
+//     e.ID = '0' + e.ID;
+//     return e;
+//   })
+//   .filter(e => centroids[e.ID] && e.ID)
+//   .map(e => {
+//     const year = 1786 + parseInt(e.CONGRESS) * 2;
+//       stateAbbr = getStateAbbr(e.STATENAME),
+//       metro = (metros[[Math.floor(year/10) * 10]] && metros[[Math.floor(year/10) * 10]][stateAbbr]) ? getMetro(year, centroids[e.ID], e.ID, metros[getDecade(year)][stateAbbr]) : false;
+
+//     if (metro) {
+//       metrosCountsByYear[year] = metrosCountsByYear[year] || {};
+//       metrosCountsByYear[year][metro] = metrosCountsByYear[year][metro] || 0;
+//       metrosCountsByYear[year][metro] += 1;
+//     }
+
+//     return {
+//       congress: parseInt(e.CONGRESS),
+//       year: year,
+//       districtNum: parseInt(e.DISTRICT),
+//       centroid: centroids[e.ID],
+//       state: stateAbbr,
+//       district: stateAbbr + parseInt(e.DISTRICT),
+//       id: e.ID,
+//       party: parties[e.PARTY_OF_1],
+//       regularized_party_of_victory: getRegularizedParty(parties[e.PARTY_OF_1]),
+//       percent_vote: (e.TOTAL_VOTE && e.VICTOR_VOT) ?  parseInt(e.VICTOR_VOT) / parseInt(e.TOTAL_VOTE) : -1,
+//       metro: metro
+//     };  
+//   });
 
 // calculate which cities have three or more congresspeople in a given year
 console.log('calculating metro areas with 3 congresspeople ...');
@@ -189,7 +230,7 @@ election_data.forEach(election => {
 });
 
 console.log('writing file ...');
-fs.writeFile('dorlingNodes.json', JSON.stringify(congresses_data, null, ' '), (err) => {
+fs.writeFile('./data/dorlingNodes.json', JSON.stringify(congresses_data, null, ' '), (err) => {
   if (err) throw err;
   console.log('COMPLETE');
 });

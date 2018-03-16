@@ -201,7 +201,6 @@ class App extends React.Component {
       let id = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).id;
       DistrictsStore.getPreviousAndNext3(this.state.selectedYear, id);
     }
-    console.log(DistrictsStore.getMaxTopOffset());
 
     return (
       <div>
@@ -226,6 +225,15 @@ class App extends React.Component {
           height={ DimensionsStore.getDimensions().mapHeight }
           className='theMap'
         >
+
+          <filter id="glow" x="-50%" y="-10%" width="200%" height="160%">
+            <feGaussianBlur stdDeviation="10" result="glow"/>
+          </filter>
+
+          <filter id="blur" x="-50%" y="-10%" width="200%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+          </filter>
+
           <g
             { ...DimensionsStore.getMapDimensions() }
             onDoubleClick={ this.onZoomIn }
@@ -265,6 +273,7 @@ class App extends React.Component {
                   strokeOpacity={ (this.state.selectedView =='cartogram') ? 0.2 : 1 }
                   strokeWidth={ 1.5 }
                   key={'stateBoundaries'+s.properties.name}
+                  filter={ (this.state.selectedView == 'cartogram') ? 'url(#blur)' : '' }
                 />
               )}
 
@@ -292,6 +301,7 @@ class App extends React.Component {
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={ DimensionsStore.getDimensions().districtR }
                     color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
+                    color={ getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
                     stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : getColorForParty(d.regularized_party_of_victory) }
                     fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.inspectedDistrict && this.state.inspectedDistrict !== d.districtId ) ? 0.3 : 1 }
                     label={ (d.flipped && (!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory)) ? 'F' : ''}
@@ -346,8 +356,9 @@ class App extends React.Component {
           { (this.state.inspectedDistrict) ?
             <div>
               <h3>{ getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).district}</h3>
-              <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).regularized_party_of_victory }</div>
-
+              <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).party_of_victory }</div>
+              <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).victor }</div>
+              <div>did: { this.state.inspectedDistrict }</div>
 
             </div> : ''
           }
@@ -364,6 +375,7 @@ class App extends React.Component {
         >
           <Timeline
             partyCount={ DistrictsStore.getPartyCounts() }
+            partyCountKeys={ DistrictsStore.getPartyCountsKeys() }
             topOffset={ DistrictsStore.getMaxTopOffset() }
             bottomOffset={ DistrictsStore.getMaxBottomOffset() }
             congressYears={ DistrictsStore.getCongressYears() }

@@ -6,7 +6,7 @@ const demColor = '#717EFF';
 const demColorLight = '#D2D2F8';
 const thirdColor = '#98B9AB';
 
-export const getColorForParty = function(party) { return (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : thirdColor; };
+export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : thirdColor; };
 
 export const getColorForMargin = function(party, percent) {
   party = party || '';

@@ -28,6 +28,7 @@ const DistrictsStore = {
     theMap: null,
     rawPartyCounts: [],
     partyCounts: [],
+    partyCountsKeys: [],
     congressYears: [],
     slivers: []
   },
@@ -36,7 +37,7 @@ const DistrictsStore = {
     const congress = congressForYear(year);
     this.data.congressDistricts[year] = this.data.congressDistricts[year] || [];
 
-    fetch('static/districts-topojson/' + congress + '.json')
+    fetch('static/districts-geojson/' + congress + '.json')
       .then(
         (response) => {
           if (response.status !== 200) {
@@ -47,20 +48,23 @@ const DistrictsStore = {
 
           // Examine the text in the response
           response.json().then((data) => {
-            data.objects = {
-              type: 'GeometryCollection',
-              geometries: Object.keys(data.objects).map(k => data.objects[k])
-            };
-            const theGeoJson = topojson.feature(data, data.objects);
+            // data.objects = {
+            //   type: 'GeometryCollection',
+            //   geometries: Object.keys(data.objects).map(k => data.objects[k])
+            // };
+            const theGeoJson = data; //topojson.feature(data, data.objects);
             theGeoJson.features.forEach(d => {
-              this.data.districts[d.properties.id] = {
-                id: d.properties.id,
-                statename: d.properties.statename,
-                district: d.properties.district,
-                startcong: d.properties.startcong,
-                endcong: d.properties.endcong,
-                the_geojson: d.geometry
-              };
+              if (!this.data.districts[d.properties.id]) {
+                this.data.districts[d.properties.id] = {
+                  id: d.properties.id,
+                  statename: d.properties.statename,
+                  district: d.properties.district,
+                  startcong: d.properties.startcong,
+                  endcong: d.properties.endcong,
+                  the_geojson: d.geometry
+                };
+              }
+
               this.data.congressDistricts[year].push(d.properties.id);
             });
 
@@ -74,14 +78,12 @@ const DistrictsStore = {
   },
 
   parseStates: function() { 
-    console.log(Slivers);
-    Slivers.objects = {
-      type: 'GeometryCollection',
-      geometries: Object.keys(Slivers.objects).map(k => Slivers.objects[k])
-    };
-    console.log(Slivers);
-    const theGeoJson = topojson.feature(Slivers, Slivers.objects);
-    this.data.slivers = theGeoJson;
+    // Slivers.objects = {
+    //   type: 'GeometryCollection',
+    //   geometries: Object.keys(Slivers.objects).map(k => Slivers.objects[k])
+    // };
+    // const theGeoJson = topojson.feature(Slivers, Slivers.objects);
+    // this.data.slivers = theGeoJson;
 
     this.data.states = topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features; 
     this.emit(AppActionTypes.storeChanged);
@@ -98,7 +100,19 @@ const DistrictsStore = {
               const state = d.district.substring(0,2),
                 district = parseInt(d.district.substring(2));
               if (!Elections[yearData.year][state][district]) {
-                return;
+                return {
+                  id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
+                  x: (0.09 + Math.random() * 0.02) * DimensionsStore.getMapScale(),
+                  y: (0.19 + Math.random() * 0.02) * DimensionsStore.getMapScale(),
+                  xOrigin: -1000,
+                  yOrigin: -1000,
+                  state: state,
+                  district: district,
+                  districtId: d.id,
+                  regularized_party_of_victory: regularized_party_of_victory,
+                  percent_vote: -1,
+                  flipped: false,
+                };
               }
               const regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
                 previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
@@ -114,6 +128,8 @@ const DistrictsStore = {
                 district: district,
                 districtId: d.id,
                 regularized_party_of_victory: regularized_party_of_victory,
+                party_of_victory: Elections[yearData.year][state][district].party_of_victory,
+                victor: Elections[yearData.year][state][district].victor,
                 percent_vote: Elections[yearData.year][state][district].percent_vote,
                 flipped: flipped,
               };
@@ -149,7 +165,6 @@ const DistrictsStore = {
   getVisibleBounds: function() { return this.data.theMap.getBounds(); },
 
   getProjection: function() {
-    console.log(d3.geoAlbersUsa().scale);
     return d3.geoAlbersUsa()
       .scale(DimensionsStore.getMapScale())
       .translate([DimensionsStore.getDimensions().mapWidth/2, DimensionsStore.getDimensions().mapHeight/2]);
@@ -283,6 +298,8 @@ const DistrictsStore = {
 
   getRawPartyCounts(year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year == year) : this.data.rawPartyCounts; },
 
+  getPartyCountsKeys() { return this.data.partyCountsKeys; },
+
   getStates(year) { return this.data.states.filter(state => state.properties.year <= year && !(year >= 1863 && state.properties.name == 'Virginia' && state.properties.year == 1864)); },
 
   getPartyCountForYearAndParty(year, party) {
@@ -400,10 +417,16 @@ const DistrictsStore = {
       repSeries.push(aRepSeries);
     });
 
-    delete(stackedData[4]);
-    delete(stackedData[0]);
+    stackedData.splice(4);
+    stackedData.splice(0,1);
     stackedData = repSeries.concat(stackedData);
     stackedData = demSeries.concat(stackedData);
+
+    demSeries.forEach(ds => this.data.partyCountsKeys.push('demAboveMargin'));
+    repSeries.forEach(ds => this.data.partyCountsKeys.push('repAboveMargin'));
+    this.data.partyCountsKeys.push('demBelowMargin');
+    this.data.partyCountsKeys.push('thirdCount');
+    this.data.partyCountsKeys.push('repBelowMargin');
 
     this.data.partyCounts = stackedData;
   },

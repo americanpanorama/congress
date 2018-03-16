@@ -47,6 +47,7 @@ export default class District extends React.Component {
         stroke={ this.state.stroke }
         strokeWidth={ 0.5 }
         strokeOpacity={ this.state.strokeOpacity }
+        
       />
     );
   }

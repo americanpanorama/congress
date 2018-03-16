@@ -34,6 +34,14 @@ export default class Timeline extends React.Component {
 			.y1(d => y(d[1]))
 			.curve(d3.curveCatmullRom);
 
+		const getStackColor = function(key) {
+			return (key == 'demAboveMargin') ? getColorForParty('democrat') :
+				(key == 'demBelowMargin') ? getColorForMargin('democrat', 0.8) :
+				(key == 'thirdCount') ? getColorForParty('third') :
+				(key == 'repBelowMargin') ? getColorForMargin('republican', 0.8) :
+				(key == 'repAboveMargin') ? getColorForParty('republican') : 'grey';
+		};
+
 		return (
 			<svg 
 				width={ width }
@@ -83,6 +91,7 @@ export default class Timeline extends React.Component {
 						<path
 							d={area(partyCount)}
 							fill={(i < 10) ? getColorForParty('democrat') : (i == 19) ? getColorForMargin('democrat', 0.8) : (i == 20) ? 'green' : (i == 21) ? getColorForMargin('republican', 0.8) : getColorForParty('republican')}
+							fill={ getStackColor(this.props.partyCountKeys[i]) }
 							key={'timelineParty' + i}
 							stroke={getColorForMargin('democrat', 0.5)}
 							strokeWidth={1}
