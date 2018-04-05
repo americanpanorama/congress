@@ -19,10 +19,12 @@ export default class District extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props.fill !== nextProps.fill || this.props.stroke !== this.props.stroke || this.props.fillOpacity !== nextProps.fillOpacity || this.props.strokeOpacity !== nextProps.strokeOpacity ) {
+      let duration = this.props.duration || 750;
+
       d3.select(ReactDOM.findDOMNode(this))
         .transition()
         .ease(d3.easeSin)
-        .duration(2000)
+        .duration(duration)
         .style('fill', nextProps.fill)
         .style('stroke', nextProps.stroke)
         .style('fill-opacity', nextProps.fillOpacity)
@@ -45,8 +47,15 @@ export default class District extends React.Component {
         fill={ this.state.color }
         fillOpacity={ this.state.fillOpacity }
         stroke={ this.state.stroke }
-        strokeWidth={ 0.5 }
+        strokeWidth={ this.props.strokeWidth }
         strokeOpacity={ this.state.strokeOpacity }
+        onClick={ this.props.onDistrictSelected }
+        onMouseEnter={(this.props.onDistrictInspected) ? this.props.onDistrictInspected : () => false}
+        onMouseOver={(this.props.onDistrictInspected) ? this.props.onDistrictInspected : () => false}
+        
+        onMouseLeave={(this.props.onDistrictInspected) ? this.props.onDistrictUninspected : () => false}
+        id={this.props.id}
+        style={{ pointerEvents: this.props.pointerEvents }}
         
       />
     );

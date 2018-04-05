@@ -177,12 +177,23 @@ const DistrictsStore = {
   getElectionDistricts: function(year) { 
     const districts = [],
       opacity = d3.scaleLinear().domain([0,10000,600000]).range([1,0.2,0.2]);
+
+  
+              
+
     Object.keys(this.data.districts).forEach(id => {
-      if (this.data.congressDistricts[year] && this.data.congressDistricts[year].includes(id) && Elections[year][getStateAbbr(this.data.districts[id].statename)] && Elections[year][getStateAbbr(this.data.districts[id].statename)][this.data.districts[id].district]) {
+      if (this.data.congressDistricts[year] && this.data.congressDistricts[year].includes(id) && this.data.districts[id] && Elections[year][getStateAbbr(this.data.districts[id].statename)] && Elections[year][getStateAbbr(this.data.districts[id].statename)][this.data.districts[id].district]) {
+        const state = getStateAbbr(this.data.districts[id].statename),
+          regularized_party_of_victory = Elections[year][state][this.data.districts[id].district].regularized_party_of_victory,
+          previousDistrictId = this.getDistrictId(year - 2, SpatialIds[year][id]),
+          previousDistrictNum = this.getDistrictNum(year - 2, previousDistrictId),
+          flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[year - 2] && Elections[year - 2][state] && Elections[year - 2][state][previousDistrictNum] && Elections[year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
+
         let d = this.data.districts[id];
-        d.regularized_party_of_victory = Elections[year][getStateAbbr(d.statename)][d.district].regularized_party_of_victory;
+        d.regularized_party_of_victory = regularized_party_of_victory,
         d.percent_vote = Elections[year][getStateAbbr(d.statename)][d.district].percent_vote;
         d.opacity = opacity(d.area);
+        d.flipped = flipped;
         districts.push(d);
       }
     });
@@ -209,7 +220,7 @@ const DistrictsStore = {
   },
 
   getDistrictId(year, spatialId)  {
-    let districtId;
+    let districtId = null;
     if (SpatialIds[year]) {
       Object.keys(SpatialIds[year]).every(aDistrictId => {
         if (SpatialIds[year][aDistrictId] == spatialId) {
@@ -437,13 +448,22 @@ const DistrictsStore = {
 
   getPreviousAndNext3(year, spatialId) {
     let theSeven = {};
-    console.log(year);
     for (let y = parseInt(year) - 6; y <= parseInt(year) + 6; y = y+2) {
       let districtId = this.getDistrictId(y, spatialId);
       theSeven[y] = this.getElectionDataForDistrict(y, districtId);
     }
 
     return theSeven;
+  },
+
+  getSpatialIdData(spatialId) {
+    let areaData = {};
+    for (let y = 1824; y <= 2004; y = y+2) {
+      let districtId = this.getDistrictId(y, spatialId);
+      areaData[y] = this.getElectionDataForDistrict(y, districtId);
+    }
+
+    return areaData;
   },
 
 }

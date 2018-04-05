@@ -1,4 +1,5 @@
 // takes the final mapping and iterates through it to assign spatial ids to each district
+// inputs ./data/mapping.json produced by ./makeFinalMapping.js
 // outputs ./data/spatialIds.json
 
 const fs = require('fs');

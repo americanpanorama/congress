@@ -61,6 +61,14 @@ export default class Bubble extends React.Component {
           });
         });
 
+      let delay = (nextProps == 0.01) ? 0 : 1000,
+        duration = 1000;
+      d3.select(this.refs['cityLabel']).selectAll('text')
+        .transition()
+        .delay(delay)
+        .duration(duration)
+        .style('fill', (nextProps.r > 12) ? 'white' : 'transparent');
+
       d3.select(this.refs['cityLabel'])
         .transition()
         .duration(2000)
@@ -109,9 +117,11 @@ export default class Bubble extends React.Component {
     return (
       <g 
         transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}
+        onClick={ this.props.onDistrictSelected }
         onMouseEnter={(this.props.onDistrictInspected) ? this.props.onDistrictInspected : () => false}
         onMouseLeave={(this.props.onDistrictInspected) ? this.props.onDistrictUninspected : () => false}
         id={this.props.id}
+        style={{ pointerEvents: this.props.pointerEvents }}
       >
         <circle className='dorling'
 
@@ -123,7 +133,8 @@ export default class Bubble extends React.Component {
             // strokeOpacity: ((this.props.percentFamiliesOfColor >= this.props.pocSpan[0] && this.props.percentFamiliesOfColor <= this.props.pocSpan[1]) && (this.props.highlightedCities.length == 0 || this.props.highlightedCities.includes(this.props.city_id))) ? 1 : 0,
             stroke: this.state.stroke,
             strokeWidth: 0.33,
-            fillOpacity: this.props.fillOpacity || 1
+            fillOpacity: this.props.fillOpacity || 1,
+            pointerEvents: this.props.pointerEvents
           } }
           // onClick={ (this.props.hasProjectGeojson) ? this.props.onCityClicked : this.props.onCityClicked}
           // onMouseEnter={ this.props.onCityHover }
@@ -147,6 +158,7 @@ export default class Bubble extends React.Component {
               fontSize={ 12 }
               textAnchor='start'
               fill='white'
+              style={{ pointerEvents: 'none' }}
             >
               <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='0%'>
                 { this.props.cityLabel }
@@ -165,7 +177,8 @@ export default class Bubble extends React.Component {
             style={{ 
               fontSize: 12, 
               weight: 400,
-              textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor
+              textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor,
+              pointerEvents: this.props.pointerEvents
             }}
           >
             { this.props.label }

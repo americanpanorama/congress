@@ -14,6 +14,7 @@ import Bubble from './components/Bubble.jsx';
 import District from './components/District.jsx';
 import StateDistGraph from './components/StateDistGraph.jsx';
 import Timeline from './components/Timeline.jsx';
+import DistrictTimeline from './components/DistrictTimeline.jsx';
 import ZoomControls from './components/ZoomControls.jsx';
 import MapLegend from './components/MapLegend.jsx';
 
@@ -37,7 +38,8 @@ class App extends React.Component {
       selectedYear: theHash.year || 1952,
       selectedView: theHash.view || 'cartogram',
       selectedParty: null,
-      selectedDistrict: null,
+      selectedDistrict: theHash.district || null,
+      onlyFlipped: false,
       inspectedDistrict: null,
       winnerView: theHash.show == 'winner',
       dorling: theHash.view != 'map',
@@ -47,7 +49,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onPartySelected'];
+    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped'];
     handlers.forEach(handler => { this[handler] = this[handler].bind(this); });
   }
 
@@ -74,9 +76,16 @@ class App extends React.Component {
     const year = e.target.id;
     AppActions.congressSelected(year);
     // don't set state until the districts have been loaded
+    this.setState({
+      inspectedDistrict: null
+    });
     setTimeout(() => {
       if (DistrictsStore.hasYearLoaded(year)) {
-        this.setState({ selectedYear: year }); 
+        const selectedDistrict = (this.state.selectedDistrict) ? DistrictsStore.getDistrictId(year, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : null;
+        this.setState({ 
+          selectedYear: year,
+          selectedDistrict: selectedDistrict
+        }); 
       }
     }, 50);
   }
@@ -93,6 +102,12 @@ class App extends React.Component {
   onDistrictUninspected() {
     this.setState({ inspectedDistrict: null }); 
   }
+
+  onDistrictSelected(e) {
+    this.setState({ selectedDistrict: e.target.id }); 
+  }
+
+  toggleFlipped() { this.setState({ onlyFlipped: !this.state.onlyFlipped }); }
 
   onViewSelected(e) {
     const selectedView = (this.state.selectedView == 'map') ? 'cartogram' : 'map';
@@ -189,6 +204,7 @@ class App extends React.Component {
     const vizState = { 
       year: this.state.selectedYear,
       view: this.state.selectedView,
+      district: this.state.selectedDistrict,
       xyz: [this.state.x, this.state.y, this.state.zoom].join('/'),
       show: (this.state.winnerView) ? 'winner' : 'strength'
     };
@@ -201,6 +217,9 @@ class App extends React.Component {
       let id = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).id;
       DistrictsStore.getPreviousAndNext3(this.state.selectedYear, id);
     }
+
+    let viewableDistrict = this.state.inspectedDistrict || this.state.selectedDistrict,
+      transitionDuration = (this.state.inspectedDistrict) ? 0 : 750;
 
     return (
       <div>
@@ -253,11 +272,18 @@ class App extends React.Component {
                         d={ DistrictsStore.getPath(d.the_geojson) }
                         key={ 'polygon' + d.id }
                         fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
-                        fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
-                        stroke={  '#eee' }
-                        strokeWidth={0.5}
-                        strokeOpacity={(this.state.selectedView =='cartogram') ? 0.00 : 1}
+                        //fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
+                        fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : ((this.state.selectedView == 'cartogram' && viewableDistrict !== d.id) || (viewableDistrict && viewableDistrict !== d.id) || (this.state.onlyFlipped && !d.flipped)) ? 0.1 : 1 }
+                        stroke={ '#eee' }
+                        strokeWidth={(!viewableDistrict || viewableDistrict != d.id) ? 0.5 : 2 }
+                        strokeOpacity={(this.state.selectedView =='cartogram' && (!viewableDistrict || viewableDistrict !== d.id)) ? 0.00 : (viewableDistrict && viewableDistrict !== d.id) ? 0.2 : 1}
                         selectedView={ this.state.selectedView }
+                        onDistrictInspected={ this.onDistrictInspected }
+                        onDistrictUninspected={ this.onDistrictUninspected }
+                        onDistrictSelected={ this.onDistrictSelected }
+                        id={d.id}
+                        duration={ transitionDuration }
+                        pointerEvents={ (this.state.selectedView == 'map') ? 'auto' : 'none'}
                       />
                     );
                   })}
@@ -265,17 +291,19 @@ class App extends React.Component {
               }
 
 
-              { DistrictsStore.getStates(this.state.selectedYear).map(s =>
-                <path
+              { DistrictsStore.getStates(this.state.selectedYear).map(s => {
+                return ( <path
                   d={ DistrictsStore.getPath(s.geometry) }
                   fill='transparent'
                   stroke={ '#eee'}
                   strokeOpacity={ (this.state.selectedView =='cartogram') ? 0.2 : 1 }
-                  strokeWidth={ 1.5 }
+                  strokeWidth={ (!viewableDistrict || s.properties.abbr_name == DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) ? 1.5 : 0.3 }
                   key={'stateBoundaries'+s.properties.name}
                   filter={ (this.state.selectedView == 'cartogram') ? 'url(#blur)' : '' }
-                />
-              )}
+                  style={{ pointerEvents: 'none' }}
+                />);
+
+              })}
 
             </g>
 
@@ -301,16 +329,17 @@ class App extends React.Component {
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={ DimensionsStore.getDimensions().districtR }
                     color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
-                    color={ getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
-                    stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : getColorForParty(d.regularized_party_of_victory) }
-                    fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.inspectedDistrict && this.state.inspectedDistrict !== d.districtId ) ? 0.3 : 1 }
+                    stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (this.state.selectedView == 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
+                    fillOpacity={ ((this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) || (this.state.onlyFlipped && !d.flipped)) ? 0.05 : (viewableDistrict && viewableDistrict !== d.districtId) ? 0.3 : 1 }
                     label={ (d.flipped && (!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory)) ? 'F' : ''}
                     labelColor={ getColorForParty(d.regularized_party_of_victory) }
                     key={d.id}
                     id={d.districtId}
+                    pointerEvents={ (this.state.selectedView == 'map') ? 'none' : 'auto' }
                     selectedView={ this.state.selectedView }
                     onDistrictInspected={ this.onDistrictInspected }
                     onDistrictUninspected={ this.onDistrictUninspected }
+                    onDistrictSelected={ this.onDistrictSelected }
                   />
                 )} 
               </g> : ''
@@ -327,10 +356,13 @@ class App extends React.Component {
 
         <MapLegend
           selectedView={ this.state.selectedView }
+          selectedParty={ this.state.selectedParty }
           onViewSelected={ this.onViewSelected }
           onPartySelected={ this.onPartySelected }
           winnerView={ this.state.winnerView }
+          onlyFlipped={ this.state.onlyFlipped }
           toggleView={ this.toggleView }
+          toggleFlipped={ this.toggleFlipped }
         />
 
         <aside 
@@ -353,12 +385,12 @@ class App extends React.Component {
             }
           </h2>
 
-          { (this.state.inspectedDistrict) ?
+          { (viewableDistrict) ?
             <div>
-              <h3>{ getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).district}</h3>
-              <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).party_of_victory }</div>
-              <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.inspectedDistrict).victor }</div>
-              <div>did: { this.state.inspectedDistrict }</div>
+              <h3>{ getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district}</h3>
+              <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).party_of_victory }</div>
+              <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor }</div>
+              <div>did: { viewableDistrict }</div>
 
             </div> : ''
           }
@@ -382,7 +414,16 @@ class App extends React.Component {
             onYearSelected={ this.onYearSelected }
             selectedYear={ this.state.selectedYear }
             partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
+            districtData={ (viewableDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) : false }
           />
+
+          { (false && viewableDistrict) ? 
+            <DistrictTimeline
+              electionsData={ DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) }
+              topOffset={ DistrictsStore.getMaxTopOffset() }
+              bottomOffset={ DistrictsStore.getMaxBottomOffset() }
+            /> : ''
+          }
 
 
 

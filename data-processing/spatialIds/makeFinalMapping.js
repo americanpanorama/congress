@@ -1,4 +1,6 @@
 // this file creates a map of "spatialIds" for districts. These spatial ids are used to map districts across time to each other based upon how much they overlap. For one, this is used to move rather than recreate bubbles on the cartogram
+// input: ./data/preliminaryMapping.json produced by ./makePreliminaryMapping.js
+// input: ./data/candidates.json produced by ./makeCandidates.js
 // outputs ./data/mapping.json
 
 const fs = require('fs');

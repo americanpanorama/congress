@@ -1,4 +1,7 @@
 // queries carto to produce an object with years and states that require spatial mapping--i.e. that have different districts across election cycles
+// inputs: none
+// outputs: ./data/todDos.json
+
 
 const d3 = require("d3"),  
 	fs = require('fs');

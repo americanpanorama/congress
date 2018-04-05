@@ -78,7 +78,7 @@ export default class MapLegend extends React.Component {
 		return (
 			<svg 
 				width={300}
-				height={DimensionsStore.getDimensions().mapLegendHeight}
+				height={DimensionsStore.getDimensions().mapLegendHeight + 100}
 				id='legend'
 				style={{
 					right: DimensionsStore.getDimensions().sidebarWidth,
@@ -111,6 +111,46 @@ export default class MapLegend extends React.Component {
 				</defs>
 
 				<g transform='translate(200 0)'>
+					<circle 
+						cx={ -17.5  }
+						cy={ 7.5  }
+						r={7.5}
+						fill={ 'grey'}
+					/>
+
+					<text
+						x={ -20.5 }
+						y={ 12.5 }
+						fill='white'
+						stroke='transparent'
+						style={{ 
+							fontSize: 12, 
+							weight: 400,
+							textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor
+						}}
+					>
+						F
+					</text>
+
+					<text
+						x={0}
+						y={DimensionsStore.getDimensions().mapLegendFontSize}
+						textAnchor='start'
+						fill={ '#eee' }
+						fill={ (this.props.onlyFlipped) ? '#F0B67F' : '#eee' }
+						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
+						onClick={ this.props.toggleFlipped }
+					>
+						Flipped
+						<tspan 
+							fill={ (this.props.onlyFlipped) ? '#F0B67F' : '#666' }
+							onClick={ this.props.toggleFlipped }
+						> ✓</tspan>
+					</text>
+				</g>
+
+
+				<g transform='translate(200 30)'>
 
 					<text
 						x={0}
@@ -118,10 +158,15 @@ export default class MapLegend extends React.Component {
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='democrat'
-						fill='#eee'
+						fill={ (!this.props.selectedParty || this.props.selectedParty == 'democrat') ? '#eee' : '#666' }
 						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
 					>
 						Democratic
+						<tspan 
+							fill={ (!this.props.selectedParty || this.props.selectedParty == 'democrat') ? '#F0B67F' : '#666' }
+							onClick={ this.props.onPartySelected }
+							id='democrat'
+							> ✓</tspan>
 					</text>
 
 					{ (this.props.selectedView == 'map') ?
@@ -153,10 +198,15 @@ export default class MapLegend extends React.Component {
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='republican'
-						fill='#eee'
+						fill={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#eee' : '#666' }
 						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
-					>
+					> 
 						Republican
+						<tspan 
+							fill={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#F0B67F' : '#666' }
+							onClick={ this.props.onPartySelected }
+							id='republican'
+							> ✓</tspan>
 					</text>
 
 					{ (this.props.selectedView == 'map') ?
@@ -187,10 +237,15 @@ export default class MapLegend extends React.Component {
 						textAnchor='start'
 						onClick={ this.props.onPartySelected }
 						id='third'
-						fill='#eee'
+						fill={ (!this.props.selectedParty || this.props.selectedParty == 'third') ? '#eee' : '#666' }
 						fontSize={ DimensionsStore.getDimensions().mapLegendFontSize }
 					>
 						Third
+						<tspan 
+							fill={ (!this.props.selectedParty || this.props.selectedParty == 'third') ? '#F0B67F' : '#666' }
+							onClick={ this.props.onPartySelected }
+							id='third'
+						> ✓</tspan>
 					</text>
 
 					{ (this.props.selectedView == 'map') ?

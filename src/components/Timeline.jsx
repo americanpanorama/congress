@@ -23,16 +23,31 @@ export default class Timeline extends React.Component {
 			axisTickHeight = axisHeight * 1/4 - axisGutter * 1.5;
   			
 		var x = d3.scaleLinear()
-			.domain([1788, 2016])
+			.domain([1824, 2016])
 			.range([15, DimensionsStore.getDimensions().timelineWidth]);
 		var y = d3.scaleLinear()
 			.domain([-1*this.props.topOffset, this.props.bottomOffset])
 			.range([0, steamgraphHeight - steamgraphGutter * 2]);
+		var yDistrict = d3.scaleLinear()
+			.domain([-1, -1, -0.5, 0, 0.5, 1, 1])
+			.range([y(this.props.bottomOffset*-1), y(this.props.bottomOffset*-1), y(0), y(0), y(0), y(this.props.bottomOffset), y(this.props.bottomOffset)]);
 		var area = d3.area()
 			.x(d => x(d.data.year))
 			.y0(d => y(d[0]))
 			.y1(d => y(d[1]))
 			.curve(d3.curveCatmullRom);
+
+		var line = d3.line()
+			.x(function(d) { return x(d.year); }) // set the x values for the line generator
+			.y(function(d) { return yDistrict(d.percent); }) // set the y values for the line generator 
+			.curve(d3.curveCatmullRom); // apply smoothing to the line
+
+		let lineData = [];
+		Object.keys(this.props.districtData).forEach(year => {
+			if (this.props.districtData[year]) {
+				lineData.push({year: year, percent: (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? this.props.districtData[year].percent_vote * -1 : this.props.districtData[year].percent_vote});
+			}
+		});
 
 		const getStackColor = function(key) {
 			return (key == 'demAboveMargin') ? getColorForParty('democrat') :
@@ -122,6 +137,66 @@ export default class Timeline extends React.Component {
 					>
 						{ this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin + ((this.props.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.repAboveMargin + ')' : '' )}
 					</text>
+
+					{ (this.props.districtData) ?
+						<g>
+							<rect 
+								x={ 0 }
+								y={ 0 }
+								width={ width }
+								height={ steamgraphHeight - steamgraphGutter * 2 }
+								fill={ '#233036' }
+								fillOpacity={1}
+
+							/>
+
+							<rect 
+								x={ 0 }
+								y={ 0 }
+								width={ width }
+								height={ yDistrict(0) }
+								fill={ getColorForParty('democrat') }
+								fillOpacity={0.05}
+
+							/>
+
+							<rect 
+								x={ 0 }
+								y={ yDistrict(0) }
+								width={ width }
+								height={ yDistrict(1) - yDistrict(0) }
+								fill={ getColorForParty('republican') }
+								fillOpacity={0.05}
+
+							/>
+
+							<path
+								d={line(lineData)}
+								stroke='white'
+								strokeWidth={2}
+								fill="transparent"
+							/>
+
+							{ Object.keys(this.props.districtData).map(year => {
+								if (this.props.districtData[year]) {
+									return (
+										<circle
+											cx={x(year)}
+											cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
+											r={ 5 }
+											fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
+											key={ 'districtMOVFor' + year }
+										/>
+									);
+								}
+
+							})}
+						</g> : ''
+
+					}
+
+
+
 				</g>
 
 				{/* labels and marker for selected year */}
