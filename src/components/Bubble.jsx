@@ -61,13 +61,13 @@ export default class Bubble extends React.Component {
           });
         });
 
-      let delay = (nextProps == 0.01) ? 0 : 1000,
-        duration = 1000;
-      d3.select(this.refs['cityLabel']).selectAll('text')
-        .transition()
-        .delay(delay)
-        .duration(duration)
-        .style('fill', (nextProps.r > 12) ? 'white' : 'transparent');
+      // let delay = (nextProps == 0.01) ? 0 : 1000,
+      //   duration = 1000;
+      // d3.select(this.refs['cityLabel']).selectAll('text')
+      //   .transition()
+      //   .delay(delay)
+      //   .duration(duration)
+      //   .style('fill', (nextProps.r > 12) ? 'white' : 'transparent');
 
       d3.select(this.refs['cityLabel'])
         .transition()

@@ -459,8 +459,11 @@ const DistrictsStore = {
   getSpatialIdData(spatialId) {
     let areaData = {};
     for (let y = 1824; y <= 2004; y = y+2) {
-      let districtId = this.getDistrictId(y, spatialId);
-      areaData[y] = this.getElectionDataForDistrict(y, districtId);
+      let districtId = this.getDistrictId(y, spatialId),
+        districtData = this.getElectionDataForDistrict(y, districtId);
+      if (districtData) {
+        areaData[y] = districtData;
+      }
     }
 
     return areaData;

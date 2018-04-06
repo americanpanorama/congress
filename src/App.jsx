@@ -120,8 +120,8 @@ class App extends React.Component {
   onZoomIn(event) {
     event.preventDefault();
     const z = Math.min(this.state.zoom * 1.62, 18),
-      centerX = (event.target.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().width  / 2 - this.state.x : event.nativeEvent.offsetX - this.state.x,
-      centerY = (event.target.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().height  / 2 - this.state.y : event.nativeEvent.offsetY - this.state.y,
+      centerX = (event.currentTarget.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().width  / 2 - this.state.x : event.nativeEvent.offsetX - this.state.x,
+      centerY = (event.currentTarget.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().height  / 2 - this.state.y : event.nativeEvent.offsetY - this.state.y,
       x = DimensionsStore.getMapDimensions().width  / 2 - centerX / this.state.zoom * z,
       y = DimensionsStore.getMapDimensions().height / 2 - centerY / this.state.zoom * z;
     this.setState({
@@ -348,11 +348,7 @@ class App extends React.Component {
           </g>
         </svg>
 
-        <ZoomControls
-          onZoomIn={ this.onZoomIn }
-          onZoomOut={ this.zoomOut }
-          resetView={ this.resetView }
-        />
+
 
         <MapLegend
           selectedView={ this.state.selectedView }
@@ -365,36 +361,15 @@ class App extends React.Component {
           toggleFlipped={ this.toggleFlipped }
         />
 
-        <aside 
-          id='sidebar'
-          style={{ 
-            width: DimensionsStore.getDimensions().sidebarWidth,
-            height: DimensionsStore.getDimensions().sidebarHeight,
-            bottom: DimensionsStore.getDimensions().gutterPadding,
-            right: DimensionsStore.getDimensions().gutterPadding
-          }}
-        >
+        <ZoomControls
+          onZoomIn={ this.onZoomIn }
+          onZoomOut={ this.zoomOut }
+          resetView={ this.resetView }
+          currentZoom={ this.state.zoom }
+        />
 
-          <h2>
-            { (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? 
-              <span onClick={this.onYearSelected} id={DistrictsStore.getPreviousElectionYear(this.state.selectedYear)}>«</span> : ''
-            }
-            Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress
-            { (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? 
-              <span onClick={this.onYearSelected} id={DistrictsStore.getNextElectionYear(this.state.selectedYear)}>»</span> : ''
-            }
-          </h2>
 
-          { (viewableDistrict) ?
-            <div>
-              <h3>{ getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district}</h3>
-              <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).party_of_victory }</div>
-              <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor }</div>
-              <div>did: { viewableDistrict }</div>
 
-            </div> : ''
-          }
-        </aside>
 
         <aside
           id='info'
@@ -402,7 +377,7 @@ class App extends React.Component {
             width: DimensionsStore.getDimensions().timelineWidth,
             height: DimensionsStore.getDimensions().timelineHeight,
             bottom: DimensionsStore.getDimensions().gutterPadding,
-            left: DimensionsStore.getDimensions().gutterPadding
+            left: DimensionsStore.getDimensions().sidebarWidth + DimensionsStore.getDimensions().gutterPadding * 2,
           }}
         >
           <Timeline
@@ -548,6 +523,51 @@ class App extends React.Component {
             }} 
             onClick={ this.toggleView }> Strength of Victory</span>
         </div>
+
+        <h2
+          id='electionLabel'
+          style={{ 
+            width: DimensionsStore.getDimensions().timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth,
+            left: DimensionsStore.getDimensions().sidebarWidth + DimensionsStore.getDimensions().gutterPadding,
+            bottom: DimensionsStore.getDimensions().gutterPadding + DimensionsStore.getDimensions().timelineHeight * 5/6,
+
+
+          }}
+        >
+          Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress
+        </h2>
+
+
+
+        <aside 
+          id='sidebar'
+          style={{ 
+            width: DimensionsStore.getDimensions().sidebarWidth,
+            height: DimensionsStore.getDimensions().sidebarHeight,
+            bottom: DimensionsStore.getDimensions().gutterPadding,
+            left: DimensionsStore.getDimensions().gutterPadding
+          }}
+        >
+          { (viewableDistrict) ?
+            <div>
+              <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor }</div>
+
+            </div> : ''
+          }
+        </aside>
+
+        <h2
+          id='districtLabel'
+          style={{ 
+            width: DimensionsStore.getDimensions().sidebarWidth,
+            left: DimensionsStore.getDimensions().gutterPadding,
+            bottom: DimensionsStore.getDimensions().gutterPadding + DimensionsStore.getDimensions().timelineHeight * 5/6,
+            backgroundColor: (!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)
+          }}
+        >
+          { (viewableDistrict) ? getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district : ' '
+          }
+        </h2>
       </div>
     );
   }

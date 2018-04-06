@@ -27,26 +27,31 @@ const DimensionsStore = {
 		this.data.headerTitleFontSize = this.data.headerHeight / 2 - this.data.headerGutter * 1.5;
 		this.data.headerSubtitleFontSize = this.data.headerHeight / 3 - this.data.headerGutter * 1.5;
 
-		this.data.sidebarHeight =this.data.windowHeight - this.data.headerHeight - this.data.gutterPadding;
-		this.data.sidebarWidth = this.data.windowWidth / 4 - this.data.gutterPadding * 1.5;
+		
+		this.data.sidebarWidth = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
+		this.data.sidebarHeight = this.data.sidebarWidth - 50;
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
 		this.data.mapHeight = this.data.windowHeight * 2/3 - this.data.gutterPadding;
-		this.data.mapWidth = this.data.windowWidth * 3/4 - this.data.gutterPadding * 1.5;
+		this.data.mapWidth = this.data.windowWidth - this.data.gutterPadding * 2;
 
 		this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
 
-		this.data.mapLegendHeight = this.data.mapHeight / 12;
+		this.data.mapLegendWidth = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
+		this.data.mapLegendHeight = this.data.mapLegendWidth / 2;
 		this.data.mapLegendGutter = this.data.mapLegendHeight * 0.02;
-		this.data.mapLegendFontSize = this.data.mapLegendHeight / 4 - this.data.mapLegendGutter;
+		this.data.mapLegendFontSize = this.data.mapHeight / 48 - this.data.mapLegendGutter;
 		this.data.mapLegendSymbolHeight = this.data.mapLegendFontSize;
 
-		this.data.timelineWidth = this.data.mapWidth;
+		this.data.timelineYAxisWidth = 100;
+
 		this.data.timelineHeight = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
+		this.data.timelineWidth = this.data.mapWidth - this.data.timelineYAxisWidth - this.data.timelineHeight * 2 - this.data.gutterPadding * 4;
+
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
 
-		this.data.vizControlsRight = this.data.sidebarWidth + this.data.gutterPadding*3 + this.data.mapWidth/2;
+		this.data.vizControlsRight =  this.data.gutterPadding*2 + this.data.mapWidth/2;
 		this.data.winnerControlLeft = this.data.gutterPadding*2 + this.data.mapWidth/2;
 
 		this.emit(AppActionTypes.storeChanged);

@@ -77,14 +77,18 @@ export default class MapLegend extends React.Component {
 
 		return (
 			<svg 
-				width={300}
-				height={DimensionsStore.getDimensions().mapLegendHeight + 100}
+				width={DimensionsStore.getDimensions().mapLegendWidtht}
+				height={DimensionsStore.getDimensions().mapLegendHeight}
 				id='legend'
 				style={{
-					right: DimensionsStore.getDimensions().sidebarWidth,
-					bottom: DimensionsStore.getDimensions().timelineHeight + DimensionsStore.getDimensions().gutterPadding * 1.5
+					right: DimensionsStore.getDimensions().gutterPadding,
+					bottom: DimensionsStore.getDimensions().gutterPadding //DimensionsStore.getDimensions().timelineHeight + DimensionsStore.getDimensions().gutterPadding * 1.5
 				}}
 			>
+
+
+
+
 				{/* JSX Comment 
 				<rect
 					width={350}
@@ -110,7 +114,7 @@ export default class MapLegend extends React.Component {
 					</linearGradient>
 				</defs>
 
-				<g transform='translate(200 0)'>
+				<g transform='translate(200 0) scale(1.3)'>
 					<circle 
 						cx={ -17.5  }
 						cy={ 7.5  }
@@ -150,7 +154,7 @@ export default class MapLegend extends React.Component {
 				</g>
 
 
-				<g transform='translate(200 30)'>
+				<g transform='translate(200 30) scale(1.3)'>
 
 					<text
 						x={0}

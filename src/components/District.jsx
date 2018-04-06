@@ -19,7 +19,7 @@ export default class District extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props.fill !== nextProps.fill || this.props.stroke !== this.props.stroke || this.props.fillOpacity !== nextProps.fillOpacity || this.props.strokeOpacity !== nextProps.strokeOpacity ) {
-      let duration = this.props.duration || 750;
+      let duration = this.props.duration || 2000;
 
       d3.select(ReactDOM.findDOMNode(this))
         .transition()

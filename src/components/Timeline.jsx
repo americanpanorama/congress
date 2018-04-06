@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as d3 from 'd3';
 
 import DimensionsStore from '../stores/DimensionsStore.js';
-import { getColorForParty, getColorForMargin, yearForCongress, ordinalSuffixOf, congressForYear } from '../utils/HelperFunctions';
+import { getColorForParty, getColorForMargin, yearForCongress, ordinalSuffixOf, congressForYear, getStateName } from '../utils/HelperFunctions';
 
 export default class Timeline extends React.Component {
 
@@ -10,6 +10,7 @@ export default class Timeline extends React.Component {
 
 		const height = DimensionsStore.getDimensions().timelineHeight,
 			width = DimensionsStore.getDimensions().timelineWidth,
+			infoWidth = DimensionsStore.getDimensions().timelineWidth / 4,
 			timelineGutter = height * 0.02,
 			labelHeight = DimensionsStore.getDimensions().timelineHeight / 6,
 			labelGutter = labelHeight * 0.02,
@@ -44,9 +45,7 @@ export default class Timeline extends React.Component {
 
 		let lineData = [];
 		Object.keys(this.props.districtData).forEach(year => {
-			if (this.props.districtData[year]) {
-				lineData.push({year: year, percent: (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? this.props.districtData[year].percent_vote * -1 : this.props.districtData[year].percent_vote});
-			}
+			lineData.push({year: year, percent: (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? this.props.districtData[year].percent_vote * -1 : this.props.districtData[year].percent_vote});
 		});
 
 		const getStackColor = function(key) {
@@ -57,11 +56,15 @@ export default class Timeline extends React.Component {
 				(key == 'repAboveMargin') ? getColorForParty('republican') : 'grey';
 		};
 
+		console.log(this.props.districtData[this.props.selectedYear]);
+
 		return (
 			<svg 
-				width={ width }
+				width={ width + DimensionsStore.getDimensions().timelineYAxisWidth }
 				height={ height }
 			>
+
+
 				{/* x axis: years */}
 				<g transform={'translate(0 ' + (labelHeight+steamgraphHeight) + ')'}>
 					<line
@@ -83,7 +86,7 @@ export default class Timeline extends React.Component {
 						/>
 					)}
 
-					{ Array.from({length: (2020-1790)/10}, (v, i) => 1790+i*10).map(year => 
+					{ Array.from({length: (2020-1830)/10}, (v, i) => 1830+i*10).map(year => 
 						<text
 							x={x(year)}
 							y={ axisHeight - axisGutter }
@@ -98,6 +101,69 @@ export default class Timeline extends React.Component {
 						</text>
 					)}
 				</g>
+
+				{/* y axis: percent */}
+				{ (this.props.districtData) ?
+					<g transform={ 'translate(' + width + ' ' + labelHeight + ')'}>
+						<line
+							x1={ axisTickHeight }
+							x2={ axisTickHeight }
+							y1={ yDistrict(-1) }
+							y2={ yDistrict(1) }
+							stroke='white'
+						/>
+
+						{ [-1, -0.75, .5, .75, 1].map(percent => 
+							<g key={'ytickFor'+percent}>
+								<line
+									x1={0}
+									x2={axisTickHeight}
+									y1={ yDistrict(percent) }
+									y2={ yDistrict(percent) }
+									stroke='white'
+									
+								/>
+								<text
+									x={axisTickHeight * 2}
+									y={ yDistrict(percent) + 6 }
+									fill='white'
+
+								>
+									{ Math.round(Math.abs(percent * 100)) + '%' + ((percent == 0.5) ? ' or less' : '') }
+								</text>
+							</g>
+						)}
+					</g> : 
+					<g transform={ 'translate(' + width + ' ' + labelHeight + ')'}>
+						<line
+							x1={ axisTickHeight }
+							x2={ axisTickHeight }
+							y1={ y(this.props.topOffset * -1) }
+							y2={ y(this.props.bottomOffset) }
+							stroke='white'
+						/>
+
+						{ [-300, -200, -100, 0, 100, 200, 300].map(members => 
+							<g key={'ytickFor'+members}>
+								<line
+									x1={0}
+									x2={axisTickHeight}
+									y1={ y(members) }
+									y2={ y(members) }
+									stroke='white'
+									
+								/>
+								<text
+									x={axisTickHeight * 2}
+									y={ y(members) + 6 }
+									fill='white'
+								>
+									{ Math.abs(members) }
+								</text>
+							</g>
+						)}
+					</g>
+				}
 
 				{/* steamgraph data */}
 				<g transform={'translate(0 ' + (labelHeight + steamgraphGutter) + ')'}>
@@ -178,19 +244,31 @@ export default class Timeline extends React.Component {
 							/>
 
 							{ Object.keys(this.props.districtData).map(year => {
-								if (this.props.districtData[year]) {
-									return (
-										<circle
-											cx={x(year)}
-											cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
-											r={ 5 }
-											fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
-											key={ 'districtMOVFor' + year }
-										/>
-									);
-								}
-
+								return (
+									<circle
+										cx={x(year)}
+										cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
+										r={ (year == this.props.selectedYear) ? 7 : 5 }
+										fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
+										stroke={ (year == this.props.selectedYear) ? 'white' : 'transparent' }
+										key={ 'districtMOVFor' + year }
+									/>
+								);
 							})}
+
+						{/* JSX Comment
+							<text
+								x={x(this.props.selectedYear)}
+								y={ (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[this.props.selectedYear].percent_vote * -1) + 5 : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[this.props.selectedYear].percent_vote) : 0 }
+								fill='white'
+								textAnchor='middle'
+
+							>
+								{ Math.round(this.props.districtData[this.props.selectedYear].percent_vote * 100) + '%' }
+							</text>
+						 */}
+
+
 						</g> : ''
 
 					}
@@ -199,7 +277,7 @@ export default class Timeline extends React.Component {
 
 				</g>
 
-				{/* labels and marker for selected year */}
+				{/* labels and marker for selected year 
 				<text
 					x={x(this.props.selectedYear)}
 					y={electionFontSize + labelGutter}
@@ -226,12 +304,14 @@ export default class Timeline extends React.Component {
 					The { ordinalSuffixOf(congressForYear(this.props.selectedYear)) } Congress
 				</text>
 
+				*/}
+
 				<line
 					x1={x(this.props.selectedYear)}
 					x2={x(this.props.selectedYear)}
 					y1={ labelHeight }
 					y2={ labelHeight + steamgraphHeight }
-					stroke='white'
+					stroke='transparent'
 				/>
 
 				{/* clickable areas to select year */}
@@ -249,6 +329,73 @@ export default class Timeline extends React.Component {
 						onClick={ this.props.onYearSelected }
 					/>
 				)}
+
+				{/* info */}
+			{/* JSX Comment 
+				<g>
+					<rect
+						x={0}
+						y={0}
+						width={height}
+						height={height}
+						fill='black'
+					/>
+
+					<text
+						x={height/2}
+						y={electionFontSize + labelGutter}
+						fill='white'
+						textAnchor='middle'
+						style={{
+							fontSize: electionFontSize,
+							fontFamily: 'PT Serif'
+						}}
+
+					>
+						{ this.props.selectedYear + ' Election' }
+					</text>
+
+					<text
+						x={height/2}
+						y={ labelHeight - labelGutter}
+						fill='white'
+						textAnchor='middle'
+						style={{
+							fontSize: congressFontSize
+						}}
+					>
+						The { ordinalSuffixOf(congressForYear(this.props.selectedYear)) } Congress
+					</text>
+
+
+					{ (this.props.districtData) ?
+						<g>
+							<text
+								x={height/2}
+								y={ labelHeight + congressFontSize * 1.2 }
+								fill='white'
+								textAnchor='middle'
+								style={{
+									fontSize: congressFontSize
+								}}
+							>
+								{ getStateName(this.props.districtData[this.props.selectedYear].state) + ' ' + this.props.districtData[this.props.selectedYear].district }
+							</text>
+
+							<text
+								x={height/2}
+								y={ labelHeight + congressFontSize * 1.2 }
+								fill='white'
+								textAnchor='middle'
+								style={{
+									fontSize: congressFontSize
+								}}
+							>
+								{ getStateName(this.props.districtData[this.props.selectedYear].state) + ' ' + this.props.districtData[this.props.selectedYear].district }
+							</text>
+						</g> : ''
+					}
+				</g> */}
 
 				{/* JSX Comment 
 				<g transform='translate(175 0)'>

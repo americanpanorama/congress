@@ -17,7 +17,6 @@ body {
 
 header {
 	margin: 0;
-	font-family: 'PT Serif';
 	text-align: center;
 
 	h1 {
@@ -34,6 +33,26 @@ aside#sidebar {
 	position: fixed;
 	background-color: #38444a;
 	color: white;
+
+	* {
+		margin: 10px;
+	}
+}
+
+h2#electionLabel {
+	position: fixed;
+	background-color: #38444a;
+	color: white;
+	text-align: center;
+	margin: 0;
+
+}
+
+h2#districtLabel {
+	position: fixed;
+	color: white;
+	text-align: center;
+	margin: 0;
 }
 
 aside#info{
