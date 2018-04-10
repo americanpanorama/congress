@@ -75,12 +75,14 @@ class App extends React.Component {
   onYearSelected(e) { 
     const year = e.target.id;
     AppActions.congressSelected(year);
-    // don't set state until the districts have been loaded
+    console.time();
     this.setState({
       inspectedDistrict: null
     });
-    setTimeout(() => {
+    // don't set state until the districts have been loaded
+    let loading = setInterval(() => {
       if (DistrictsStore.hasYearLoaded(year)) {
+        clearInterval(loading);
         const selectedDistrict = (this.state.selectedDistrict) ? DistrictsStore.getDistrictId(year, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : null;
         this.setState({ 
           selectedYear: year,
@@ -527,9 +529,10 @@ class App extends React.Component {
         <h2
           id='electionLabel'
           style={{ 
-            width: DimensionsStore.getDimensions().timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth,
-            left: DimensionsStore.getDimensions().sidebarWidth + DimensionsStore.getDimensions().gutterPadding,
-            bottom: DimensionsStore.getDimensions().gutterPadding + DimensionsStore.getDimensions().timelineHeight * 5/6,
+            width: DimensionsStore.getDimensions().electionLabelWidth,
+            height: DimensionsStore.getDimensions().electionLabelHeight,
+            left: DimensionsStore.getDimensions().electionLabelLeft,
+            bottom: DimensionsStore.getDimensions().electionLabelBottom,
 
 
           }}
@@ -544,8 +547,8 @@ class App extends React.Component {
           style={{ 
             width: DimensionsStore.getDimensions().sidebarWidth,
             height: DimensionsStore.getDimensions().sidebarHeight,
-            bottom: DimensionsStore.getDimensions().gutterPadding,
-            left: DimensionsStore.getDimensions().gutterPadding
+            left: DimensionsStore.getDimensions().sidebarLeft,
+            bottom: DimensionsStore.getDimensions().sidebarBottom,
           }}
         >
           { (viewableDistrict) ?
@@ -559,9 +562,10 @@ class App extends React.Component {
         <h2
           id='districtLabel'
           style={{ 
-            width: DimensionsStore.getDimensions().sidebarWidth,
-            left: DimensionsStore.getDimensions().gutterPadding,
-            bottom: DimensionsStore.getDimensions().gutterPadding + DimensionsStore.getDimensions().timelineHeight * 5/6,
+            width: DimensionsStore.getDimensions().districtLabelWidth,
+            height: DimensionsStore.getDimensions().districtLabelHeight,
+            left: DimensionsStore.getDimensions().districtLabelLeft,
+            bottom: DimensionsStore.getDimensions().districtLabelBottom,
             backgroundColor: (!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)
           }}
         >

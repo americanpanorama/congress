@@ -77,7 +77,7 @@ export default class MapLegend extends React.Component {
 
 		return (
 			<svg 
-				width={DimensionsStore.getDimensions().mapLegendWidtht}
+				width={DimensionsStore.getDimensions().mapLegendWidth}
 				height={DimensionsStore.getDimensions().mapLegendHeight}
 				id='legend'
 				style={{
@@ -114,21 +114,22 @@ export default class MapLegend extends React.Component {
 					</linearGradient>
 				</defs>
 
-				<g transform='translate(200 0) scale(1.3)'>
+				<g transform={'translate(' + DimensionsStore.getDimensions().mapLegendWidth/2 + ' ' + DimensionsStore.getDimensions().mapLegendTopGutter + ')'}>
 					<circle 
-						cx={ -17.5  }
-						cy={ 7.5  }
-						r={7.5}
+						cx={ DimensionsStore.getDimensions().mapLegendRadius * -2  }
+						cy={ DimensionsStore.getDimensions().mapLegendRadius  }
+						r={ DimensionsStore.getDimensions().mapLegendRadius }
 						fill={ 'grey'}
 					/>
 
 					<text
-						x={ -20.5 }
-						y={ 12.5 }
+						x={ DimensionsStore.getDimensions().mapLegendRadius * -2 }
+						y={ DimensionsStore.getDimensions().mapLegendRadius * 1.5 }
 						fill='white'
 						stroke='transparent'
+						textAnchor='middle'
 						style={{ 
-							fontSize: 12, 
+							fontSize: DimensionsStore.getDimensions().mapLegendRadius*1.5, 
 							weight: 400,
 							textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor
 						}}
@@ -154,7 +155,7 @@ export default class MapLegend extends React.Component {
 				</g>
 
 
-				<g transform='translate(200 30) scale(1.3)'>
+				<g transform={'translate(' + DimensionsStore.getDimensions().mapLegendWidth/2 + ' ' + DimensionsStore.getDimensions().mapLegendHeight / 2 + ')'}>
 
 					<text
 						x={0}
@@ -185,15 +186,21 @@ export default class MapLegend extends React.Component {
 						<g>
 							{ ((this.props.winnerView) ? [1] : [1,0.9166,0.8333,0.75,0.666,0.5833,0.5]).map((sov,i) => 
 								<circle
-									cx={ -17.5 - (105/120) * (1-sov)*240 }
-									cy={ 7.5 }
-									r={7.5}
+									cx={ DimensionsStore.getDimensions().mapLegendRadius * -2  }
+									cy={ DimensionsStore.getDimensions().mapLegendRadius  }
+									r={ DimensionsStore.getDimensions().mapLegendRadius }
 									fill={ getColorForMargin('democratic', sov) }
 									key={'demBubble'+i}
 								/>
 							)}
 						</g>
 					}
+
+				</g>
+
+
+				<g transform={'translate(' + DimensionsStore.getDimensions().mapLegendWidth/2 + ' ' + DimensionsStore.getDimensions().mapLegendHeight / 2 + ')'}>
+
 
 
 					<text
@@ -227,7 +234,7 @@ export default class MapLegend extends React.Component {
 								<circle
 									cx={ -17.5 - (105/120) * (1-sov)*240 }
 									cy={ 27.5 }
-									r={7.5}
+									r={ DimensionsStore.getDimensions().mapLegendRadius }
 									fill={ getColorForMargin('republican', sov) }
 									key={'repBubble'+i}
 								/>
@@ -266,7 +273,7 @@ export default class MapLegend extends React.Component {
 								<circle
 									cx={ -17.5 - (105/120) * (1-sov)*240 }
 									cy={ 47.5 }
-									r={7.5}
+									r={ DimensionsStore.getDimensions().mapLegendRadius }
 									fill={ getColorForMargin('third', sov) }
 									key={'thirdBubble'+i}
 								/>

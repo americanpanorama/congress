@@ -27,26 +27,50 @@ const DimensionsStore = {
 		this.data.headerTitleFontSize = this.data.headerHeight / 2 - this.data.headerGutter * 1.5;
 		this.data.headerSubtitleFontSize = this.data.headerHeight / 3 - this.data.headerGutter * 1.5;
 
-		
-		this.data.sidebarWidth = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
-		this.data.sidebarHeight = this.data.sidebarWidth - 50;
+		this.data.timelineHeight = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
+
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-		this.data.mapHeight = this.data.windowHeight * 2/3 - this.data.gutterPadding;
+		this.data.mapHeight = this.data.windowHeight * 7.5/12 - this.data.gutterPadding;
 		this.data.mapWidth = this.data.windowWidth - this.data.gutterPadding * 2;
 
 		this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
 
-		this.data.mapLegendWidth = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
-		this.data.mapLegendHeight = this.data.mapLegendWidth / 2;
-		this.data.mapLegendGutter = this.data.mapLegendHeight * 0.02;
-		this.data.mapLegendFontSize = this.data.mapHeight / 48 - this.data.mapLegendGutter;
+		this.data.sidebarBottom = this.data.gutterPadding;
+		this.data.sidebarLeft = this.data.gutterPadding;
+		this.data.sidebarHeight = this.data.timelineHeight;
+		this.data.sidebarWidth = this.data.timelineHeight;
+
+		this.data.electionLabelBottom = this.data.timelineHeight + this.data.gutterPadding;
+		this.data.electionLabelLeft = this.data.timelineHeight + this.data.gutterPadding;
+		this.data.electionLabelHeight = this.data.windowHeight / 24;
+		this.data.electionLabelWidth = this.data.windowWidth - this.data.sidebarWidth * 2;
+
+		this.data.districtLabelBottom = this.data.electionLabelBottom;
+		this.data.districtLabelLeft = this.data.gutterPadding;
+		this.data.districtLabelHeight = this.data.electionLabelHeight;
+		this.data.districtLabelWidth = this.data.sidebarWidth;
+
+		this.data.zoomControlsHeight = this.data.electionLabelHeight;
+		this.data.zoomControlsWidth = this.data.sidebarWidth;
+		this.data.zoomControlsRight = this.data.gutterPadding;
+		this.data.zoomControlsBottom = this.data.electionLabelBottom;
+
+
+
+
+		this.data.mapLegendWidth = this.data.timelineHeight;
+		this.data.mapLegendHeight = this.data.timelineHeight;
+		this.data.mapLegendTopGutter = this.data.mapLegendHeight * 2/12;
+		this.data.mapLegendRadius = this.data.mapLegendHeight / 24;
+
+		this.data.mapLegendFontSize = this.data.mapLegendHeight / 12;
 		this.data.mapLegendSymbolHeight = this.data.mapLegendFontSize;
 
-		this.data.timelineYAxisWidth = 100;
+		this.data.timelineYAxisWidth = 80;
 
-		this.data.timelineHeight = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
-		this.data.timelineWidth = this.data.mapWidth - this.data.timelineYAxisWidth - this.data.timelineHeight * 2 - this.data.gutterPadding * 4;
+		
+		this.data.timelineWidth = this.data.windowWidth - this.data.sidebarWidth * 2 - this.data.timelineYAxisWidth - this.data.gutterPadding * 2;
 
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;

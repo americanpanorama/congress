@@ -11,26 +11,30 @@ export default class ZoomControls extends React.Component {
       <div 
         id='mapChartControls'
         style={{
-          height: DimensionsStore.getDimensions().mapLegendHeight,
-          right: DimensionsStore.getDimensions().gutterPadding,
-          bottom: DimensionsStore.getDimensions().mapLegendHeight + DimensionsStore.getDimensions().gutterPadding //DimensionsStore.getDimensions().timelineHeight + DimensionsStore.getDimensions().gutterPadding * 1.5
+          height: DimensionsStore.getDimensions().zoomControlsHeight,
+          width: DimensionsStore.getDimensions().zoomControlsWidth,
+          right: 0,
+          bottom: DimensionsStore.getDimensions().zoomControlsBottom
         }}
       >
         <button
           onClick={ this.props.onZoomIn } 
           id='zoomInButton'
         >
-          <svg width={40} height={40}>
-            <g transform='translate(20 20)'>
+          <svg 
+            width={DimensionsStore.getDimensions().zoomControlsWidth} 
+            height={DimensionsStore.getDimensions().zoomControlsHeight}
+          >
+            <g transform={ 'translate(' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ' ' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ')' }>
               <circle
                 cx={0}
                 cy={0}
-                r={20}
+                r={ (DimensionsStore.getDimensions().zoomControlsHeight / 2) }
                 fill='silver'
               />
               <line
-                x1={-10}
-                x2={10}
+                x1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                x2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
                 y1={0}
                 y2={0}
                 stroke='#233036'
@@ -39,8 +43,8 @@ export default class ZoomControls extends React.Component {
               <line
                 x1={0}
                 x2={0}
-                y1={-10}
-                y2={10}
+                y1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                y2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
                 stroke='#233036'
                 strokeWidth={4}
               />
@@ -51,18 +55,21 @@ export default class ZoomControls extends React.Component {
         <button
           onClick={ this.props.onZoomOut } 
         >
-          <svg width={40} height={40}>
-            <g transform='translate(20 20)'>
+          <svg 
+            width={DimensionsStore.getDimensions().zoomControlsWidth} 
+            height={DimensionsStore.getDimensions().zoomControlsHeight}
+          >
+            <g transform={ 'translate(' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ' ' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ')' }>
               <circle
                 cx={0}
                 cy={0}
-                r={20}
+                r={ (DimensionsStore.getDimensions().zoomControlsHeight / 2) }
                 fill='silver'
                 fillOpacity={ (this.props.currentZoom > 1) ? 1 : 0.7 }
               />
               <line
-                x1={-10}
-                x2={10}
+                x1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                x2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
                 y1={0}
                 y2={0}
                 stroke={ (this.props.currentZoom > 1) ? '#233036' : '#73797C' }
@@ -81,23 +88,26 @@ export default class ZoomControls extends React.Component {
           onClick={ this.props.resetView } 
         >
 
-          <svg width={40} height={40}>
+          <svg 
+            width={DimensionsStore.getDimensions().zoomControlsWidth} 
+            height={DimensionsStore.getDimensions().zoomControlsHeight}
+          >
             <defs>
               <marker id="arrow" markerWidth="4" markerHeight="4" refX="0" refY="0" orient="auto" markerUnits="strokeWidth">
                 <path d="M0,0 L0,1, L1,0 z" fill="#f00" />
               </marker>
             </defs>
-            <g transform='translate(20 20) rotate(45)'>
+            <g transform={ 'translate(' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ' ' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ') rotate(45)' }>
               <circle
                 cx={0}
                 cy={0}
-                r={20}
+                r={ (DimensionsStore.getDimensions().zoomControlsHeight / 2) }
                 fill='silver'
                 fillOpacity={ (this.props.currentZoom > 1) ? 1 : 0.7 }
               />
               <line
-                x1={-10}
-                x2={10}
+                x1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                x2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
                 y1={0}
                 y2={0}
                 stroke={ (this.props.currentZoom > 1) ? '#233036' : '#73797C' }
@@ -106,8 +116,8 @@ export default class ZoomControls extends React.Component {
               <line
                 x1={0}
                 x2={0}
-                y1={-10}
-                y2={10}
+                y1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                y2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
                 stroke={ (this.props.currentZoom > 1) ? '#233036' : '#73797C' }
                 strokeWidth={4}
               />
