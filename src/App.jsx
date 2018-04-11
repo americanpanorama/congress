@@ -93,7 +93,7 @@ class App extends React.Component {
   }
 
   onPartySelected(e) { 
-    const selectedParty = (e.target.id == this.state.selectedParty) ? null : e.target.id;
+    const selectedParty = (e.currentTarget.id == this.state.selectedParty) ? null : e.currentTarget.id;
     this.setState({ selectedParty: selectedParty }); 
   }
 

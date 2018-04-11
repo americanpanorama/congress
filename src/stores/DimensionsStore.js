@@ -63,7 +63,8 @@ const DimensionsStore = {
 		this.data.mapLegendHeight = this.data.timelineHeight;
 		this.data.mapLegendTopGutter = this.data.mapLegendHeight * 2/12;
 		this.data.mapLegendRadius = this.data.mapLegendHeight / 24;
-
+		this.data.mapLegendLabelGutter = this.data.mapLegendRadius / 2;
+		this.data.mapLegendElementHeight = this.data.mapLegendHeight / 12;
 		this.data.mapLegendFontSize = this.data.mapLegendHeight / 12;
 		this.data.mapLegendSymbolHeight = this.data.mapLegendFontSize;
 
