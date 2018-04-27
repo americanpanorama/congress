@@ -39,12 +39,29 @@ aside#sidebar {
 	}
 }
 
-h2#electionLabel {
+#electionLabel {
 	position: fixed;
 	background-color: #38444a;
 	color: white;
 	text-align: center;
 	margin: 0;
+
+	* {
+		display: inline-block;
+	}
+
+	h2 {
+		margin: 0;
+		vertical-align: bottom;
+	}
+
+	button {
+		padding: 0;
+		border: none;
+		margin: 0 10px;
+		background-color: transparent;
+	}
+
 
 }
 
@@ -80,6 +97,7 @@ aside#info{
 	top: 0;
 	left: 0;
 }
+
 
 /*::-webkit-scrollbar { width: 0px;}
 ::-webkit-scrollbar-track {  background-color: transparent;}

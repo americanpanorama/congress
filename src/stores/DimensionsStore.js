@@ -56,6 +56,9 @@ const DimensionsStore = {
 		this.data.zoomControlsRight = this.data.gutterPadding;
 		this.data.zoomControlsBottom = this.data.electionLabelBottom;
 
+		this.data.nextPreviousButtonHeight = this.data.electionLabelHeight * 6/12;
+		this.data.nextPreviousButtonYOffset = this.data.electionLabelHeight * 3/12;
+
 
 
 

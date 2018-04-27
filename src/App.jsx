@@ -35,7 +35,7 @@ class App extends React.Component {
     const theHash = HashManager.getState();
     const [x,y,z] = (theHash.xyz) ? theHash.xyz.split('/') : [0,0,1];
     this.state = {
-      selectedYear: theHash.year || 1952,
+      selectedYear: parseInt(theHash.year) || 1952,
       selectedView: theHash.view || 'cartogram',
       selectedParty: null,
       selectedDistrict: theHash.district || null,
@@ -73,9 +73,9 @@ class App extends React.Component {
   storeChanged() { this.setState({}); }
 
   onYearSelected(e) { 
-    const year = e.target.id;
+    const year = e.currentTarget.id;
+    console.log(year);
     AppActions.congressSelected(year);
-    console.time();
     this.setState({
       inspectedDistrict: null
     });
@@ -527,7 +527,7 @@ class App extends React.Component {
             onClick={ this.toggleView }> Strength of Victory</span>
         </div>
 
-        <h2
+        <div
           id='electionLabel'
           style={{ 
             width: DimensionsStore.getDimensions().electionLabelWidth,
@@ -539,40 +539,77 @@ class App extends React.Component {
           }}
         >
           <button
-            //onClick={ this.props.onZoomIn } 
+            onClick={ (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? this.onYearSelected : () => false }
+            id={ DistrictsStore.getPreviousElectionYear(this.state.selectedYear) }
           >
             <svg 
-              width={DimensionsStore.getDimensions().zoomControlsWidth} 
-              height={DimensionsStore.getDimensions().zoomControlsHeight}
+              width={DimensionsStore.getDimensions().nextPreviousButtonHeight} 
+              height={DimensionsStore.getDimensions().nextPreviousButtonHeight + DimensionsStore.getDimensions().nextPreviousButtonYOffset}
             >
-              <g transform={ 'translate(' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ' ' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ')' }>
+              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2 + DimensionsStore.getDimensions().nextPreviousButtonYOffset) + ') rotate(315)' }>
                 <circle
                   cx={0}
                   cy={0}
-                  r={ (DimensionsStore.getDimensions().zoomControlsHeight / 2) }
+                  r={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) }
                   fill='silver'
+                  fillOpacity={ (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? 1 : 0.7 }
                 />
                 <line
-                  x1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
-                  x2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
-                  y1={0}
-                  y2={0}
-                  stroke='#233036'
+                  x1={ DimensionsStore.getDimensions().nextPreviousButtonHeight / -8 - 2 } 
+                  x2={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 8 + 4) } 
+                  y1={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  y2={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  stroke={ (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? '#233036' : '#73797C' }
                   strokeWidth={4}
                 />
                 <line
-                  x1={0}
-                  x2={0}
-                  y1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
-                  y2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
-                  stroke='#233036'
+                  x1={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  x2={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  y1={ DimensionsStore.getDimensions().nextPreviousButtonHeight / -8 -2 } 
+                  y2={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 8 + 4) } 
+                  stroke={ (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? '#233036' : '#73797C' }
                   strokeWidth={4}
                 />
               </g>
             </svg>
           </button>
-          Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress
-        </h2>
+          <h2>Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress</h2>
+          <button
+            onClick={ (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? this.onYearSelected : () => false }
+            id={ DistrictsStore.getNextElectionYear(this.state.selectedYear) }
+          >
+            <svg 
+              width={DimensionsStore.getDimensions().nextPreviousButtonHeight} 
+              height={DimensionsStore.getDimensions().nextPreviousButtonHeight + DimensionsStore.getDimensions().nextPreviousButtonYOffset}
+            >
+              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2 + DimensionsStore.getDimensions().nextPreviousButtonYOffset) + ') rotate(135)' }>
+                <circle
+                  cx={0}
+                  cy={0}
+                  r={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) }
+                  fill='silver'
+                  fillOpacity={ (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? 1 : 0.7 }
+                />
+                <line
+                  x1={ DimensionsStore.getDimensions().nextPreviousButtonHeight / -8 - 2 } 
+                  x2={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 8 + 4) } 
+                  y1={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  y2={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  stroke={ (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? '#233036' : '#73797C' }
+                  strokeWidth={4}
+                />
+                <line
+                  x1={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  x2={DimensionsStore.getDimensions().nextPreviousButtonHeight / -8}
+                  y1={ DimensionsStore.getDimensions().nextPreviousButtonHeight / -8 -2 } 
+                  y2={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 8 + 4) } 
+                  stroke={ (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? '#233036' : '#73797C' }
+                  strokeWidth={4}
+                />
+              </g>
+            </svg>
+          </button>
+        </div>
 
 
 
