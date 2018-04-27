@@ -59,15 +59,31 @@ export default class MapLegend extends React.Component {
 					</g>
 
 					<g  transform={'translate(0 ' + (dimensions.mapLegendElementHeight * 3.5) + ')'}>
-						<MapLegendPartyElement
-							party='republican'
-							label='Republican'
-							labelColor={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#eee' : '#666' }
-							checkboxColor={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#F0B67F' : '#666' }
-							selectedView={ this.props.selectedView }
-							gradientView={ !this.props.winnerView }
-							onClick={ this.props.onPartySelected }
-						/>
+						{ (this.props.selectedYear >= 1856) ?
+							<MapLegendPartyElement
+								party='republican'
+								label='Republican'
+								labelColor={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#eee' : '#666' }
+								checkboxColor={ (!this.props.selectedParty || this.props.selectedParty == 'republican') ? '#F0B67F' : '#666' }
+								selectedView={ this.props.selectedView }
+								gradientView={ !this.props.winnerView }
+								onClick={ this.props.onPartySelected }
+							/> : ''
+						}
+
+						{ (this.props.selectedYear <= 1854) ?
+							<MapLegendPartyElement
+								party='whig'
+								label='Whig'
+								labelColor={ (!this.props.selectedParty || this.props.selectedParty == 'whig') ? '#eee' : '#666' }
+								checkboxColor={ (!this.props.selectedParty || this.props.selectedParty == 'whig') ? '#F0B67F' : '#666' }
+								selectedView={ this.props.selectedView }
+								gradientView={ !this.props.winnerView }
+								onClick={ this.props.onPartySelected }
+							/> : ''
+						}
+
+
 					</g>
 
 					<g  transform={'translate(0 ' + (dimensions.mapLegendElementHeight * 5) + ')'}>

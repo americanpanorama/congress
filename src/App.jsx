@@ -354,6 +354,7 @@ class App extends React.Component {
 
         <MapLegend
           selectedView={ this.state.selectedView }
+          selectedYear={ this.state.selectedYear }
           selectedParty={ this.state.selectedParty }
           onViewSelected={ this.onViewSelected }
           onPartySelected={ this.onPartySelected }
