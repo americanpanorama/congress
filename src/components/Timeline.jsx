@@ -56,7 +56,9 @@ export default class Timeline extends React.Component {
 				(key == 'demBelowMargin') ? getColorForMargin('democrat', 0.8) :
 				(key == 'thirdCount') ? getColorForParty('third') :
 				(key == 'repBelowMargin') ? getColorForMargin('republican', 0.8) :
-				(key == 'repAboveMargin') ? getColorForParty('republican') : 'grey';
+				(key == 'repAboveMargin') ? getColorForParty('republican') : 
+				(key == 'whigBelowMargin') ? getColorForMargin('whig', 0.8) :
+				(key == 'whigAboveMargin') ? getColorForParty('whig') : 'grey';
 		};
 
 		return (
@@ -279,7 +281,7 @@ export default class Timeline extends React.Component {
 								return (
 									<circle
 										cx={x(year)}
-										cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
+										cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican' || this.props.districtData[year].regularized_party_of_victory == 'whig') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
 										r={ (year == this.props.selectedYear) ? 7 : 5 }
 										fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
 										stroke={ (year == this.props.selectedYear) ? 'white' : 'transparent' }

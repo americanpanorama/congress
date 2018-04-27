@@ -331,8 +331,9 @@ const DistrictsStore = {
       if (year != 'NaN') {
         this.data.congressYears.push(parseInt(year));
         const repCount = this.getPartyCountForYearAndParty(year, 'republican'),
+          whigCount = this.getPartyCountForYearAndParty(year, 'whig'),
           demCount = this.getPartyCountForYearAndParty(year, 'democrat'),
-          repAboveMargin =  repCount - demCount; 
+          demAboveMargin = (year < 1856) ? demCount - whigCount : demCount - repCount;
         // var yearData = {
         //   year: parseInt(year),
         //   demBelowMargin: (repAboveMargin >= 0) ? demCount : demCount + repAboveMargin,
@@ -347,14 +348,17 @@ const DistrictsStore = {
         // counts.push(yearData);
         counts.push({
           year: parseInt(year),
-          demAboveMargin: (repAboveMargin < 0) ? repAboveMargin * -1 : 0,
-          demBelowMargin: (repAboveMargin >= 0) ? demCount : demCount + repAboveMargin,
+          demAboveMargin: (demAboveMargin > 0) ? demAboveMargin : 0,
+          demBelowMargin: (demAboveMargin <= 0) ? demCount : demCount - demAboveMargin,
           thirdCount: this.getPartyCountForYearAndParty(year, 'third'),
-          repBelowMargin: (repAboveMargin <= 0) ? repCount : repCount - repAboveMargin,
-          repAboveMargin: (repAboveMargin > 0) ? repAboveMargin : 0,
+          whigBelowMargin: (demAboveMargin >= 0) ? whigCount : demCount,
+          repBelowMargin: (demAboveMargin >= 0) ? repCount : demCount,
+          whigAboveMargin: (demAboveMargin >= 0) ? 0 : whigCount - demCount,
+          repAboveMargin: (demAboveMargin >= 0) ? 0 : repCount - demCount
         });
       }
     });
+
     this.data.rawPartyCounts = counts;
   },
 
@@ -397,12 +401,30 @@ const DistrictsStore = {
             }
           });
         }
+        if (partyCounts.key == 'whigBelowMargin') {
+          partyCounts = partyCounts.map(stackData => {
+            stackData[0] = stackData.data.thirdCount/2;
+            stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
+          });
+        }
+        if (partyCounts.key == 'whigAboveMargin') {
+          partyCounts = partyCounts.map((stackData, i) => {
+            if (false && i > 0 && partyCounts[i-1].data.whigAboveMargin == 0) {
+              stackData[0] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
+              stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
+            } else {
+              stackData[0] = 0; //stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
+              stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin + stackData.data.whigAboveMargin;
+            }
+          });
+        }
       });
     }
     const stack = d3.stack()
-      .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'repBelowMargin', 'repAboveMargin'])
+      .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount','whigBelowMargin','repBelowMargin','whigAboveMargin','repAboveMargin'])
       .offset(offset);
     var stackedData = stack(this.data.rawPartyCounts);
+
     // split the margins into separate series
     let demMajorityYears = stackedData[0].filter(yd => yd.data.demAboveMargin > 0).map(yd => yd.data.year),
       demStartYears = demMajorityYears.filter((year, i) => i == 0 || !demMajorityYears.includes(year - 2)),
@@ -416,35 +438,47 @@ const DistrictsStore = {
       demSeries.push(aDemSeries);
     });
 
-    let repMajorityYears = stackedData[4].filter(yd => yd.data.repAboveMargin > 0).map(yd => yd.data.year),
+    let repMajorityYears = stackedData[6].filter(yd => yd.data.repAboveMargin > 0).map(yd => yd.data.year),
       repStartYears = repMajorityYears.filter((year, i) => i == 0 || !repMajorityYears.includes(year - 2)),
       repEndYears = repMajorityYears.filter((year, i) => i == repMajorityYears.length -1 || !repMajorityYears.includes(year + 2)),
       repSpans = repStartYears.map((sy, i) => [sy, repEndYears[i]]),
       repSeries = [];
     repSpans.forEach(span => {
-      const startIndex = stackedData[4].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[4].findIndex(yd => yd.data.year == span[1]),
-        aRepSeries = stackedData[4].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+      const startIndex = stackedData[6].findIndex(yd => yd.data.year == span[0]),
+        endIndex = stackedData[6].findIndex(yd => yd.data.year == span[1]),
+        aRepSeries = stackedData[6].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
       repSeries.push(aRepSeries);
     });
 
-    stackedData.splice(4);
+    let whigMajorityYears = stackedData[5].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year),
+      whigStartYears = whigMajorityYears.filter((year, i) => i == 0 || !whigMajorityYears.includes(year - 2)),
+      whigEndYears = whigMajorityYears.filter((year, i) => i == whigMajorityYears.length -1 || !whigMajorityYears.includes(year + 2)),
+      whigSpans = whigStartYears.map((sy, i) => [sy, whigEndYears[i]]),
+      whigSeries = [];
+    whigSpans.forEach(span => {
+      const startIndex = stackedData[5].findIndex(yd => yd.data.year == span[0]),
+        endIndex = stackedData[5].findIndex(yd => yd.data.year == span[1]),
+        aWhigSeries = stackedData[5].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+      whigSeries.push(aWhigSeries);
+    });
+
+    stackedData.splice(5,2);
     stackedData.splice(0,1);
     stackedData = repSeries.concat(stackedData);
+    stackedData = whigSeries.concat(stackedData);
     stackedData = demSeries.concat(stackedData);
+    this.data.partyCounts = stackedData;
 
     demSeries.forEach(ds => this.data.partyCountsKeys.push('demAboveMargin'));
+    whigSeries.forEach(ds => this.data.partyCountsKeys.push('whigAboveMargin'));
     repSeries.forEach(ds => this.data.partyCountsKeys.push('repAboveMargin'));
     this.data.partyCountsKeys.push('demBelowMargin');
     this.data.partyCountsKeys.push('thirdCount');
+    this.data.partyCountsKeys.push('whigBelowMargin');
     this.data.partyCountsKeys.push('repBelowMargin');
-
-    this.data.partyCounts = stackedData;
   },
 
-  getSlivers() {
-    return this.data.slivers;
-  },
+  getSlivers() { return this.data.slivers; },
 
   getPreviousAndNext3(year, spatialId) {
     let theSeven = {};

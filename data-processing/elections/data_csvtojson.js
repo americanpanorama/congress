@@ -11,8 +11,24 @@ raw_parties.forEach(p => parties[p.party_id] = p.party );
 yearForCongress = function (congress) { return 1786 + congress * 2; };
 
 const getRegularizedParty = function(party) { 
-  party = party || '';
-  return (party.toLowerCase().includes('republican')) ? 'republican' : (party.toLowerCase().includes('democrat')) ? 'democrat' : 'third'; 
+  party = (party) ? party.toLowerCase() : '';
+  if (party.includes('whig')) {
+  	return 'whig';
+  }
+  if (party.startsWith('republican')) {
+  	return 'republican';
+  }
+  if (party.startsWith('democrat')) {
+  	return 'democrat';
+  }
+  if (party.includes('republican')) {
+  	return 'republican';
+  }
+  if (party.includes('democrat')) {
+  	return 'democrat';
+  }
+  return 'third';
+  //return (party.toLowerCase().includes('republican')) ? 'republican' : (party.toLowerCase().includes('democrat')) ? 'democrat' : 'third'; 
 };
 
 var elections = {};
@@ -35,7 +51,7 @@ csv()
 	.on('done',(error)=>{
 		fs.writeFile('./data/elections.json', JSON.stringify(elections), (err) => {
 			if (err) throw err;
-			console.log('COMPLETE');
+			console.log('COMPLETE--copy ./data-processing/elections/data.elections.json to ./data/elections.json');
 		});
 		fs.writeFile('../dorlings/data/elections.json', JSON.stringify(elections), (err) => {
 			if (err) throw err;

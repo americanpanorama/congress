@@ -39,7 +39,9 @@ export default class DistrictTimeline extends React.Component {
 				(key == 'demBelowMargin') ? getColorForMargin('democrat', 0.8) :
 				(key == 'thirdCount') ? getColorForParty('third') :
 				(key == 'repBelowMargin') ? getColorForMargin('republican', 0.8) :
-				(key == 'repAboveMargin') ? getColorForParty('republican') : 'grey';
+				(key == 'repAboveMargin') ? getColorForParty('republican') :
+				(key == 'whigBelowMargin') ? getColorForMargin('whig', 0.8) :
+				(key == 'whigAboveMargin') ? getColorForParty('whig') : 'grey';
 		};
 
 		return (
@@ -62,10 +64,11 @@ export default class DistrictTimeline extends React.Component {
 
 					{ Object.keys(this.props.electionsData).map(year => {
 						if (this.props.electionsData[year]) {
+							console.log(this.props.electionsData[year].regularized_party_of_victory);
 							return (
 								<circle
 									cx={x(year)}
-									cy={ (this.props.electionsData[year].regularized_party_of_victory == 'democrat') ? y(this.props.electionsData[year].percent_vote * -1) : (this.props.electionsData[year].regularized_party_of_victory == 'republican') ? y(this.props.electionsData[year].percent_vote) : 0 }
+									cy={ (this.props.electionsData[year].regularized_party_of_victory == 'democrat') ? y(this.props.electionsData[year].percent_vote * -1) : (this.props.electionsData[year].regularized_party_of_victory == 'republican' || this.props.electionsData[year].regularized_party_of_victory == 'whig') ? y(this.props.electionsData[year].percent_vote) : 0 }
 									r={ 5 }
 									fill={ getColorForParty(this.props.electionsData[year].regularized_party_of_victory) }
 									key={ 'districtMOVFor' + year }

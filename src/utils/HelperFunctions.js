@@ -4,9 +4,10 @@ const repColor = '#FB6765';
 const repColorLight = '#FACFCF';
 const demColor = '#717EFF';
 const demColorLight = '#D2D2F8';
+const whigColor = '#D4C685';
 const thirdColor = '#98B9AB';
 
-export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : thirdColor; };
+export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };
 
 export const getColorForMargin = function(party, percent) {
   party = party || '';
@@ -22,6 +23,10 @@ export const getColorForMargin = function(party, percent) {
     .domain([-1, 1])
     .range(['#eee', demColor]);
 
+  var whigColorAdjustment = d3.scaleLinear()
+    .domain([-1, 1])
+    .range(['#eee', whigColor]);
+
   var thirdColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range(['#eee', thirdColor]);
@@ -34,6 +39,10 @@ export const getColorForMargin = function(party, percent) {
       .domain([-1, 0.5, 0.54, 1])
       .range(['silver', 'silver', demColorAdjustment(0.3), demColor]);
 
+  var getWhigColor = d3.scaleLinear()
+      .domain([-1, 0.5, 0.54, 1])
+      .range(['silver', 'silver', whigColorAdjustment(0.3), whigColor]);
+
   var getThirdColor = d3.scaleLinear()
       .domain([-1, 0.5, 0.54, 1])
       .range(['silver', 'silver', thirdColorAdjustment(0.3), thirdColor]);
@@ -45,6 +54,10 @@ export const getColorForMargin = function(party, percent) {
 
   if (party.toLowerCase().includes('democrat')) {
     return getDemColor(percent);
+  }
+
+  if (party.toLowerCase().includes('whig')) {
+    return getWhigColor(percent);
   }
 
   if (party.toLowerCase().includes('third')) {

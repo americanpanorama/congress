@@ -106,7 +106,8 @@ class App extends React.Component {
   }
 
   onDistrictSelected(e) {
-    this.setState({ selectedDistrict: e.target.id }); 
+    const id = (e.currentTarget.id !== this.state.selectedDistrict) ? e.currentTarget.id : null;
+    this.setState({ selectedDistrict: id }); 
   }
 
   toggleFlipped() { this.setState({ onlyFlipped: !this.state.onlyFlipped }); }
@@ -537,6 +538,39 @@ class App extends React.Component {
 
           }}
         >
+          <button
+            //onClick={ this.props.onZoomIn } 
+          >
+            <svg 
+              width={DimensionsStore.getDimensions().zoomControlsWidth} 
+              height={DimensionsStore.getDimensions().zoomControlsHeight}
+            >
+              <g transform={ 'translate(' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ' ' + (DimensionsStore.getDimensions().zoomControlsHeight / 2) + ')' }>
+                <circle
+                  cx={0}
+                  cy={0}
+                  r={ (DimensionsStore.getDimensions().zoomControlsHeight / 2) }
+                  fill='silver'
+                />
+                <line
+                  x1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                  x2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
+                  y1={0}
+                  y2={0}
+                  stroke='#233036'
+                  strokeWidth={4}
+                />
+                <line
+                  x1={0}
+                  x2={0}
+                  y1={ (DimensionsStore.getDimensions().zoomControlsHeight / -4) } 
+                  y2={ (DimensionsStore.getDimensions().zoomControlsHeight / 4) } 
+                  stroke='#233036'
+                  strokeWidth={4}
+                />
+              </g>
+            </svg>
+          </button>
           Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress
         </h2>
 
