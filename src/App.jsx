@@ -74,7 +74,6 @@ class App extends React.Component {
 
   onYearSelected(e) { 
     const year = e.currentTarget.id;
-    console.log(year);
     AppActions.congressSelected(year);
     this.setState({
       inspectedDistrict: null
@@ -630,7 +629,7 @@ class App extends React.Component {
           }
         </aside>
 
-        <h2
+        <div 
           id='districtLabel'
           style={{ 
             width: DimensionsStore.getDimensions().districtLabelWidth,
@@ -640,9 +639,51 @@ class App extends React.Component {
             backgroundColor: (!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)
           }}
         >
-          { (viewableDistrict) ? getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district : ' '
+          { (viewableDistrict) ? 
+            <div>
+              <h2>
+                { getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district }
+              </h2>
+              { (viewableDistrict == this.state.selectedDistrict) ?
+                <button
+                  onClick={ this.onDistrictSelected }
+                >
+                  <svg 
+                    width={DimensionsStore.getDimensions().nextPreviousButtonHeight + 2} 
+                    height={DimensionsStore.getDimensions().nextPreviousButtonHeight + DimensionsStore.getDimensions().nextPreviousButtonYOffset + 2}
+                  >
+                    <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2 + DimensionsStore.getDimensions().nextPreviousButtonYOffset) + ') rotate(135)' }>
+                      <circle
+                        cx={0}
+                        cy={0}
+                        r={ (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) }
+                        fill='silver'
+                        stroke='#38444a'
+                        strokeWidth={1}
+                      />
+                      <line
+                        x1={ 0} 
+                        x2={ 0 } 
+                        y1={DimensionsStore.getDimensions().nextPreviousButtonHeight / 4}
+                        y2={DimensionsStore.getDimensions().nextPreviousButtonHeight / -4}
+                        stroke='#233036'
+                        strokeWidth={4}
+                      />
+                      <line
+                        x1={DimensionsStore.getDimensions().nextPreviousButtonHeight / -4}
+                        x2={DimensionsStore.getDimensions().nextPreviousButtonHeight / 4}
+                        y1={ 0 } 
+                        y2={ 0 } 
+                        stroke='#233036'
+                        strokeWidth={4}
+                      />
+                    </g>
+                  </svg>
+                </button> : ''
+              }
+            </div> : ''
           }
-        </h2>
+        </div>
       </div>
     );
   }

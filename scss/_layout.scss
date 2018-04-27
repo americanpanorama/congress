@@ -65,11 +65,27 @@ aside#sidebar {
 
 }
 
-h2#districtLabel {
+#districtLabel {
 	position: fixed;
 	color: white;
 	text-align: center;
 	margin: 0;
+
+	* {
+		display: inline-block;
+	}
+
+	h2 {
+		margin: 0;
+		vertical-align: bottom;
+	}
+
+	button {
+		padding: 0;
+		border: none;
+		margin: 0 10px;
+		background-color: transparent;
+	}
 }
 
 aside#info{
