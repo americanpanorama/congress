@@ -12,6 +12,7 @@ import Elections from '../../data/elections.json';
 import SpatialIds from '../../data/spatialids.json';
 import StatesTopoJson from '../../data/states.json';
 import Slivers from '../../data/sliversTJ.json';
+import MetroNames from '../../data/metroNames.json';
 //import Districts from '../../data/congressional_districts.json';
 
 import DimensionsStore from './DimensionsStore';
@@ -137,7 +138,7 @@ const DistrictsStore = {
             .sort((a,b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
           cities: yearData.cities.map(d => {
             return {
-              id: d.id,
+              id: MetroNames[d.id],
               x: d.x * DimensionsStore.getMapScale(),
               y: d.y * DimensionsStore.getMapScale(),
               xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
@@ -147,6 +148,13 @@ const DistrictsStore = {
           }),
         };
       });
+
+    // let cities = [];
+    // this.data.bubbleCoords.forEach(yearData => {
+    //   yearData.cities.forEach(city => cities.push(city.id));
+    // });
+    // cities = Array.from(new Set(cities));
+    // console.log(cities);
     this.emit(AppActionTypes.storeChanged);
   },
 
@@ -169,6 +177,8 @@ const DistrictsStore = {
       .scale(DimensionsStore.getMapScale())
       .translate([DimensionsStore.getDimensions().mapWidth/2, DimensionsStore.getDimensions().mapHeight/2]);
   },
+
+  projectPoint(point) { return this.getProjection()(point); },
 
   getBubbleCoords: function(year) { return this.data.bubbleCoords.find(bc => bc.year == year) || { districts: [], cities: [] }; },
 

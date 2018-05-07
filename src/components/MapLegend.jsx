@@ -37,8 +37,8 @@ export default class MapLegend extends React.Component {
 						<MapLegendPartyElement
 							party='flipped'
 							label='Flipped'
-							labelColor={ (!this.props.selectedParty || this.props.selectedParty == 'democrat') ? '#eee' : '#666' }
-							checkboxColor={ (!this.props.selectedParty || this.props.selectedParty == 'democrat') ? '#F0B67F' : '#666' }
+							labelColor={ 'white' }
+							checkboxColor={ (this.props.onlyFlipped) ? '#F0B67F' : '#666' }
 							selectedView={ this.props.selectedView }
 							fill='grey'
 							symbolLabel='F'

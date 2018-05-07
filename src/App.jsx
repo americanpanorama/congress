@@ -11,6 +11,7 @@ import AppDispatcher from './utils/AppDispatcher';
 import { getColorForParty, getColorForMargin, yearForCongress, congressForYear, getStateName, ordinalSuffixOf } from './utils/HelperFunctions';
 
 import Bubble from './components/Bubble.jsx';
+import Context from './components/Context.jsx';
 import District from './components/District.jsx';
 import StateDistGraph from './components/StateDistGraph.jsx';
 import Timeline from './components/Timeline.jsx';
@@ -49,7 +50,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped'];
+    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped','zoomToBounds'];
     handlers.forEach(handler => { this[handler] = this[handler].bind(this); });
   }
 
@@ -92,7 +93,13 @@ class App extends React.Component {
   }
 
   onPartySelected(e) { 
-    const selectedParty = (e.currentTarget.id == this.state.selectedParty) ? null : e.currentTarget.id;
+    let selectedParty;
+    if (e && e.currentTarget) {
+      selectedParty = (e.currentTarget.id == this.state.selectedParty) ? null : e.currentTarget.id;
+    } else {
+      selectedParty = e;
+    }
+
     this.setState({ selectedParty: selectedParty }); 
   }
 
@@ -109,7 +116,10 @@ class App extends React.Component {
     this.setState({ selectedDistrict: id }); 
   }
 
-  toggleFlipped() { this.setState({ onlyFlipped: !this.state.onlyFlipped }); }
+  toggleFlipped(newState) {
+    newState = (typeof newState !== 'undefined') ? newState : !this.state.onlyFlipped;
+    this.setState({ onlyFlipped: newState }); 
+  }
 
   onViewSelected(e) {
     const selectedView = (this.state.selectedView == 'map') ? 'cartogram' : 'map';
@@ -188,6 +198,11 @@ class App extends React.Component {
   //   AppActions.mapMoved(x,y,z);
   // }
 
+  zoomToBounds(e) {
+    console.log(e.currentTarget);
+    //DistrictsStore.projectPoint(nw);
+  }
+
   resetView() { 
     this.setState({
       zoom: 1,
@@ -221,7 +236,7 @@ class App extends React.Component {
     }
 
     let viewableDistrict = this.state.inspectedDistrict || this.state.selectedDistrict,
-      transitionDuration = (this.state.inspectedDistrict) ? 0 : 750;
+      transitionDuration = (this.state.inspectedDistrict) ? 0 : 2000;
 
     return (
       <div>
@@ -316,7 +331,7 @@ class App extends React.Component {
                     cx={(this.state.dorling) ? d.x : d.xOrigin }
                     cy={(this.state.dorling) ? d.y : d.yOrigin }
                     r={(this.state.dorling) ? d.r : 0.01 }
-                    cityLabel={ d.id }
+                    cityLabel={ d.id } 
                     color='#11181b'
                     fillOpacity={0.8}
                     stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'transparent' }
@@ -324,28 +339,29 @@ class App extends React.Component {
                     id={d.id}
                   />
                 )}
-
-                { DistrictsStore.getBubbleCoords(this.state.selectedYear).districts.map(d=> 
-                  <Bubble
-                    cx={(this.state.dorling) ? d.x : d.xOrigin }
-                    cy={(this.state.dorling) ? d.y : d.yOrigin }
-                    r={ DimensionsStore.getDimensions().districtR }
-                    color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
-                    stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (this.state.selectedView == 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
-                    fillOpacity={ ((this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) || (this.state.onlyFlipped && !d.flipped)) ? 0.05 : (viewableDistrict && viewableDistrict !== d.districtId) ? 0.3 : 1 }
-                    label={ (d.flipped && (!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory)) ? 'F' : ''}
-                    labelColor={ getColorForParty(d.regularized_party_of_victory) }
-                    key={d.id}
-                    id={d.districtId}
-                    pointerEvents={ (this.state.selectedView == 'map') ? 'none' : 'auto' }
-                    selectedView={ this.state.selectedView }
-                    onDistrictInspected={ this.onDistrictInspected }
-                    onDistrictUninspected={ this.onDistrictUninspected }
-                    onDistrictSelected={ this.onDistrictSelected }
-                  />
-                )} 
               </g> : ''
             }
+
+
+            { DistrictsStore.getBubbleCoords(this.state.selectedYear).districts.map(d=> 
+              <Bubble
+                cx={(this.state.dorling) ? d.x : d.xOrigin }
+                cy={(this.state.dorling) ? d.y : d.yOrigin }
+                r={ DimensionsStore.getDimensions().districtR }
+                color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
+                stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (this.state.selectedView == 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
+                fillOpacity={ ((this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) || (this.state.onlyFlipped && !d.flipped)) ? 0.05 : (viewableDistrict && viewableDistrict !== d.districtId) ? 0.3 : 1 }
+                label={ (d.flipped && (!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory)) ? 'F' : ''}
+                labelColor={ getColorForParty(d.regularized_party_of_victory) }
+                key={d.id}
+                id={d.districtId}
+                pointerEvents={ (this.state.selectedView == 'map') ? 'none' : 'auto' }
+                selectedView={ this.state.selectedView }
+                onDistrictInspected={ this.onDistrictInspected }
+                onDistrictUninspected={ this.onDistrictUninspected }
+                onDistrictSelected={ this.onDistrictSelected }
+              />
+            )} 
 
           </g>
         </svg>
@@ -617,7 +633,7 @@ class App extends React.Component {
           id='sidebar'
           style={{ 
             width: DimensionsStore.getDimensions().sidebarWidth,
-            height: DimensionsStore.getDimensions().sidebarHeight,
+            height: (viewableDistrict) ? DimensionsStore.getDimensions().sidebarHeight : DimensionsStore.getDimensions().sidebarHeight + DimensionsStore.getDimensions().districtLabelHeight,
             left: DimensionsStore.getDimensions().sidebarLeft,
             bottom: DimensionsStore.getDimensions().sidebarBottom,
           }}
@@ -626,7 +642,15 @@ class App extends React.Component {
             <div>
               <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor }</div>
 
-            </div> : ''
+            </div> : 
+            <Context 
+              selectedYear={ this.state.selectedYear }
+              onPartySelected={ this.onPartySelected }
+              onlyFlipped={ this.state.onlyFlipped }
+              toggleView={ this.toggleView }
+              toggleFlipped={ this.toggleFlipped }
+              zoomToBounds={ this.zoomToBounds }
+            />
           }
         </aside>
 

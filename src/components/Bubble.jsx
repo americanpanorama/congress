@@ -14,12 +14,16 @@ export default class Bubble extends React.Component {
       stroke: this.props.stroke,
       cx: this.props.cx,
       cy: this.props.cy,
+      cityLabelOpacity: (this.props.r > 0.01) ? 1 : 0,
+      cityLabelSize: (this.props.r > 0.01) ? DimensionsStore.getDimensions().cityLabelFontSize : 0,
       dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r),
       windowDimensions: DimensionsStore.getMapDimensions()
     };
   }
 
   componentWillReceiveProps(nextProps) {
+    const duration = 2000;
+
     function pathTween(d1, precision) {
       return function() {
         var path0 = this,
@@ -48,7 +52,7 @@ export default class Bubble extends React.Component {
     if (this.props.r !== nextProps.r || this.props.color !== nextProps.color || this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx || this.props.cy !== nextProps.cy ) {
       d3.select(ReactDOM.findDOMNode(this))
         .transition()
-        .duration(2000)
+        .duration(duration)
         .ease(d3.easeSin)
           .attr('r', nextProps.r)
           .attr('transform', 'translate(' + nextProps.cx + ' ' + nextProps.cy + ')')
@@ -58,6 +62,8 @@ export default class Bubble extends React.Component {
         .on('end', () => {
           this.setState({
             r: nextProps.r,
+            cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
+            cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
           });
         });
 
@@ -71,18 +77,26 @@ export default class Bubble extends React.Component {
 
       d3.select(this.refs['cityLabel'])
         .transition()
-        .duration(2000)
+        .duration(duration)
         .ease(d3.easeSin)
-          .attr('transform', 'translate(' + (-1 * nextProps.r) + ' ' + (-1 * nextProps.r) + ')');
+          .attr('transform', 'translate(' + (-1 * nextProps.r) + ' ' + (-1 * nextProps.r) + ') rotate(-45, ' + (nextProps.r) + ', ' + (nextProps.r) +
+          ')');
+
+      d3.select(this.refs['cityLabelText'])
+        .transition()
+        .duration(duration)
+        .ease(d3.easeSin)
+          .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
+          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize  * nextProps.r / Math.max(this.props.r, nextProps.r));
 
       d3.select(this.refs['cityLabelArc'])
         .transition()
-        .duration(2000)
+        .duration(duration)
         .ease(d3.easeSin)
           .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
         // .transition()
-        // //.delay(2000)
-        // .duration(2000)
+        // //.delay(duration)
+        // .duration(duration)
         // .ease(d3.easeSin)
         //   .attrTween('d', () => {
         //     console.log('now');
@@ -99,7 +113,7 @@ export default class Bubble extends React.Component {
 
       d3.select(this.refs['bubble'])
         .transition()
-        .duration(2000)
+        .duration(duration)
         .ease(d3.easeSin)
           .attr('r', nextProps.r)
           .style('fill', nextProps.color)
@@ -145,7 +159,8 @@ export default class Bubble extends React.Component {
         />
 
         { (this.props.cityLabel) ? 
-          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ')' } ref='cityLabel'>
+          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ') rotate(-45, ' + (this.state.r) + ', ' + (this.state.r) +
+          ')' } ref='cityLabel'>
             <defs>
               <path 
                 id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
@@ -155,12 +170,19 @@ export default class Bubble extends React.Component {
             </defs>
             <text 
               stroke='transparent'
-              fontSize={ 12 }
               textAnchor='start'
               fill='white'
-              style={{ pointerEvents: 'none' }}
+              ref='cityLabelText'
+              textAnchor='middle'
+              style={{ 
+                pointerEvents: 'none',
+                fillOpacity: this.state.cityLabelOpacity,
+                fontSize: this.state.cityLabelSize
+              }}
             >
-              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='0%'>
+              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='50%' 
+
+              >
                 { this.props.cityLabel }
               </textPath>
             </text>
@@ -170,12 +192,13 @@ export default class Bubble extends React.Component {
 
         { (this.props.label) ?
           <text
-            x={ -3 }
-            y={ 5 }
+            x={ 0 }
+            y={ this.props.r*0.5 }
             fill='white'
             stroke='transparent'
+            textAnchor='middle'
             style={{ 
-              fontSize: 12, 
+              fontSize: this.props.r*1.5, 
               weight: 400,
               textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor,
               pointerEvents: this.props.pointerEvents

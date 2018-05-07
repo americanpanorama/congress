@@ -75,12 +75,28 @@ const DimensionsStore = {
 
 		
 		this.data.timelineWidth = this.data.windowWidth - this.data.sidebarWidth * 2 - this.data.timelineYAxisWidth - this.data.gutterPadding * 2;
+		this.data.timelineHorizontalGutter = this.data.timelineHeight * 1/12;
+		this.data.timelineSteamgraphHeight = this.data.timelineHeight * 9/12;
+		this.data.timelineSteamgraphGutter = this.data.timelineSteamgraphHeight * 0.02;
+		this.data.timelineAxisHeight = this.data.timelineHeight * 2/12;
+		this.data.timelineAxisGutter = this.data.timelineAxisHeight * 1/12;
+		this.data.timelineAxisLongTickHeight = this.data.timelineAxisHeight * 3/12;
+		this.data.timelineAxisShortTickHeight = this.data.timelineAxisHeight * 2/12;
+		this.data.timelineAxisFontSize = this.data.timelineAxisHeight * 6/12;
+		this.data.timelineAxisFontSizeSelected = this.data.timelineAxisHeight * 9/12;
+		this.data.timelineElectionFontSize = this.data.timelineHorizontalGutter * 7/12;
+		this.data.timelineCongressFontSize = this.data.timelineHorizontalGutter * 5/12;
 
 
 		this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
 
+		this.data.cityLabelFontSize = this.data.districtR * 1.5;
+
 		this.data.vizControlsRight =  this.data.gutterPadding*2 + this.data.mapWidth/2;
 		this.data.winnerControlLeft = this.data.gutterPadding*2 + this.data.mapWidth/2;
+
+
+
 
 		this.emit(AppActionTypes.storeChanged);
 	},
@@ -98,12 +114,12 @@ const DimensionsStore = {
 
 	getSVGArc(padding, radius, sweepFlag) {
 		sweepFlag = (sweepFlag) ? sweepFlag : 1; 
-		const xEnd = (radius - (radius-12) * Math.cos(0.2)),
-			yEnd = Math.abs(radius + (radius-12) * Math.sin(0.2));
+		const xEnd = (radius - (radius-this.data.cityLabelFontSize) * Math.cos(0.2)),
+			yEnd = Math.abs(radius + (radius-this.data.cityLabelFontSize) * Math.sin(0.2));
 		return 'M ' + padding + ',' + radius + ' A ' + (radius-padding) + ' ' + (radius-padding) + ', 0 1, ' + sweepFlag + ' ' + xEnd + ',' + yEnd; 
 	},
 
-	getTitleLabelArc(radius) { return this.getSVGArc(12, radius); },
+	getTitleLabelArc(radius) { return this.getSVGArc(this.data.cityLabelFontSize, radius); },
 
 
 

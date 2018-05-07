@@ -6,35 +6,82 @@ import { getColorForParty, getColorForMargin, yearForCongress, ordinalSuffixOf, 
 
 export default class Timeline extends React.Component {
 
-	render() {
+	constructor (props) {
+		super(props);
 
-		const height = DimensionsStore.getDimensions().timelineHeight,
-			width = DimensionsStore.getDimensions().timelineWidth,
-			infoWidth = 0,
-			horizontalGutter = height * 1/12,
+		this.state = {
+			selectedX: this.x()(this.props.selectedYear),
+			demCount: this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
+			demCountY: this.y()((this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin)/-2),
+			notDemCount: (this.props.selectedYear >= 1856) ? this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin + ((this.props.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin + ((this.props.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
+			notDemCountY: this.y()((this.props.selectedYear >= 1856) ? (this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin)/2 : (this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin)/2),
+			districtPercentY: (this.props.districtData && this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote * -1) : (this.props.districtData && this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican' || this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote) : 0,
+		};
+	}
 
-			steamgraphHeight = height * 9/12,
-			steamgraphGutter = steamgraphHeight * 0.02,
+	componentWillReceiveProps(nextProps) {
+		if (this.props.selectedYear !== nextProps.selectedYear) {
+			let demChange = (nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin) -(this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin),
+				notDemChange = (nextProps.selectedYear >= 1856 && this.props.selectedYear < 1856 || nextProps.selectedYear < 1856 && this.props.selectedYear >= 1856) ? '' : (nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin) -(this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin) : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin) -(this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin);
 
-			axisHeight = height * 2/12,
-			axisGutter = axisHeight * 1/12,
-			axisLongTickHeight = axisHeight * 3/12,
-			axisShortTickHeight = axisHeight * 2/12,
-			axisFontSize = axisHeight * 6/12,
-			axisFontSizeSelected = axisHeight * 9/12,
+			d3.select(this.refs['demCount'])
+				.transition()
+				.duration(2000)
+					.attr('y', this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2))
+					.text(((demChange > 0) ? '+' : '') + demChange);
+			d3.select(this.refs['notDemCount'])
+				.transition()
+				.duration(2000)
+					.attr('y', (notDemChange) ? this.y()((this.props.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2) : 0)
+					.text(((notDemChange && notDemChange > 0) ? '+' : '') + notDemChange);
 
-			electionFontSize = horizontalGutter * 7/12,
-			congressFontSize = horizontalGutter * 5/12;
-  			
-		var x = d3.scaleLinear()
+			d3.select(this.refs['selectedLine']).selectAll('circle')
+				.transition()
+				.duration(2000)
+					.attr('cy', (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0);				
+
+			d3.select(this.refs['selectedLine'])
+				.transition()
+				.duration(2000)
+					.attr('transform', 'translate(' + this.x()(nextProps.selectedYear) + ' ' + DimensionsStore.getDimensions().timelineHorizontalGutter + ')')
+				.on('end', () => {
+					this.setState({
+						selectedX: this.x()(nextProps.selectedYear),
+						demCountY: this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2),
+						demCount: nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
+						notDemCount: (nextProps.selectedYear >= 1856) ? nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin + ((nextProps.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin + ((nextProps.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
+						notDemCountY: this.y()((nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2),
+						districtPercentY: (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
+			
+					});
+				});
+		}
+	}
+
+	x() { 
+		return d3.scaleLinear()
 			.domain([1824, 2016])
 			.range([15, DimensionsStore.getDimensions().timelineWidth]);
-		var y = d3.scaleLinear()
+	}
+
+	y() {
+		return d3.scaleLinear()
 			.domain([-1*this.props.topOffset, this.props.bottomOffset])
-			.range([0, steamgraphHeight - steamgraphGutter * 2]);
-		var yDistrict = d3.scaleLinear()
+			.range([0, DimensionsStore.getDimensions().timelineSteamgraphHeight - DimensionsStore.getDimensions().timelineSteamgraphGutter * 2]);
+	}
+
+	yDistrict() {
+		return d3.scaleLinear()
 			.domain([-1, -1, -0.5, 0, 0.5, 1, 1])
-			.range([y(this.props.bottomOffset*-1), y(this.props.bottomOffset*-1), y(0), y(0), y(0), y(this.props.bottomOffset), y(this.props.bottomOffset)]);
+			.range([this.y()(this.props.bottomOffset*-1), this.y()(this.props.bottomOffset*-1), this.y()(0), this.y()(0), this.y()(0), this.y()(this.props.bottomOffset), this.y()(this.props.bottomOffset)]);
+	}
+
+	render() {
+		const dimensions = DimensionsStore.getDimensions();
+	
+		var x = this.x();
+		var y = this.y();
+		var yDistrict = this.yDistrict();
 		var area = d3.area()
 			.x(d => x(d.data.year))
 			.y0(d => y(d[0]))
@@ -63,8 +110,8 @@ export default class Timeline extends React.Component {
 
 		return (
 			<svg 
-				width={ width + DimensionsStore.getDimensions().timelineYAxisWidth }
-				height={ height }
+				width={ dimensions.timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth }
+				height={ dimensions.timelineHeight }
 			>
 
 				<defs>
@@ -78,12 +125,12 @@ export default class Timeline extends React.Component {
 
 
 				{/* x axis: years */}
-				<g transform={'translate(0 ' + (horizontalGutter + steamgraphHeight) + ')'}>
+				<g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphHeight) + ')'}>
 					<line
 						x1={x(1788)}
 						x2={x(2016)}
-						y1={ axisLongTickHeight }
-						y2={ axisLongTickHeight }
+						y1={ dimensions.timelineAxisLongTickHeight }
+						y2={ dimensions.timelineAxisLongTickHeight }
 						stroke='white'
 					/>
 
@@ -91,8 +138,8 @@ export default class Timeline extends React.Component {
 						<line
 							x1={x(year)}
 							x2={x(year)}
-							y1={ (year%10 == 0) ? 0 : axisLongTickHeight - axisShortTickHeight }
-							y2={ axisLongTickHeight }
+							y1={ (year%10 == 0) ? 0 : dimensions.timelineAxisLongTickHeight - dimensions.timelineAxisShortTickHeight }
+							y2={ dimensions.timelineAxisLongTickHeight }
 							stroke={ (year == this.props.selectedYear) ? '#F0B67F' : 'white'}
 							strokeWidth={ (year == this.props.selectedYear) ? 2 : 1 }
 							key={'tickFor'+year}
@@ -102,46 +149,25 @@ export default class Timeline extends React.Component {
 					{ Array.from({length: (2020-1830)/10}, (v, i) => 1830+i*10).map(year => 
 						<text
 							x={x(year)}
-							y={ axisHeight - 2* axisGutter }
+							y={ dimensions.timelineAxisHeight - 2* dimensions.timelineAxisGutter }
 							textAnchor='middle'
 							key={'yearFor'+year}
 							fill='white'
 							style={{
-								fontSize: axisFontSize
+								fontSize: dimensions.timelineAxisFontSize
 							}}
 						>
 							{year}
 						</text>
 					)}
-
-					<rect
-						x={x(this.props.selectedYear - 15)}
-						y={ axisLongTickHeight + axisGutter  }
-						width={x(1890) - x(1860)}
-						height={ axisFontSizeSelected }
-						fill="url(#selectedYearBackground)"
-					/>
-
-					<text
-						x={x(this.props.selectedYear)}
-						y={ axisHeight  }
-						textAnchor='middle'
-						fill='#F0B67F'
-						style={{
-							fontSize: axisFontSizeSelected,
-							fontWeight: 'bold'
-						}}
-					>
-						{this.props.selectedYear}
-					</text>
 				</g>
 
 				{/* y axis: percent */}
 				{ (this.props.districtData) ?
-					<g transform={ 'translate(' + width + ' ' + horizontalGutter + ')'}>
+					<g transform={ 'translate(' + dimensions.timelineWidth + ' ' + dimensions.timelineHorizontalGutter + ')'}>
 						<line
-							x1={ axisShortTickHeight }
-							x2={ axisShortTickHeight }
+							x1={ dimensions.timelineAxisShortTickHeight }
+							x2={ dimensions.timelineAxisShortTickHeight }
 							y1={ yDistrict(-1) }
 							y2={ yDistrict(1) }
 							stroke='white'
@@ -151,14 +177,14 @@ export default class Timeline extends React.Component {
 							<g key={'ytickFor'+percent}>
 								<line
 									x1={0}
-									x2={axisShortTickHeight}
+									x2={dimensions.timelineAxisShortTickHeight}
 									y1={ yDistrict(percent) }
 									y2={ yDistrict(percent) }
 									stroke='white'
 									
 								/>
 								<text
-									x={axisShortTickHeight * 2}
+									x={dimensions.timelineAxisShortTickHeight * 2}
 									y={ yDistrict(percent) + 6 }
 									fill='white'
 
@@ -168,10 +194,10 @@ export default class Timeline extends React.Component {
 							</g>
 						)}
 					</g> : 
-					<g transform={ 'translate(' + width + ' ' + horizontalGutter + ')'}>
+					<g transform={ 'translate(' + dimensions.timelineWidth + ' ' + dimensions.timelineHorizontalGutter + ')'}>
 						<line
-							x1={ axisShortTickHeight }
-							x2={ axisShortTickHeight }
+							x1={ dimensions.timelineAxisShortTickHeight }
+							x2={ dimensions.timelineAxisShortTickHeight }
 							y1={ y(this.props.topOffset * -1) }
 							y2={ y(this.props.bottomOffset) }
 							stroke='white'
@@ -181,14 +207,14 @@ export default class Timeline extends React.Component {
 							<g key={'ytickFor'+members}>
 								<line
 									x1={0}
-									x2={axisShortTickHeight}
+									x2={dimensions.timelineAxisShortTickHeight}
 									y1={ y(members) }
 									y2={ y(members) }
 									stroke='white'
 									
 								/>
 								<text
-									x={axisShortTickHeight * 2}
+									x={dimensions.timelineAxisShortTickHeight * 2}
 									y={ y(members) + 6 }
 									fill='white'
 								>
@@ -200,7 +226,7 @@ export default class Timeline extends React.Component {
 				}
 
 				{/* steamgraph data */}
-				<g transform={'translate(0 ' + (horizontalGutter + steamgraphGutter) + ')'}>
+				<g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
 
 					{ this.props.partyCount.map((partyCount, i) => 
 						<path
@@ -214,37 +240,13 @@ export default class Timeline extends React.Component {
 						/>
 					)}
 
-					<text
-						x={x(this.props.selectedYear) - 4}
-						y={y((this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin)/-2)}
-						textAnchor='end'
-						fill='white'
-						style={{
-							textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
-						}}
-					>
-						{ this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' )}
-					</text> : ''
-
-					<text
-						x={x(this.props.selectedYear) + 4}
-						y={y((this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin)/2)}
-						textAnchor='start'
-						fill='white'
-						style={{
-							textShadow: '-1px 0 1px ' + getColorForMargin('republican', 1) + ', 0 1px 1px ' + getColorForMargin('republican', 1) + ', 1px 0 1px ' + getColorForMargin('republican', 1) + ', 0 -1px 1px ' + getColorForMargin('republican', 1)
-						}}
-					>
-						{ this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin + ((this.props.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.repAboveMargin + ')' : '' )}
-					</text>
-
 					{ (this.props.districtData) ?
 						<g>
 							<rect 
 								x={ 0 }
 								y={ 0 }
-								width={ width }
-								height={ steamgraphHeight - steamgraphGutter * 2 }
+								width={ dimensions.timelineWidth }
+								height={ dimensions.timelineSteamgraphHeight - dimensions.timelineSteamgraphGutter * 2 }
 								fill={ '#233036' }
 								fillOpacity={1}
 
@@ -253,7 +255,7 @@ export default class Timeline extends React.Component {
 							<rect 
 								x={ 0 }
 								y={ 0 }
-								width={ width }
+								width={ dimensions.timelineWidth }
 								height={ yDistrict(0) }
 								fill={ getColorForParty('democrat') }
 								fillOpacity={0.05}
@@ -263,7 +265,7 @@ export default class Timeline extends React.Component {
 							<rect 
 								x={ 0 }
 								y={ yDistrict(0) }
-								width={ width }
+								width={ dimensions.timelineWidth }
 								height={ yDistrict(1) - yDistrict(0) }
 								fill={ getColorForParty('republican') }
 								fillOpacity={0.05}
@@ -277,77 +279,95 @@ export default class Timeline extends React.Component {
 								fill="transparent"
 							/>
 
-							{ Object.keys(this.props.districtData).map(year => {
-								return (
-									<circle
-										cx={x(year)}
-										cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican' || this.props.districtData[year].regularized_party_of_victory == 'whig') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
-										r={ (year == this.props.selectedYear) ? 7 : 5 }
-										fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
-										stroke={ (year == this.props.selectedYear) ? 'white' : 'transparent' }
-										key={ 'districtMOVFor' + year }
-									/>
-								);
-							})}
-
-						{/* JSX Comment
-							<text
-								x={x(this.props.selectedYear)}
-								y={ (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[this.props.selectedYear].percent_vote * -1) + 5 : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican') ? yDistrict(this.props.districtData[this.props.selectedYear].percent_vote) : 0 }
-								fill='white'
-								textAnchor='middle'
-
-							>
-								{ Math.round(this.props.districtData[this.props.selectedYear].percent_vote * 100) + '%' }
-							</text>
-						 */}
-
-
+							{ Object.keys(this.props.districtData).map(year => 
+								<circle
+									cx={x(year)}
+									cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican' || this.props.districtData[year].regularized_party_of_victory == 'whig') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
+									r={ 5 }
+									fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
+									stroke={ 'transparent' }
+									key={ 'districtMOVFor' + year }
+								/>
+							)}
 						</g> : ''
+					}
+				</g>
 
+				{/* selected */}
+				<g 
+					transform={'translate(' + this.state.selectedX + ' ' + dimensions.timelineHorizontalGutter + ')'}
+					ref='selectedLine'
+				>
+
+					<line
+						x1={0}
+						x2={0}
+						y1={0}
+						y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+						stroke='#F0B67F'
+						strokeWidth={2}
+					/>
+
+					{ (this.props.districtData) ?
+						<circle
+							cx={0}
+							cy={ this.state.districtPercentY }
+							r={ 7 }
+							fill={ getColorForMargin(this.props.districtData[this.props.selectedYear].regularized_party_of_victory, 1) }
+							stroke={ '#F0B67F' }
+						/> :
+						<g transform={'translate(0 ' + dimensions.timelineSteamgraphGutter + ')'}>
+							<text
+								x={0 - (x(1863) - x(1861))}
+								y={this.state.demCountY}
+								textAnchor='end'
+								fill='white'
+								style={{
+									textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
+								}}
+								ref='demCount'
+							>
+								{ this.state.demCount }
+							</text> : ''
+
+							<text
+								x={x(1863) - x(1861)}
+								y={this.state.notDemCountY}
+								textAnchor='start'
+								fill='white'
+								style={{
+									textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
+								}}
+								ref='notDemCount'
+							>
+								{ this.state.notDemCount }
+							</text>
+						</g>
 					}
 
 
 
+					<rect
+						x={x(1845) - x(1860)}
+						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+						width={x(1890) - x(1860)}
+						height={ dimensions.timelineAxisFontSizeSelected }
+						fill="url(#selectedYearBackground)"
+					/>
+
+					<text
+						x={0}
+						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisHeight  }
+						textAnchor='middle'
+						fill='#F0B67F'
+						style={{
+							fontSize: dimensions.timelineAxisFontSizeSelected,
+							fontWeight: 'bold'
+						}}
+					>
+						{this.props.selectedYear}
+					</text>
 				</g>
-
-				{/* labels and marker for selected year 
-				<text
-					x={x(this.props.selectedYear)}
-					y={electionFontSize + labelGutter}
-					fill='white'
-					textAnchor='middle'
-					style={{
-						fontSize: electionFontSize,
-						fontFamily: 'PT Serif'
-					}}
-
-				>
-					{ this.props.selectedYear + ' Election' }
-				</text>
-
-				<text
-					x={x(this.props.selectedYear)}
-					y={ horizontalGutter - labelGutter}
-					fill='white'
-					textAnchor='middle'
-					style={{
-						fontSize: congressFontSize
-					}}
-				>
-					The { ordinalSuffixOf(congressForYear(this.props.selectedYear)) } Congress
-				</text>
-
-				*/}
-
-				<line
-					x1={x(this.props.selectedYear)}
-					x2={x(this.props.selectedYear)}
-					y1={ horizontalGutter }
-					y2={ horizontalGutter + steamgraphHeight }
-					stroke='#F0B67F'
-					strokeWidth={2}
-				/>
 
 				{/* clickable areas to select year */}
 				{ this.props.congressYears.map(year => 
@@ -355,7 +375,7 @@ export default class Timeline extends React.Component {
 						x={x(year)-(x(1862) - x(1861))}
 						y={0}
 						width={x(1862) - x(1860)}
-						height={height}
+						height={dimensions.timelineHeight}
 						stroke='#999'
 						strokeWidth={0}
 						fill='transparent'
@@ -364,229 +384,6 @@ export default class Timeline extends React.Component {
 						onClick={ this.props.onYearSelected }
 					/>
 				)}
-
-				{/* info */}
-			{/* JSX Comment 
-				<g>
-					<rect
-						x={0}
-						y={0}
-						width={height}
-						height={height}
-						fill='black'
-					/>
-
-					<text
-						x={height/2}
-						y={electionFontSize + labelGutter}
-						fill='white'
-						textAnchor='middle'
-						style={{
-							fontSize: electionFontSize,
-							fontFamily: 'PT Serif'
-						}}
-
-					>
-						{ this.props.selectedYear + ' Election' }
-					</text>
-
-					<text
-						x={height/2}
-						y={ horizontalGutter - labelGutter}
-						fill='white'
-						textAnchor='middle'
-						style={{
-							fontSize: congressFontSize
-						}}
-					>
-						The { ordinalSuffixOf(congressForYear(this.props.selectedYear)) } Congress
-					</text>
-
-
-					{ (this.props.districtData) ?
-						<g>
-							<text
-								x={height/2}
-								y={ horizontalGutter + congressFontSize * 1.2 }
-								fill='white'
-								textAnchor='middle'
-								style={{
-									fontSize: congressFontSize
-								}}
-							>
-								{ getStateName(this.props.districtData[this.props.selectedYear].state) + ' ' + this.props.districtData[this.props.selectedYear].district }
-							</text>
-
-							<text
-								x={height/2}
-								y={ horizontalGutter + congressFontSize * 1.2 }
-								fill='white'
-								textAnchor='middle'
-								style={{
-									fontSize: congressFontSize
-								}}
-							>
-								{ getStateName(this.props.districtData[this.props.selectedYear].state) + ' ' + this.props.districtData[this.props.selectedYear].district }
-							</text>
-						</g> : ''
-					}
-				</g> */}
-
-				{/* JSX Comment 
-				<g transform='translate(175 0)'>
-					<rect
-						x={x(-250)}
-						y={ 0 }
-						width={ x(75) }
-						height={ 20 }
-						fill={ getColorForMargin('democrat', 1)}
-					/>
-					<rect
-						x={x(-175)}
-						y={ 0 }
-						width={ x(125) }
-						height={ 20 }
-						fill={ getColorForMargin('democrat', 0.8)}
-					/>
-					<rect
-						x={x(-50)}
-						y={ 0 }
-						width={ x(100) }
-						height={ 20 }
-						fill={getColorForMargin('Third', 1)}
-					/>
-					<rect
-						x={x(50)}
-						y={ 0 }
-						width={ x(125) }
-						height={ 20 }
-						fill={ getColorForMargin('republican', 0.8)}
-					/>
-					<rect
-						x={x(175)}
-						y={ 0 }
-						width={ x(75) }
-						height={ 20 }
-						fill={ getColorForMargin('republican', 1) }
-					/>
-
-					<text
-						x={x(-240)}
-						y={ 14 }
-						textAnchor='start'
-						fill='white'
-						fontSize={ 12 }
-					>
-						Democrat
-					</text>
-
-					<text
-						x={x(0)}
-						y={ 14 }
-						textAnchor='middle'
-						fill='white'
-						fontSize={ 12 }
-					>
-						3rd
-					</text>
-
-					<text
-						x={x(240)}
-						y={ 14 }
-						textAnchor='end'
-						fill='white'
-						fontSize={ 12 }
-					>
-						Republican
-					</text>
-
-					<line
-						x1={x(-212)}
-						x2={x(212)}
-						y1={30}
-						y2={30}
-						stroke='#222'
-					/>
-
-					<line
-						x1={x(-212)}
-						x2={x(-212)}
-						y1={25}
-						y2={30}
-						stroke='#222'
-					/>
-
-					<line
-						x1={x(212)}
-						x2={x(212)}
-						y1={25}
-						y2={30}
-						stroke='#222'
-					/>
-
-
-				
-				<defs>
-					<filter x="0" y="0" width="1" height="1" id="solid">
-						<feFlood floodColor="white"/>
-						<feComposite in="SourceGraphic"/>
-					</filter>
-				</defs>
-
-					<text
-						x={x(0)}
-						y={ 35 }
-						textAnchor='middle'
-						fill='white'
-						filter="url(#solid)" 
-					>
-						strength of majority
-					</text>
-				</g>
-
-				<g transform='translate(50 50)'>
-					<line
-						transform={'translate(' + x(350) + ')'}
-						x1={0}
-						x2={x(300)}
-						y1={17}
-						y2={17}
-						stroke='#222'
-					/>
-
-					{ [0,100,200,300].map(count => 
-						<g transform={'translate(' + x(350) + ')'} key={ 'timelineTick'+ count }>
-							<line
-								x1={x(count)}
-								x2={x(count)}
-								y1={14}
-								y2={17}
-								stroke='#222'
-							/>
-							<text
-								x={x(count)}
-								y={12}
-								fontSize={12}
-								textAnchor='middle'
-							>
-								{count}
-							</text>
-						</g>
-					)}
-
-					<text
-						x={x(320)}
-						y={15}
-						fontSize={12}
-						textAnchor='end'
-					>
-						# of Representatives
-					</text>
-				</g>
-
-				*/}
-
-
 			</svg>
 		);
 	}
