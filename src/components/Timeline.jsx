@@ -9,13 +9,15 @@ export default class Timeline extends React.Component {
 	constructor (props) {
 		super(props);
 
+		console.log((this.props.districtData, this.props.districtData[this.props.selectedYear]));
+
 		this.state = {
 			selectedX: this.x()(this.props.selectedYear),
 			demCount: this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
 			demCountY: this.y()((this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin)/-2),
 			notDemCount: (this.props.selectedYear >= 1856) ? this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin + ((this.props.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin + ((this.props.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
 			notDemCountY: this.y()((this.props.selectedYear >= 1856) ? (this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin)/2 : (this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin)/2),
-			districtPercentY: (this.props.districtData && this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote * -1) : (this.props.districtData && this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican' || this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote) : 0,
+			districtPercentY: (!this.props.districtData || !this.props.districtData[this.props.selectedYear]) ? 0 : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote * -1) : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican' || this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote) : 0,
 		};
 	}
 
@@ -38,12 +40,12 @@ export default class Timeline extends React.Component {
 			d3.select(this.refs['selectedLine']).selectAll('circle')
 				.transition()
 				.duration(2000)
-					.attr('cy', (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0);				
+					.attr('cy', (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0);				
 
 			d3.select(this.refs['selectedLine'])
 				.transition()
 				.duration(2000)
-					.attr('transform', 'translate(' + this.x()(nextProps.selectedYear) + ' ' + DimensionsStore.getDimensions().timelineHorizontalGutter + ')')
+					.attr('transform', 'translate(' + this.x()(nextProps.selectedYear) + ' ' + (DimensionsStore.getDimensions().timelineHorizontalGutter  + DimensionsStore.getDimensions().timelineSteamgraphGutter) + ')')
 				.on('end', () => {
 					this.setState({
 						selectedX: this.x()(nextProps.selectedYear),
@@ -51,10 +53,16 @@ export default class Timeline extends React.Component {
 						demCount: nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
 						notDemCount: (nextProps.selectedYear >= 1856) ? nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin + ((nextProps.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin + ((nextProps.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
 						notDemCountY: this.y()((nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2),
-						districtPercentY: (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData && nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
+						districtPercentY: (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
 			
 					});
 				});
+		}
+
+		else if (nextProps.districtData) {
+			this.setState({
+				districtPercentY: (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
+			});
 		}
 	}
 
@@ -295,7 +303,7 @@ export default class Timeline extends React.Component {
 
 				{/* selected */}
 				<g 
-					transform={'translate(' + this.state.selectedX + ' ' + dimensions.timelineHorizontalGutter + ')'}
+					transform={'translate(' + this.state.selectedX + ' ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}
 					ref='selectedLine'
 				>
 
@@ -303,7 +311,7 @@ export default class Timeline extends React.Component {
 						x1={0}
 						x2={0}
 						y1={0}
-						y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+						y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisShortTickHeight}
 						stroke='#F0B67F'
 						strokeWidth={2}
 					/>
@@ -349,7 +357,7 @@ export default class Timeline extends React.Component {
 
 					<rect
 						x={x(1845) - x(1860)}
-						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisShortTickHeight}
 						width={x(1890) - x(1860)}
 						height={ dimensions.timelineAxisFontSizeSelected }
 						fill="url(#selectedYearBackground)"
@@ -357,7 +365,7 @@ export default class Timeline extends React.Component {
 
 					<text
 						x={0}
-						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisHeight  }
+						y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisHeight - dimensions.timelineAxisShortTickHeight  }
 						textAnchor='middle'
 						fill='#F0B67F'
 						style={{

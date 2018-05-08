@@ -44,7 +44,6 @@ aside#sidebar {
 			text-decoration-line: underline;
 			text-decoration-color: #F0B67F;
 			text-decoration-style: dotted;
-
 		}
 	}
 
@@ -60,13 +59,11 @@ aside#sidebar {
 	text-align: center;
 	margin: 0;
 
-	* {
-		display: inline-block;
-	}
-
 	h2 {
 		margin: 0;
-		vertical-align: bottom;
+		display: inline-block;
+		vertical-align: top;
+		line-height: 1.5;
 	}
 
 	button {
@@ -74,6 +71,12 @@ aside#sidebar {
 		border: none;
 		margin: 0 10px;
 		background-color: transparent;
+		vertical-align: middle;
+		display: inline-block;
+
+		svg {
+			vertical-align: top;
+		}
 	}
 
 
@@ -85,13 +88,11 @@ aside#sidebar {
 	text-align: center;
 	margin: 0;
 
-	* {
-		display: inline-block;
-	}
-
 	h2 {
 		margin: 0;
-		vertical-align: bottom;
+		display: inline-block;
+		vertical-align: top;
+		line-height: 1.5;
 	}
 
 	button {
@@ -99,6 +100,12 @@ aside#sidebar {
 		border: none;
 		margin: 0 10px;
 		background-color: transparent;
+		vertical-align: middle;
+		display: inline-block;
+
+		svg {
+			vertical-align: top;
+		}
 	}
 }
 

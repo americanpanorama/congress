@@ -50,7 +50,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped','zoomToBounds'];
+    const handlers = ['onWindowResize','onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped','zoomToBounds','dimensionsChanged'];
     handlers.forEach(handler => { this[handler] = this[handler].bind(this); });
   }
 
@@ -60,18 +60,28 @@ class App extends React.Component {
   }
 
   componentDidMount () {
-    //window.addEventListener('resize', this.onWindowResize);
+    window.addEventListener('resize', this.onWindowResize);
     DistrictsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
-    DimensionsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
-    this.setState({
-      x: DimensionsStore.getDimensions().mapWidth/2,
-      y: DimensionsStore.getDimensions().mapHeight/2,
-    });
+    DimensionsStore.addListener(AppActionTypes.storeChanged, this.dimensionsChanged);
+    // this.setState({
+    //   x: DimensionsStore.getDimensions().mapWidth/2,
+    //   y: DimensionsStore.getDimensions().mapHeight/2,
+    // });
   }
 
   componentDidUpdate () { this.changeHash(); }
 
   storeChanged() { this.setState({}); }
+
+  dimensionsChanged() {
+    console.log(DimensionsStore.getMapDimensions().height);
+    this.setState({
+      x: DimensionsStore.getMapDimensions().width  / 2 - (DimensionsStore.getMapDimensions().width  / 2 - this.state.x) / this.state.zoom,
+      y: DimensionsStore.getMapDimensions().height  / 2 - (DimensionsStore.getMapDimensions().height  / 2 - this.state.y) / this.state.zoom
+    });
+  }
+
+  onWindowResize () { AppActions.windowResized(); }
 
   onYearSelected(e) { 
     const year = e.currentTarget.id;
@@ -206,8 +216,8 @@ class App extends React.Component {
   resetView() { 
     this.setState({
       zoom: 1,
-      x: DimensionsStore.getMapDimensions().width/2,
-      y: DimensionsStore.getMapDimensions().height/2
+      x: 0,
+      y: 0
     });
   }
 
@@ -240,6 +250,7 @@ class App extends React.Component {
 
     return (
       <div>
+        {/* masthead */}
         <header
           style={{
             height: DimensionsStore.getDimensions().headerHeight,
@@ -256,6 +267,8 @@ class App extends React.Component {
             marginTop: DimensionsStore.getDimensions().headerGutter
           }}>Electing the House of Representatives</h2>
         </header>
+
+        {/* map */}
         <svg 
           width={ DimensionsStore.getDimensions().mapWidth }
           height={ DimensionsStore.getDimensions().mapHeight }
@@ -278,71 +291,58 @@ class App extends React.Component {
             onMouseMove={this.handleMouseMove }
             transform={ 'translate(' + this.state.x + ' ' + this.state.y + ') scale(' + this.state.zoom + ')' }
           >
-            <g
-              transform={ 'translate(-' + DimensionsStore.getDimensions().mapWidth/2 + ' -' + DimensionsStore.getDimensions().mapHeight/2 + ')' }
-            >
-              { (true || this.state.selectedView == 'map') ?
-                <g>
-                  { DistrictsStore.getElectionDistricts(this.state.selectedYear).map(d => {
-                    return (
-                      <District
-                        d={ DistrictsStore.getPath(d.the_geojson) }
-                        key={ 'polygon' + d.id }
-                        fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
-                        //fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
-                        fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : ((this.state.selectedView == 'cartogram' && viewableDistrict !== d.id) || (viewableDistrict && viewableDistrict !== d.id) || (this.state.onlyFlipped && !d.flipped)) ? 0.1 : 1 }
-                        stroke={ '#eee' }
-                        strokeWidth={(!viewableDistrict || viewableDistrict != d.id) ? 0.5 : 2 }
-                        strokeOpacity={(this.state.selectedView =='cartogram' && (!viewableDistrict || viewableDistrict !== d.id)) ? 0.00 : (viewableDistrict && viewableDistrict !== d.id) ? 0.2 : 1}
-                        selectedView={ this.state.selectedView }
-                        onDistrictInspected={ this.onDistrictInspected }
-                        onDistrictUninspected={ this.onDistrictUninspected }
-                        onDistrictSelected={ this.onDistrictSelected }
-                        id={d.id}
-                        duration={ transitionDuration }
-                        pointerEvents={ (this.state.selectedView == 'map') ? 'auto' : 'none'}
-                      />
-                    );
-                  })}
-                </g> : ''
-              }
 
+            {/* district polygons */}
+            { DistrictsStore.getElectionDistricts(this.state.selectedYear).map(d => 
+              <District
+                d={ DistrictsStore.getPath(d.the_geojson) }
+                key={ 'polygon' + d.id }
+                fill={ (this.state.winnerView || this.state.selectedView =='cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote) }
+                //fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : (this.state.selectedView =='cartogram') ? 0.1 : 1 }
+                fillOpacity={ (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) ? 0.05 : ((this.state.selectedView == 'cartogram' && viewableDistrict !== d.id) || (viewableDistrict && viewableDistrict !== d.id) || (this.state.onlyFlipped && !d.flipped)) ? 0.1 : 1 }
+                stroke={ '#eee' }
+                strokeWidth={(!viewableDistrict || viewableDistrict != d.id) ? 0.5 : 2 }
+                strokeOpacity={(this.state.selectedView =='cartogram' && (!viewableDistrict || viewableDistrict !== d.id)) ? 0.00 : (viewableDistrict && viewableDistrict !== d.id) ? 0.2 : 1}
+                selectedView={ this.state.selectedView }
+                onDistrictInspected={ this.onDistrictInspected }
+                onDistrictUninspected={ this.onDistrictUninspected }
+                onDistrictSelected={ this.onDistrictSelected }
+                id={d.id}
+                duration={ transitionDuration }
+                pointerEvents={ (this.state.selectedView == 'map') ? 'auto' : 'none'}
+              />
+            )}
 
-              { DistrictsStore.getStates(this.state.selectedYear).map(s => {
-                return ( <path
-                  d={ DistrictsStore.getPath(s.geometry) }
-                  fill='transparent'
-                  stroke={ '#eee'}
-                  strokeOpacity={ (this.state.selectedView =='cartogram') ? 0.2 : 1 }
-                  strokeWidth={ (!viewableDistrict || s.properties.abbr_name == DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) ? 1.5 : 0.3 }
-                  key={'stateBoundaries'+s.properties.name}
-                  filter={ (this.state.selectedView == 'cartogram') ? 'url(#blur)' : '' }
-                  style={{ pointerEvents: 'none' }}
-                />);
+            {/* state polygons */}
+            { DistrictsStore.getStates(this.state.selectedYear).map(s =>
+              <path
+                d={ DistrictsStore.getPath(s.geometry) }
+                fill='transparent'
+                stroke={ '#eee'}
+                strokeOpacity={ (this.state.selectedView =='cartogram') ? 0.2 : 1 }
+                strokeWidth={ (!viewableDistrict || s.properties.abbr_name == DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) ? 1.5 : 0.3 }
+                key={'stateBoundaries'+s.properties.name}
+                filter={ (this.state.selectedView == 'cartogram') ? 'url(#blur)' : '' }
+                style={{ pointerEvents: 'none' }}
+              />
+            )}
 
-              })}
+            {/* city bubbles */}
+            { DistrictsStore.getBubbleCoords(this.state.selectedYear).cities.map((d, i) => 
+              <Bubble
+                cx={(this.state.dorling) ? d.x : d.xOrigin }
+                cy={(this.state.dorling) ? d.y : d.yOrigin }
+                r={(this.state.dorling) ? d.r : 0.01 }
+                cityLabel={ d.id } 
+                color='#11181b'
+                fillOpacity={0.5}
+                stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'transparent' }
+                key={d.id || 'missing' + i}
+                id={d.id}
+              />
+            )}
 
-            </g>
-
-            { (true || this.state.selectedView == 'cartogram') ?
-              <g>
-                { DistrictsStore.getBubbleCoords(this.state.selectedYear).cities.map((d, i) => 
-                  <Bubble
-                    cx={(this.state.dorling) ? d.x : d.xOrigin }
-                    cy={(this.state.dorling) ? d.y : d.yOrigin }
-                    r={(this.state.dorling) ? d.r : 0.01 }
-                    cityLabel={ d.id } 
-                    color='#11181b'
-                    fillOpacity={0.8}
-                    stroke={ (this.state.selectedView == 'map') ? 'transparent' : 'transparent' }
-                    key={d.id || 'missing' + i}
-                    id={d.id}
-                  />
-                )}
-              </g> : ''
-            }
-
-
+            {/* district bubbles */}
             { DistrictsStore.getBubbleCoords(this.state.selectedYear).districts.map(d=> 
               <Bubble
                 cx={(this.state.dorling) ? d.x : d.xOrigin }
@@ -366,8 +366,6 @@ class App extends React.Component {
           </g>
         </svg>
 
-
-
         <MapLegend
           selectedView={ this.state.selectedView }
           selectedYear={ this.state.selectedYear }
@@ -386,9 +384,6 @@ class App extends React.Component {
           resetView={ this.resetView }
           currentZoom={ this.state.zoom }
         />
-
-
-
 
         <aside
           id='info'
@@ -410,18 +405,6 @@ class App extends React.Component {
             partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
             districtData={ (viewableDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) : false }
           />
-
-          { (false && viewableDistrict) ? 
-            <DistrictTimeline
-              electionsData={ DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) }
-              topOffset={ DistrictsStore.getMaxTopOffset() }
-              bottomOffset={ DistrictsStore.getMaxBottomOffset() }
-            /> : ''
-          }
-
-
-
-
         </aside>
 
         <div 
@@ -550,19 +533,20 @@ class App extends React.Component {
             height: DimensionsStore.getDimensions().electionLabelHeight,
             left: DimensionsStore.getDimensions().electionLabelLeft,
             bottom: DimensionsStore.getDimensions().electionLabelBottom,
-
-
           }}
         >
           <button
             onClick={ (DistrictsStore.getPreviousElectionYear(this.state.selectedYear)) ? this.onYearSelected : () => false }
             id={ DistrictsStore.getPreviousElectionYear(this.state.selectedYear) }
+            style={{ 
+              height: DimensionsStore.getDimensions().nextPreviousButtonHeight
+            }}
           >
             <svg 
               width={DimensionsStore.getDimensions().nextPreviousButtonHeight} 
-              height={DimensionsStore.getDimensions().nextPreviousButtonHeight + DimensionsStore.getDimensions().nextPreviousButtonYOffset}
+              height={DimensionsStore.getDimensions().nextPreviousButtonHeight}
             >
-              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2 + DimensionsStore.getDimensions().nextPreviousButtonYOffset) + ') rotate(315)' }>
+              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ') rotate(315)' }>
                 <circle
                   cx={0}
                   cy={0}
@@ -589,16 +573,17 @@ class App extends React.Component {
               </g>
             </svg>
           </button>
-          <h2>Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress</h2>
+          <h2 style={{ fontSize: DimensionsStore.getDimensions().electionLabelFontSize }}>Election of { this.state.selectedYear }: The { ordinalSuffixOf(congressForYear(this.state.selectedYear)) } Congress</h2>
           <button
             onClick={ (DistrictsStore.getNextElectionYear(this.state.selectedYear)) ? this.onYearSelected : () => false }
             id={ DistrictsStore.getNextElectionYear(this.state.selectedYear) }
+            style={{ height: DimensionsStore.getDimensions().nextPreviousButtonHeight }}
           >
             <svg 
               width={DimensionsStore.getDimensions().nextPreviousButtonHeight} 
-              height={DimensionsStore.getDimensions().nextPreviousButtonHeight + DimensionsStore.getDimensions().nextPreviousButtonYOffset}
+              height={DimensionsStore.getDimensions().nextPreviousButtonHeight}
             >
-              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2 + DimensionsStore.getDimensions().nextPreviousButtonYOffset) + ') rotate(135)' }>
+              <g transform={ 'translate(' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ' ' + (DimensionsStore.getDimensions().nextPreviousButtonHeight / 2) + ') rotate(135)' }>
                 <circle
                   cx={0}
                   cy={0}
@@ -666,7 +651,7 @@ class App extends React.Component {
         >
           { (viewableDistrict) ? 
             <div>
-              <h2>
+              <h2 style={{ fontSize: DimensionsStore.getDimensions().electionLabelFontSize }}>
                 { getStateName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).state) + ' ' + DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).district }
               </h2>
               { (viewableDistrict == this.state.selectedDistrict) ?

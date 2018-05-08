@@ -43,7 +43,7 @@ var config = {
 		new HtmlWebpackPlugin({
 			inject: false,
 			template: require('html-webpack-template'),
-			title: 'American Panorama',
+			title: 'The People\'s House',
 			filename: 'index.html',
 			appMountId: 'app-container',
 			scripts: ['https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/cartodb.core.js'],

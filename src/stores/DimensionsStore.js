@@ -31,7 +31,7 @@ const DimensionsStore = {
 
 		this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-		this.data.mapHeight = this.data.windowHeight * 7.5/12 - this.data.gutterPadding;
+		this.data.mapHeight = this.data.windowHeight * 7.5/12;
 		this.data.mapWidth = this.data.windowWidth - this.data.gutterPadding * 2;
 
 		this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
@@ -45,6 +45,7 @@ const DimensionsStore = {
 		this.data.electionLabelLeft = this.data.timelineHeight + this.data.gutterPadding;
 		this.data.electionLabelHeight = this.data.windowHeight / 24;
 		this.data.electionLabelWidth = this.data.windowWidth - this.data.sidebarWidth * 2;
+		this.data.electionLabelFontSize = this.data.electionLabelHeight * 2/3;
 
 		this.data.districtLabelBottom = this.data.electionLabelBottom;
 		this.data.districtLabelLeft = this.data.gutterPadding;

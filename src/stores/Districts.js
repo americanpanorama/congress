@@ -121,10 +121,10 @@ const DistrictsStore = {
                 flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
               return {
                 id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
-                x: d.x * DimensionsStore.getMapScale(),
-                y: d.y * DimensionsStore.getMapScale(),
-                xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
-                yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
+                x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
+                y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
+                xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
+                yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
                 state: state,
                 district: district,
                 districtId: d.id,
@@ -139,10 +139,10 @@ const DistrictsStore = {
           cities: yearData.cities.map(d => {
             return {
               id: MetroNames[d.id],
-              x: d.x * DimensionsStore.getMapScale(),
-              y: d.y * DimensionsStore.getMapScale(),
-              xOrigin: d.xOrigin * DimensionsStore.getMapScale(),
-              yOrigin: d.yOrigin * DimensionsStore.getMapScale(),
+              x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
+              y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
+              xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
+              yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
               r: d.r * DimensionsStore.getMapScale()
             };
           }),
@@ -533,6 +533,10 @@ AppDispatcher.register((action) => {
       break;
     case AppActionTypes.congressSelected:
       DistrictsStore.loadDistrictsForCongress(action.year);
+      break;
+
+    case AppActionTypes.windowResized:
+      DistrictsStore.parseBubbles();
       break;
   }
   return true;
