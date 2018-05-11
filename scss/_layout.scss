@@ -27,6 +27,17 @@ header {
 		margin: 0;
 		line-height: 1;
 	}
+
+	nav {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+
+		h4 {
+			display: inline-block;
+			margin: 0 10px;
+		}
+	}
 }
 
 aside#sidebar {
@@ -133,6 +144,27 @@ aside#info{
 	position: absolute;
 	top: 0;
 	left: 0;
+}
+
+.longishform {
+	position: fixed;
+	z-index: 11;
+	background: #eee;
+	color: #111;
+	overflow: scroll;
+
+	.content {
+		margin: 20px auto;
+		max-width: 600px;
+		font-size: 1.5em;
+		line-height: 1.5;
+
+	}
+
+	button.close {
+		position: fixed;
+	}
+
 }
 
 

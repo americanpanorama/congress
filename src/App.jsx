@@ -22,6 +22,7 @@ import MapLegend from './components/MapLegend.jsx';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
+import TextStore from './stores/Text';
 import HashManager from './stores/HashManager';
 
 import StatesTopoJson from '../data/states.json';
@@ -50,7 +51,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize','onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped','zoomToBounds','dimensionsChanged'];
+    const handlers = ['onWindowResize','onYearSelected', 'onViewSelected', 'toggleDorling', 'toggleView', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected','toggleFlipped','zoomToBounds','dimensionsChanged','onModalClick'];
     handlers.forEach(handler => { this[handler] = this[handler].bind(this); });
   }
 
@@ -62,6 +63,7 @@ class App extends React.Component {
   componentDidMount () {
     window.addEventListener('resize', this.onWindowResize);
     DistrictsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
+    TextStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
     DimensionsStore.addListener(AppActionTypes.storeChanged, this.dimensionsChanged);
     // this.setState({
     //   x: DimensionsStore.getDimensions().mapWidth/2,
@@ -129,6 +131,11 @@ class App extends React.Component {
   toggleFlipped(newState) {
     newState = (typeof newState !== 'undefined') ? newState : !this.state.onlyFlipped;
     this.setState({ onlyFlipped: newState }); 
+  }
+
+  onModalClick (event) {
+    const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
+    AppActions.onModalClick(subject);
   }
 
   onViewSelected(e) {
@@ -266,6 +273,13 @@ class App extends React.Component {
             fontSize: DimensionsStore.getDimensions().headerSubtitleFontSize,
             marginTop: DimensionsStore.getDimensions().headerGutter
           }}>Electing the House of Representatives</h2>
+          <nav>
+            <h4 onClick={ this.onModalClick } id={ 'intro' }>Introduction</h4>
+            <h4 onClick={ this.onModalClick } id={ 'sources' }>Sources & Method</h4>
+            <h4 onClick={ this.onModalClick } id={ 'citing' }>Citing</h4>
+            <h4 onClick={ this.onModalClick } id={ 'about' }>About</h4>
+            <h4 onClick={ this.onContactUsToggle }>Contact Us</h4>
+          </nav>
         </header>
 
         {/* map */}
@@ -694,6 +708,32 @@ class App extends React.Component {
             </div> : ''
           }
         </div>
+
+        { (TextStore.mainModalIsOpen()) ?
+          <div 
+            className='longishform'
+            style={{
+              top: DimensionsStore.getDimensions().textTop,
+              bottom: DimensionsStore.getDimensions().textBottom,
+              left: DimensionsStore.getDimensions().textLeft,
+              width: DimensionsStore.getDimensions().textWidth
+            }}
+          >
+            <button 
+              className='close' 
+              onClick={ this.onModalClick }
+              style={{
+                top: DimensionsStore.getDimensions().textCloseTop,
+                right: DimensionsStore.getDimensions().textCloseRight,
+              }}
+            >
+              <span>close</span>
+            </button>
+            <div className='content' dangerouslySetInnerHTML={ TextStore.getModalContent() } />
+          </div> :
+          null
+        }
+
       </div>
     );
   }

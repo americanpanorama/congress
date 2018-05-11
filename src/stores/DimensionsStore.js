@@ -96,6 +96,15 @@ const DimensionsStore = {
 		this.data.vizControlsRight =  this.data.gutterPadding*2 + this.data.mapWidth/2;
 		this.data.winnerControlLeft = this.data.gutterPadding*2 + this.data.mapWidth/2;
 
+		this.data.textTop = this.data.headerHeight;
+		this.data.textBottom = this.data.gutterPadding;
+		this.data.textLeft = this.data.electionLabelLeft;
+		this.data.textWidth = this.data.electionLabelWidth;
+		this.data.textCloseTop = this.data.textTop + 10;
+		this.data.textCloseRight = this.data.electionLabelLeft + 10;
+
+
+
 
 
 
