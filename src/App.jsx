@@ -129,7 +129,7 @@ class App extends React.Component {
   }
 
   toggleFlipped(newState) {
-    newState = (typeof newState !== 'undefined') ? newState : !this.state.onlyFlipped;
+    newState = (typeof newState == 'boolean') ? newState : !this.state.onlyFlipped;
     this.setState({ onlyFlipped: newState }); 
   }
 
@@ -365,7 +365,7 @@ class App extends React.Component {
                 color={ (this.state.selectedView == 'map') ? 'transparent' : (this.state.winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
                 stroke={ (this.state.selectedView == 'map' || (this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (this.state.selectedView == 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
                 fillOpacity={ ((this.state.selectedParty && this.state.selectedParty !== d.regularized_party_of_victory) || (this.state.onlyFlipped && !d.flipped)) ? 0.05 : (viewableDistrict && viewableDistrict !== d.districtId) ? 0.3 : 1 }
-                label={ (d.flipped && (!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory)) ? 'F' : ''}
+                label={ (d.flipped && ((!this.state.selectedParty || this.state.selectedParty == d.regularized_party_of_victory) && (!this.state.selectedDistrict || d.districtId == this.state.selectedDistrict))) ? 'F' : ''}
                 labelColor={ getColorForParty(d.regularized_party_of_victory) }
                 key={d.id}
                 id={d.districtId}
@@ -381,15 +381,13 @@ class App extends React.Component {
         </svg>
 
         <MapLegend
-          selectedView={ this.state.selectedView }
-          selectedYear={ this.state.selectedYear }
-          selectedParty={ this.state.selectedParty }
-          onViewSelected={ this.onViewSelected }
-          onPartySelected={ this.onPartySelected }
-          winnerView={ this.state.winnerView }
-          onlyFlipped={ this.state.onlyFlipped }
-          toggleView={ this.toggleView }
-          toggleFlipped={ this.toggleFlipped }
+          selectedView={this.state.selectedView}
+          selectedYear={this.state.selectedYear}
+          selectedParty={this.state.selectedParty}
+          onPartySelected={this.onPartySelected}
+          winnerView={this.state.winnerView}
+          onlyFlipped={this.state.onlyFlipped}
+          toggleFlipped={this.toggleFlipped}
         />
 
         <ZoomControls
@@ -640,6 +638,9 @@ class App extends React.Component {
           { (viewableDistrict) ?
             <div>
               <div>Victor: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor }</div>
+              { (DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory == 'third') ?
+                <div>Party: { DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).party_of_victory }</div> : ''
+              }
 
             </div> : 
             <Context 

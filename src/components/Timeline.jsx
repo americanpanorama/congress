@@ -9,15 +9,13 @@ export default class Timeline extends React.Component {
 	constructor (props) {
 		super(props);
 
-		console.log((this.props.districtData, this.props.districtData[this.props.selectedYear]));
-
 		this.state = {
 			selectedX: this.x()(this.props.selectedYear),
 			demCount: this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
 			demCountY: this.y()((this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin)/-2),
 			notDemCount: (this.props.selectedYear >= 1856) ? this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin + ((this.props.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin + ((this.props.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
 			notDemCountY: this.y()((this.props.selectedYear >= 1856) ? (this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin)/2 : (this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin)/2),
-			districtPercentY: (!this.props.districtData || !this.props.districtData[this.props.selectedYear]) ? 0 : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote * -1) : (this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'republican' || this.props.districtData[this.props.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(this.props.districtData[this.props.selectedYear].percent_vote) : 0,
+			districtPercentY: this.getDistrictY(this.props.districtData[this.props.selectedYear]),
 		};
 	}
 
@@ -40,7 +38,7 @@ export default class Timeline extends React.Component {
 			d3.select(this.refs['selectedLine']).selectAll('circle')
 				.transition()
 				.duration(2000)
-					.attr('cy', (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0);				
+					.attr('cy', this.getDistrictY(nextProps.districtData[nextProps.selectedYear]));				
 
 			d3.select(this.refs['selectedLine'])
 				.transition()
@@ -53,7 +51,7 @@ export default class Timeline extends React.Component {
 						demCount: nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
 						notDemCount: (nextProps.selectedYear >= 1856) ? nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin + ((nextProps.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin + ((nextProps.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
 						notDemCountY: this.y()((nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2),
-						districtPercentY: (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
+						districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
 			
 					});
 				});
@@ -61,7 +59,7 @@ export default class Timeline extends React.Component {
 
 		else if (nextProps.districtData) {
 			this.setState({
-				districtPercentY: (!nextProps.districtData || !nextProps.districtData[nextProps.selectedYear]) ? 0 : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'democrat') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote * -1) : (nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'republican' || nextProps.districtData[nextProps.selectedYear].regularized_party_of_victory == 'whig') ? this.yDistrict()(nextProps.districtData[nextProps.selectedYear].percent_vote) : 0
+				districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
 			});
 		}
 	}
@@ -84,6 +82,23 @@ export default class Timeline extends React.Component {
 			.range([this.y()(this.props.bottomOffset*-1), this.y()(this.props.bottomOffset*-1), this.y()(0), this.y()(0), this.y()(0), this.y()(this.props.bottomOffset), this.y()(this.props.bottomOffset)]);
 	}
 
+	getDistrictY (districtData) {
+		if (!districtData) {
+			return;
+		}
+		let y = this.yDistrict()(1) + DimensionsStore.getDimensions().timelineAxisShortTickHeight;
+		if (districtData.regularized_party_of_victory == 'third') {
+			y = this.yDistrict()(0.5);
+		} else if (districtData.percent_vote > 0) {
+			if (districtData.regularized_party_of_victory == 'democrat') {
+				y = this.yDistrict()(districtData.percent_vote * -1);
+			} else if (districtData.regularized_party_of_victory == 'republican' || districtData.regularized_party_of_victory == 'whig') {
+				y = this.yDistrict()(districtData.percent_vote);
+			}
+		}
+		return y; 
+	}
+
 	render() {
 		const dimensions = DimensionsStore.getDimensions();
 	
@@ -103,7 +118,9 @@ export default class Timeline extends React.Component {
 
 		let lineData = [];
 		Object.keys(this.props.districtData).forEach(year => {
-			lineData.push({year: year, percent: (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? this.props.districtData[year].percent_vote * -1 : this.props.districtData[year].percent_vote});
+			if (this.props.districtData[year].regularized_party_of_victory !== 'third' && this.props.districtData[year].percent_vote > 0) {
+				lineData.push({year: year, percent: (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? this.props.districtData[year].percent_vote * -1 : this.props.districtData[year].percent_vote});
+			}
 		});
 
 		const getStackColor = function(key) {
@@ -287,16 +304,32 @@ export default class Timeline extends React.Component {
 								fill="transparent"
 							/>
 
-							{ Object.keys(this.props.districtData).map(year => 
-								<circle
-									cx={x(year)}
-									cy={ (this.props.districtData[year].regularized_party_of_victory == 'democrat') ? yDistrict(this.props.districtData[year].percent_vote * -1) : (this.props.districtData[year].regularized_party_of_victory == 'republican' || this.props.districtData[year].regularized_party_of_victory == 'whig') ? yDistrict(this.props.districtData[year].percent_vote) : 0 }
-									r={ 5 }
-									fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
-									stroke={ 'transparent' }
-									key={ 'districtMOVFor' + year }
-								/>
-							)}
+							{ Object.keys(this.props.districtData).map(year => {
+								if (['democrat','republican','whig'].includes(this.props.districtData[year].regularized_party_of_victory)) {
+									return (
+										<circle
+											cx={x(year)}
+											cy={ this.getDistrictY(this.props.districtData[year]) }
+											r={ 5 }
+											fill={ getColorForMargin(this.props.districtData[year].regularized_party_of_victory, 1) }
+											stroke={ 'transparent' }
+											key={ 'districtMOVFor' + year }
+										/>
+									);
+								} else if (this.props.districtData[year].regularized_party_of_victory == 'third') {
+									return (
+										<rect
+											x={x(year - 1)}
+											y={ 0 }
+											width={x(1863) - x(1861)}
+											height={ yDistrict(1) }
+											fill={ getColorForParty('third') }
+											fillOpacity={0.4}
+										/>
+									);
+								}
+
+							})}
 						</g> : ''
 					}
 				</g>

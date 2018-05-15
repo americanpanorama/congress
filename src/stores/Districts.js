@@ -91,6 +91,22 @@ const DistrictsStore = {
   },
 
   parseBubbles: function() {
+    // let yearsWeHave = bubbleXYs.map(yearData => yearData.year);
+    // for (let y = 1836; y <= )
+    // let yearsWeHave = Object.keys(Elections).map(y => parseInt(y)),
+    //   firstYear = yearsWeHave[0],
+    //   lastYear = yearsWeHave[yearsWeHave.length-1],
+    //   missing = [];
+    // for (let y = firstYear; y < lastYear; y = y+2) {
+    //   if (!yearsWeHave.includes(y)) {
+    //     missing.push(y);
+    //   }
+    // }
+    // console.log('From ' + firstYear + ' to ' + lastYear);
+    // console.log('missing: ');
+    // console.log(missing);
+
+
     this.data.bubbleCoords = bubbleXYs
       .map(yearData => {
         return {

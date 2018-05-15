@@ -1,11 +1,9 @@
 import * as React from 'react';
-
-import ReactDOM from 'react-dom';
-import * as d3 from "d3"
-import DimensionsStore from '../stores/DimensionsStore.js';
+import PropTypes from 'prop-types';
+import * as d3 from 'd3';
+import DimensionsStore from '../stores/DimensionsStore';
 
 export default class Bubble extends React.Component {
-
   constructor (props) {
     super(props);
     this.state = {
@@ -16,191 +14,138 @@ export default class Bubble extends React.Component {
       cy: this.props.cy,
       cityLabelOpacity: (this.props.r > 0.01) ? 1 : 0,
       cityLabelSize: (this.props.r > 0.01) ? DimensionsStore.getDimensions().cityLabelFontSize : 0,
-      dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r),
-      windowDimensions: DimensionsStore.getMapDimensions()
+      dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r)
     };
+
+    this.bubble = React.createRef();
+    this.circle = React.createRef();
+    this.cityLabel = React.createRef();
+    this.cityLabelArc = React.createRef();
+    this.cityLabelText = React.createRef();
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
     const duration = 2000;
 
-    function pathTween(d1, precision) {
-      return function() {
-        var path0 = this,
-            path1 = path0.cloneNode(),
-            n0 = path0.getTotalLength(),
-            n1 = (path1.setAttribute("d", d1), path1).getTotalLength();
-
-        // Uniform sampling of distance based on specified precision.
-        var distances = [0], i = 0, dt = precision / Math.max(n0, n1);
-        while ((i += dt) < 1) distances.push(i);
-        distances.push(1);
-
-        // Compute point-interpolators at each distance.
-        var points = distances.map(function(t) {
-          var p0 = path0.getPointAtLength(t * n0),
-              p1 = path1.getPointAtLength(t * n1);
-          return d3.interpolate([p0.x, p0.y], [p1.x, p1.y]);
-        });
-
-        return function(t) {
-          return t < 1 ? "M" + points.map(function(p) { return p(t); }).join("L") : d1;
-        };
-      };
-    }
-
-    if (this.props.r !== nextProps.r || this.props.color !== nextProps.color || this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx || this.props.cy !== nextProps.cy ) {
-      d3.select(ReactDOM.findDOMNode(this))
+    if (this.props.r !== nextProps.r || this.props.color !== nextProps.color ||
+      this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx ||
+      this.props.cy !== nextProps.cy) {
+      d3.select(this.bubble.current)
         .transition()
         .duration(duration)
         .ease(d3.easeSin)
-          .attr('r', nextProps.r)
-          .attr('transform', 'translate(' + nextProps.cx + ' ' + nextProps.cy + ')')
-          .attr('cy', nextProps.cy)
-          .style('fill', nextProps.color)
-          .style('stroke', nextProps.stroke)
+        .attr('r', nextProps.r)
+        .attr('transform', `translate(${nextProps.cx} ${nextProps.cy})`)
+        .attr('cy', nextProps.cy)
+        .style('fill', nextProps.color)
+        .style('stroke', nextProps.stroke)
         .on('end', () => {
           this.setState({
             r: nextProps.r,
             cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
             cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
-          });
-        });
-
-      // let delay = (nextProps == 0.01) ? 0 : 1000,
-      //   duration = 1000;
-      // d3.select(this.refs['cityLabel']).selectAll('text')
-      //   .transition()
-      //   .delay(delay)
-      //   .duration(duration)
-      //   .style('fill', (nextProps.r > 12) ? 'white' : 'transparent');
-
-      d3.select(this.refs['cityLabel'])
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-          .attr('transform', 'translate(' + (-1 * nextProps.r) + ' ' + (-1 * nextProps.r) + ') rotate(-45, ' + (nextProps.r) + ', ' + (nextProps.r) +
-          ')');
-
-      d3.select(this.refs['cityLabelText'])
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-          .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
-          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize  * nextProps.r / Math.max(this.props.r, nextProps.r));
-
-      d3.select(this.refs['cityLabelArc'])
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-          .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
-        // .transition()
-        // //.delay(duration)
-        // .duration(duration)
-        // .ease(d3.easeSin)
-        //   .attrTween('d', () => {
-        //     console.log('now');
-        //     const xEnd = (this.props.r - (this.props.r-12) * Math.cos(0.2)),
-        //       yEnd = Math.abs(this.props.r + (this.props.r-12) * Math.sin(0.2)),
-        //       yStart = this.props.r,
-        //       interiorR = this.props.r - 12;
-        //     return function(t) {
-        //       let path = 'M ' + (12 + t * -32) + ', ' +  (yStart - t*yStart) + ' A ' + (interiorR - t*interiorR) + ' ' + (interiorR - t*interiorR) + ', 0 1, 1 ' + ((xEnd - t*xEnd + t*300)) + ' ' + (yEnd - t*yEnd); 
-        //       console.log(t, path);
-        //       return path;
-        //     };
-        //   });
-
-      d3.select(this.refs['bubble'])
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-          .attr('r', nextProps.r)
-          .style('fill', nextProps.color)
-          .style('stroke', nextProps.stroke)
-        .on('end', () => {
-          this.setState({
             stroke: nextProps.stroke
-            //windowDimensions: DimensionsStore.getMapDimensions()
           });
         });
+
+      d3.select(this.circle.current)
+        .transition()
+        .duration(duration)
+        .ease(d3.easeSin)
+        .attr('r', nextProps.r)
+        .style('fill', nextProps.color)
+        .style('stroke', nextProps.stroke);
+
+      d3.select(this.cityLabel.current)
+        .transition()
+        .duration(duration)
+        .ease(d3.easeSin)
+        .attr('transform', `translate(${(-1 * nextProps.r)}  ${(-1 * nextProps.r)}) rotate(-45, ${nextProps.r}, ${nextProps.r})`);
+
+      d3.select(this.cityLabelArc.current)
+        .transition()
+        .duration(duration)
+        .ease(d3.easeSin)
+        .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
+
+      d3.select(this.cityLabelText.current)
+        .transition()
+        .duration(duration)
+        .ease(d3.easeSin)
+        .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
+        .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * nextProps.r / Math.max(this.props.r, nextProps.r));
     }
   }
 
   render () {
     return (
-      <g 
-        transform={'translate(' + this.state.cx + ' ' + this.state.cy + ')'}
-        onClick={ this.props.onDistrictSelected }
-        onMouseEnter={(this.props.onDistrictInspected) ? this.props.onDistrictInspected : () => false}
-        onMouseLeave={(this.props.onDistrictInspected) ? this.props.onDistrictUninspected : () => false}
+      <g
+        transform={`translate(${this.state.cx} ${this.state.cy})`}
+        onClick={this.props.onDistrictSelected}
+        onMouseEnter={this.props.onDistrictInspected}
+        onMouseLeave={this.props.onDistrictUninspected}
         id={this.props.id}
         style={{ pointerEvents: this.props.pointerEvents }}
+        ref={this.bubble}
       >
-        <circle className='dorling'
-
-          r={ this.state.r }
-          fill={ this.state.color }
-          style={ {
-            // fillOpacity: (this.props.highlightedCities.length == 0) || this.props.highlightedCities.includes(this.props.city_id) ? 1 : 0.2,
-            // strokeWidth: this.props.strokeWidth,
-            // strokeOpacity: ((this.props.percentFamiliesOfColor >= this.props.pocSpan[0] && this.props.percentFamiliesOfColor <= this.props.pocSpan[1]) && (this.props.highlightedCities.length == 0 || this.props.highlightedCities.includes(this.props.city_id))) ? 1 : 0,
+        <circle
+          className='dorling'
+          r={this.state.r}
+          fill={this.state.color}
+          style={{
             stroke: this.state.stroke,
             strokeWidth: 0.33,
-            fillOpacity: this.props.fillOpacity || 1,
+            fillOpacity: this.props.fillOpacity,
             pointerEvents: this.props.pointerEvents
-          } }
-          // onClick={ (this.props.hasProjectGeojson) ? this.props.onCityClicked : this.props.onCityClicked}
-          // onMouseEnter={ this.props.onCityHover }
-          // onMouseLeave={ this.props.onCityOut }
-          id={ this.props.id }
-          ref='bubble'
-          className={ 'dorling ' + this.props.className }
+          }}
+          id={this.props.id}
+          ref={this.circle}
         />
 
-        { (this.props.cityLabel) ? 
-          <g transform={ 'translate(' + (-1 * this.state.r) + ' ' + (-1 * this.state.r) + ') rotate(-45, ' + (this.state.r) + ', ' + (this.state.r) +
-          ')' } ref='cityLabel'>
+        { (this.props.cityLabel) ?
+          <g
+            transform={`translate(${-1 * this.state.r} ${-1 * this.state.r}) rotate(-45, ${this.state.r}, ${this.state.r})`}
+            ref={this.cityLabel}
+          >
             <defs>
-              <path 
-                id={'ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') }
-                d={ this.state.dCityLabel }
-                ref='cityLabelArc'
+              <path
+                id={`ArcSegment${this.props.cityLabel.replace(/[,\.\- ]+/g, '')}`}
+                d={this.state.dCityLabel}
+                ref={this.cityLabelArc}
               />
             </defs>
-            <text 
+            <text
               stroke='transparent'
-              textAnchor='start'
               fill='white'
-              ref='cityLabelText'
+              ref={this.cityLabelText}
               textAnchor='middle'
-              style={{ 
+              style={{
                 pointerEvents: 'none',
                 fillOpacity: this.state.cityLabelOpacity,
                 fontSize: this.state.cityLabelSize
               }}
             >
-              <textPath xlinkHref={'#ArcSegment' + this.props.cityLabel.replace(/[,\.\- ]+/g,'') } startOffset='50%' 
-
+              <textPath
+                xlinkHref={`#ArcSegment${this.props.cityLabel.replace(/[,\.\- ]+/g, '')}`}
+                startOffset='50%'
               >
                 { this.props.cityLabel }
               </textPath>
             </text>
-
           </g> : ''
         }
 
         { (this.props.label) ?
           <text
-            x={ 0 }
-            y={ this.props.r*0.5 }
+            x={0}
+            y={this.props.r * 0.5}
             fill='white'
             stroke='transparent'
             textAnchor='middle'
-            style={{ 
-              fontSize: this.props.r*1.5, 
+            style={{
+              fontSize: this.props.r * 1.5,
               weight: 400,
-              textShadow: '-1px 0 1px ' + this.props.labelColor + ', 0 1px 1px ' + this.props.labelColor + ', 1px 0 1px ' + this.props.labelColor + ', 0 -1px 1px ' + this.props.labelColor,
+              textShadow: `-1px 0 1px ${this.props.labelColor}, 0 1px 1px ${this.props.labelColor} , 1px 0 1px ${this.props.labelColor}, 0 -1px 1px ${this.props.labelColor}`,
               pointerEvents: this.props.pointerEvents
             }}
           >
@@ -211,3 +156,32 @@ export default class Bubble extends React.Component {
     );
   }
 }
+
+Bubble.propTypes = {
+  r: PropTypes.number.isRequired,
+  cx: PropTypes.number.isRequired,
+  cy: PropTypes.number.isRequired,
+  color: PropTypes.string.isRequired,
+  stroke: PropTypes.string.isRequired,
+  fillOpacity: PropTypes.number,
+  cityLabel: PropTypes.string,
+  onDistrictSelected: PropTypes.func,
+  onDistrictInspected: PropTypes.func,
+  onDistrictUninspected: PropTypes.func,
+  pointerEvents: PropTypes.string,
+  id: PropTypes.string,
+  label: PropTypes.string,
+  labelColor: PropTypes.string
+};
+
+Bubble.defaultProps = {
+  fillOpacity: 1,
+  cityLabel: '',
+  onDistrictSelected: () => false,
+  onDistrictInspected: () => false,
+  onDistrictUninspected: () => false,
+  pointerEvents: 'none',
+  id: '',
+  label: '',
+  labelColor: ''
+};

@@ -6,46 +6,47 @@ const demColor = '#717EFF';
 const demColorLight = '#D2D2F8';
 const whigColor = '#D4C685';
 const thirdColor = '#98B9AB';
+const equalColor = '#BEBEBE'
 
 export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };
 
 export const getColorForMargin = function(party, percent) {
   party = party || '';
-  if (percent == -1) {
-    return "gold";
+  if (percent < 0) {
+    return "transparent";
   }
 
   var repColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['#eee', repColor]);
+    .range([equalColor, repColor]);
 
   var demColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['#eee', demColor]);
+    .range([equalColor, demColor]);
 
   var whigColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['#eee', whigColor]);
+    .range([equalColor, whigColor]);
 
   var thirdColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
-    .range(['#eee', thirdColor]);
+    .range([equalColor, thirdColor]);
 
   var getRepColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', repColorAdjustment(0.3), repColor]);
+      .domain([-1, 0.5, 0.55, 1])
+      .range([equalColor, equalColor, repColorAdjustment(-0.2), repColor]);
 
   var getDemColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', demColorAdjustment(0.3), demColor]);
+      .domain([-1, 0.5, 0.55, 1])
+      .range([equalColor, equalColor, demColorAdjustment(-0.2), demColor]);
 
   var getWhigColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', whigColorAdjustment(0.3), whigColor]);
+      .domain([-1, 0.5, 0.55, 1])
+      .range([equalColor, equalColor, whigColorAdjustment(-0.2), whigColor]);
 
   var getThirdColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.54, 1])
-      .range(['silver', 'silver', thirdColorAdjustment(0.3), thirdColor]);
+      .domain([-1, 0.5, 0.55, 1])
+      .range([equalColor, equalColor, thirdColorAdjustment(-0.2), thirdColor]);
 
 
   if (party.toLowerCase().includes('republican')) {
