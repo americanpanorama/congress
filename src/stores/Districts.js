@@ -1,11 +1,11 @@
 import { EventEmitter } from 'events';
-import AppDispatcher from '../utils/AppDispatcher';
-import { AppActionTypes } from '../utils/AppActionCreator';
-
 import * as topojson from 'topojson-client';
 import * as d3 from 'd3';
 
-import { yearForCongress, congressForYear, getStateAbbr } from '../utils/HelperFunctions';
+import AppDispatcher from '../utils/AppDispatcher';
+import { AppActionTypes } from '../utils/AppActionCreator';
+
+import { congressForYear, getStateAbbr } from '../utils/HelperFunctions';
 
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
@@ -13,10 +13,8 @@ import SpatialIds from '../../data/spatialids.json';
 import StatesTopoJson from '../../data/states.json';
 import Slivers from '../../data/sliversTJ.json';
 import MetroNames from '../../data/metroNames.json';
-//import Districts from '../../data/congressional_districts.json';
 
 import DimensionsStore from './DimensionsStore';
-
 
 const DistrictsStore = {
 

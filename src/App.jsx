@@ -395,6 +395,7 @@ class App extends React.Component {
           onZoomOut={ this.zoomOut }
           resetView={ this.resetView }
           currentZoom={ this.state.zoom }
+          dimensions={DimensionsStore.getDimensions()}
         />
 
         <aside

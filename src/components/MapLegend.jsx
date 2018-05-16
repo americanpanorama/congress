@@ -1,8 +1,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
-
-import MapLegendPartyElement from './MapLegendPartyElement.jsx';
+import MapLegendPartyElement from './MapLegendPartyElement';
 import DimensionsStore from '../stores/DimensionsStore';
 
 export default class MapLegend extends React.Component {
@@ -90,9 +89,8 @@ export default class MapLegend extends React.Component {
             />
           </g>
 
-          { (!this.props.winnerView) ?
+          { (!this.props.winnerView) &&
             <g transform={`translate(${dimensions.mapLegendWidth / 2} ${dimensions.mapLegendElementHeight * 6.5})`}>
-
               { [0.5, 0.625, 0.75, 0.875, 1].map(sov => (
                 <line
                   x1={getX(sov)}
@@ -116,7 +114,7 @@ export default class MapLegend extends React.Component {
                   {`${sov * 100}%`}
                 </text>
               ))}
-            </g> : ''
+            </g>
           }
 
         </g>
