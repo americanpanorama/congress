@@ -15,6 +15,7 @@ import Context from './components/Context.jsx';
 import District from './components/District.jsx';
 import StateDistGraph from './components/StateDistGraph.jsx';
 import Timeline from './components/Timeline.jsx';
+import TimelineHandle from './components/TimelineHandle';
 import DistrictTimeline from './components/DistrictTimeline.jsx';
 import ZoomControls from './components/ZoomControls.jsx';
 import MapLegend from './components/MapLegend.jsx';
@@ -85,14 +86,14 @@ class App extends React.Component {
 
   onWindowResize () { AppActions.windowResized(); }
 
-  onYearSelected(e) { 
-    const year = e.currentTarget.id;
+  onYearSelected (e) {
+    const year = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
     AppActions.congressSelected(year);
     this.setState({
       inspectedDistrict: null
     });
     // don't set state until the districts have been loaded
-    let loading = setInterval(() => {
+    const loading = setInterval(() => {
       if (DistrictsStore.hasYearLoaded(year)) {
         clearInterval(loading);
         const selectedDistrict = (this.state.selectedDistrict) ? DistrictsStore.getDistrictId(year, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : null;
@@ -410,15 +411,37 @@ class App extends React.Component {
           <Timeline
             partyCount={ DistrictsStore.getPartyCounts() }
             partyCountKeys={ DistrictsStore.getPartyCountsKeys() }
-            topOffset={ DistrictsStore.getMaxTopOffset() }
-            bottomOffset={ DistrictsStore.getMaxBottomOffset() }
+            maxDemocrats={DistrictsStore.getMaxTopOffset()}
+            maxRepublicans={DistrictsStore.getMaxBottomOffset()}
             congressYears={ DistrictsStore.getCongressYears() }
             onYearSelected={ this.onYearSelected }
             selectedYear={ this.state.selectedYear }
             partyCountForSelectedYear={ DistrictsStore.getRawPartyCounts(this.state.selectedYear) }
             districtData={ (viewableDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) : false }
           />
+
         </aside>
+
+        <aside
+          id='handle'
+          style={{ 
+            width: DimensionsStore.getDimensions().timelineWidth,
+            height: DimensionsStore.getDimensions().timelineHeight - DimensionsStore.getDimensions().timelineHorizontalGutter,
+            bottom: DimensionsStore.getDimensions().gutterPadding,
+            left: DimensionsStore.getDimensions().sidebarWidth + DimensionsStore.getDimensions().gutterPadding * 2,
+            pointerEvents: 'none'
+          }}
+        >
+          <TimelineHandle
+            selectedYear={this.state.selectedYear}
+            onYearSelected={this.onYearSelected}
+            partyCounts={DistrictsStore.getRawPartyCounts()}
+            nationalDomain={[DistrictsStore.getMaxTopOffset() * -1,
+              DistrictsStore.getMaxBottomOffset()]}
+          />
+        </aside>
+
+
 
         <div 
           id='vizControl' 

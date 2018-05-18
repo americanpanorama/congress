@@ -5,6 +5,9 @@ import * as d3 from 'd3';
 import Steamgraph from './Steamgraph';
 import TimelineDistrict from './TimelineDistrict';
 import TimelineXAxis from './TimelineXAxis';
+import TimelineDistrictYAxis from './TimelineDistrictYAxis';
+import TimelineNationalYAxis from './TimelineNationalYAxis';
+import TimelineHandle from './TimelineHandle';
 import DimensionsStore from '../stores/DimensionsStore';
 import { getColorForParty, getColorForMargin, yearForCongress } from '../utils/HelperFunctions';
 
@@ -75,7 +78,7 @@ export default class Timeline extends React.Component {
 
   y() {
     return d3.scaleLinear()
-      .domain([-1*this.props.topOffset, this.props.bottomOffset])
+      .domain([-1*this.props.maxDemocrats, this.props.maxRepublicans])
       .range([0, DimensionsStore.getDimensions().timelineSteamgraphHeight - DimensionsStore.getDimensions().timelineSteamgraphGutter * 2]);
   }
 
@@ -102,31 +105,29 @@ export default class Timeline extends React.Component {
     return y; 
   }
 
-  render() {
+  render () {
     const dimensions = DimensionsStore.getDimensions();
-  
-    var x = this.x();
-    var y = this.y();
-    var yDistrict = this.yDistrict();
+    const x = d3.scaleLinear()
+      .domain([1824, 2016])
+      .range([15, dimensions.timelineWidth]);
+    const y = d3.scaleLinear()
+      .domain([-1 * this.props.maxDemocrats, this.props.maxRepublicans])
+      .range([0, dimensions.timelineSteamgraphHeight - dimensions.timelineSteamgraphGutter * 2]);
+    const yDistrict = d3.scaleLinear()
+      .domain([-1, -1, -0.5, 0, 0.5, 1, 1])
+      .range([y(this.props.maxRepublicans * 1), y(this.props.maxRepublicans * -1), y(0), y(0),
+        y(0), y(this.props.maxRepublicans), y(this.props.maxRepublicans)]);
 
     return (
-      <svg 
-        width={ dimensions.timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth }
-        height={ dimensions.timelineHeight }
+      <svg
+        width={dimensions.timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth}
+        height={dimensions.timelineHeight}
       >
 
-        <defs>
-          <linearGradient id="selectedYearBackground">
-            <stop offset="0%"  stopColor="#233036" stopOpacity='0' />
-            <stop offset="33%" stopColor="#233036" stopOpacity='1' />
-            <stop offset="67%" stopColor="#233036" stopOpacity='1' />
-            <stop offset="100%"  stopColor="#233036" stopOpacity='0' />
-          </linearGradient>
-        </defs>
 
 
         {/* x axis: years */}
-        <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphHeight) + ')'}>
+        <g transform={`translate(0 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphHeight})`}>
           <TimelineXAxis
             x={x}
             longTickHeight={dimensions.timelineAxisLongTickHeight}
@@ -136,68 +137,21 @@ export default class Timeline extends React.Component {
           />
         </g>
 
-        {/* y axis: percent */}
-        { (this.props.districtData) ?
-          <g transform={ 'translate(' + dimensions.timelineWidth + ' ' + dimensions.timelineHorizontalGutter + ')'}>
-            <line
-              x1={ dimensions.timelineAxisShortTickHeight }
-              x2={ dimensions.timelineAxisShortTickHeight }
-              y1={ yDistrict(-1) }
-              y2={ yDistrict(1) }
-              stroke='white'
+        {/* y axis */}
+        <g transform={`translate(${dimensions.timelineWidth} ${dimensions.timelineHorizontalGutter})`}>
+          { (this.props.districtData) ?
+            <TimelineDistrictYAxis
+              y={yDistrict}
+              shortTickHeight={dimensions.timelineAxisShortTickHeight}
+            /> :
+            <TimelineNationalYAxis
+              y={y}
+              shortTickHeight={dimensions.timelineAxisShortTickHeight}
+              maxDemocrats={this.props.maxDemocrats}
+              maxRepublicans={this.props.maxRepublicans}
             />
-
-            { [-1, -0.75, .5, .75, 1].map(percent => 
-              <g key={'ytickFor'+percent}>
-                <line
-                  x1={0}
-                  x2={dimensions.timelineAxisShortTickHeight}
-                  y1={ yDistrict(percent) }
-                  y2={ yDistrict(percent) }
-                  stroke='white'
-                  
-                />
-                <text
-                  x={dimensions.timelineAxisShortTickHeight * 2}
-                  y={ yDistrict(percent) + 6 }
-                  fill='white'
-
-                >
-                  { Math.round(Math.abs(percent * 100)) + '%' + ((percent == 0.5) ? ' or less' : '') }
-                </text>
-              </g>
-            )}
-          </g> : 
-          <g transform={ 'translate(' + dimensions.timelineWidth + ' ' + dimensions.timelineHorizontalGutter + ')'}>
-            <line
-              x1={ dimensions.timelineAxisShortTickHeight }
-              x2={ dimensions.timelineAxisShortTickHeight }
-              y1={ y(this.props.topOffset * -1) }
-              y2={ y(this.props.bottomOffset) }
-              stroke='white'
-            />
-
-            { [-300, -200, -100, 0, 100, 200, 300].map(members => 
-              <g key={'ytickFor'+members}>
-                <line
-                  x1={0}
-                  x2={dimensions.timelineAxisShortTickHeight}
-                  y1={ y(members) }
-                  y2={ y(members) }
-                  stroke='white'
-                  
-                />
-                <text
-                  x={dimensions.timelineAxisShortTickHeight * 2}
-                  y={ y(members) + 6 }
-                  fill='white'
-                >
-                  { Math.abs(members) }
-                </text>
-              </g>
-            )}
-          </g>
-        }
+          }
+        </g>
 
         {/* steamgraph data */}
         <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
@@ -218,21 +172,14 @@ export default class Timeline extends React.Component {
           }
         </g>
 
+
+
+
         {/* selected */}
         <g 
           transform={'translate(' + this.state.selectedX + ' ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}
           ref='selectedLine'
         >
-
-          <line
-            x1={0}
-            x2={0}
-            y1={0}
-            y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisShortTickHeight}
-            stroke='#F0B67F'
-            strokeWidth={2}
-          />
-
           { (this.props.districtData) ?
             <circle
               cx={0}
@@ -240,58 +187,8 @@ export default class Timeline extends React.Component {
               r={ 7 }
               fill={ getColorForMargin(this.props.districtData[this.props.selectedYear].regularized_party_of_victory, 1) }
               stroke={ '#F0B67F' }
-            /> :
-            <g transform={'translate(0 ' + dimensions.timelineSteamgraphGutter + ')'}>
-              <text
-                x={0 - (x(1863) - x(1861))}
-                y={this.state.demCountY}
-                textAnchor='end'
-                fill='white'
-                style={{
-                  textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
-                }}
-                ref='demCount'
-              >
-                { this.state.demCount }
-              </text> : ''
-
-              <text
-                x={x(1863) - x(1861)}
-                y={this.state.notDemCountY}
-                textAnchor='start'
-                fill='white'
-                style={{
-                  textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
-                }}
-                ref='notDemCount'
-              >
-                { this.state.notDemCount }
-              </text>
-            </g>
+            /> : ''
           }
-
-
-
-          <rect
-            x={x(1845) - x(1860)}
-            y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisShortTickHeight}
-            width={x(1890) - x(1860)}
-            height={ dimensions.timelineAxisFontSizeSelected }
-            fill="url(#selectedYearBackground)"
-          />
-
-          <text
-            x={0}
-            y={ dimensions.timelineSteamgraphHeight + dimensions.timelineAxisHeight - dimensions.timelineAxisShortTickHeight  }
-            textAnchor='middle'
-            fill='#F0B67F'
-            style={{
-              fontSize: dimensions.timelineAxisFontSizeSelected,
-              fontWeight: 'bold'
-            }}
-          >
-            {this.props.selectedYear}
-          </text>
         </g>
 
         {/* clickable areas to select year */}
@@ -309,9 +206,8 @@ export default class Timeline extends React.Component {
             onClick={ this.props.onYearSelected }
           />
         )}
+
       </svg>
     );
   }
-
-
 }

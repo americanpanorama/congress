@@ -331,7 +331,7 @@ const DistrictsStore = {
     }
   },
 
-  getRawPartyCounts(year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year == year) : this.data.rawPartyCounts; },
+  getRawPartyCounts (year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year === year) : this.data.rawPartyCounts; },
 
   getPartyCountsKeys() { return this.data.partyCountsKeys; },
 
