@@ -5,7 +5,7 @@ import * as React from 'react';
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
 import { getColorForParty, congressForYear, getStateName, ordinalSuffixOf } from './utils/HelperFunctions';
 
-import TheMap from './components/Map';
+import TheMap from './components/MapContainer';
 import Context from './components/Context';
 import Timeline from './components/Timeline';
 import TimelineHandle from './components/TimelineHandle';
@@ -36,7 +36,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onZoomIn', 'zoomOut', 'resetView', 'handleMouseUp', 'handleMouseDown', 'handleMouseMove', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'zoomToBounds', 'dimensionsChanged', 'onModalClick'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -91,15 +91,15 @@ class App extends React.Component {
       selectedParty = e;
     }
 
-    this.setState({ selectedParty: selectedParty }); 
+    this.setState({ selectedParty: selectedParty });
   }
- 
+
   onDistrictInspected (e) {
-    this.setState({ inspectedDistrict: e.target.id }); 
+    //this.setState({ inspectedDistrict: e.target.id });
   }
 
   onDistrictUninspected () {
-    this.setState({ inspectedDistrict: null }); 
+    this.setState({ inspectedDistrict: null });
   }
 
   onDistrictSelected (e) {
@@ -115,88 +115,6 @@ class App extends React.Component {
   onModalClick (event) {
     const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
     AppActions.onModalClick(subject);
-  }
-
-  onZoomIn (event) {
-    event.preventDefault();
-    const z = Math.min(this.state.zoom * 1.62, 18),
-      centerX = (event.currentTarget.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().width  / 2 - this.state.x : event.nativeEvent.offsetX - this.state.x,
-      centerY = (event.currentTarget.id == 'zoomInButton') ? DimensionsStore.getMapDimensions().height  / 2 - this.state.y : event.nativeEvent.offsetY - this.state.y,
-      x = DimensionsStore.getMapDimensions().width  / 2 - centerX / this.state.zoom * z,
-      y = DimensionsStore.getMapDimensions().height / 2 - centerY / this.state.zoom * z;
-    this.setState({
-      zoom: z,
-      x: x,
-      y: y
-    });
-  }
-
-  zoomOut() {
-    const z = Math.max(this.state.zoom / 1.62, 1),
-      x = DimensionsStore.getMapDimensions().width  / 2 - (DimensionsStore.getMapDimensions().width  / 2 - this.state.x) / this.state.zoom * z,
-      y = DimensionsStore.getMapDimensions().height  / 2 - (DimensionsStore.getMapDimensions().height  / 2 - this.state.y) / this.state.zoom * z;
-    this.setState({
-      zoom: z,
-      x: x,
-      y: y
-    });
-  }
-
-  handleMouseUp() {
-    this.dragging = false;
-    this.coords = {};
-  }
-
-  handleMouseDown(e) {
-    this.dragging = true;
-    //Set coords
-    this.coords = {x: e.pageX, y:e.pageY};
-  }
-
-  handleMouseMove(e) {
-    //If we are dragging
-    if (this.dragging) {
-      e.preventDefault();
-      //Get mouse change differential
-      var xDiff = this.coords.x - e.pageX,
-        yDiff = this.coords.y - e.pageY;
-      //Update to our new coordinates
-      this.coords.x = e.pageX;
-      this.coords.y = e.pageY;
-      //Adjust our x,y based upon the x/y diff from before
-      var x = this.state.x - xDiff,       
-        y = this.state.y - yDiff,
-        z = this.state.zoom;
-      //Re-render
-      this.setState({
-        zoom: z,
-        x: x,
-        y: y
-      });
-    }
-  }
-
-
-  // zoomToState(e) {
-  //   const b = GeographyStore.getBoundsForState(e.target.id),
-  //     centroid = GeographyStore.getCentroidForState(e.target.id),
-  //     z = .8 / Math.max((b[1][0] - b[0][0]) / DimensionsStore.getMainPaneWidth(), (b[1][1] - b[0][1]) / DimensionsStore.getNationalMapHeight()),
-  //     x = (DimensionsStore.getMainPaneWidth() / 2) - (DimensionsStore.getMainPaneWidth() * z * (centroid[0] / DimensionsStore.getMainPaneWidth())),
-  //     y = (DimensionsStore.getNationalMapHeight() / 2) - (DimensionsStore.getNationalMapHeight() * z * (centroid[1] /  DimensionsStore.getNationalMapHeight()));
-  //   AppActions.mapMoved(x,y,z);
-  // }
-
-  zoomToBounds(e) {
-    console.log(e.currentTarget);
-    //DistrictsStore.projectPoint(nw);
-  }
-
-  resetView() { 
-    this.setState({
-      zoom: 1,
-      x: 0,
-      y: 0
-    });
   }
 
   toggleDorling() { 

@@ -1,5 +1,4 @@
 // fill the browser with our glorious website
-body,
 html {
   height: 100%;
   width: 100%;
@@ -13,10 +12,11 @@ html {
 
 
 body {
+
 }
 
 header {
-	margin: 0;
+	margin: 0 !important;
 	text-align: center;
 
 	h1 {
@@ -134,15 +134,20 @@ aside#info, aside#handle{
 
 }
 
-#vizControl, #winnerControl {
-	display: inline-block;
-	text-transform: uppercase;
-	padding: 0 15px;
+#mapControls {
 	position: fixed;
-	background-color: rgba(35, 48, 54, 0.9);
-	border-bottom-right-radius: 10px;
-	border-bottom-left-radius: 10px;
+
+	#vizControl, #winnerControl {
+		display: inline-block;
+		text-transform: uppercase;
+		padding: 0 15px;
+		position: fixed;
+		background-color: rgba(35, 48, 54, 0.9);
+		border-bottom-right-radius: 10px;
+		border-bottom-left-radius: 10px;
+	}
 }
+
 
 #districtTimeline {
 	position: absolute;

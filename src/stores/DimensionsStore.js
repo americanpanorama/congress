@@ -31,8 +31,8 @@ const DimensionsStore = {
 
     this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-    this.data.mapHeight = this.data.windowHeight * 7.5/12;
-    this.data.mapWidth = this.data.windowWidth - this.data.gutterPadding * 2;
+    this.data.mapHeight = this.data.windowHeight * 7.5 / 12;
+    this.data.mapWidth = this.data.windowWidth;
 
     this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
 
