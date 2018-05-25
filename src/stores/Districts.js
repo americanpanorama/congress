@@ -5,7 +5,7 @@ import * as d3 from 'd3';
 import AppDispatcher from '../utils/AppDispatcher';
 import { AppActionTypes } from '../utils/AppActionCreator';
 
-import { congressForYear, getStateAbbr } from '../utils/HelperFunctions';
+import { congressForYear, getStateAbbr, getStateName } from '../utils/HelperFunctions';
 
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
@@ -526,6 +526,10 @@ const DistrictsStore = {
 
     return areaData;
   },
+
+  getDistrictLabel (year, id) {
+    return `${getStateName(this.getElectionDataForDistrict(year, id).state)} ${ this.getElectionDataForDistrict(year, id).district}`;
+  }
 
 }
 

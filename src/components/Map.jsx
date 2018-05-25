@@ -22,7 +22,16 @@ export default class Map extends React.Component {
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
-  static getDerivedStateFromProps (props) {
+  static getDerivedStateFromProps (props, prevState) {
+    let transitionDuration = 2000;
+    // no transition on party selected
+    if (props.selectedParty !== prevState.lastSelectedParty) {
+      transitionDuration = 0;
+    } else if (props.viewableDistrict !== prevState.lastViewableDistrict) {
+      // no transition on selection of district
+      transitionDuration = 0;
+    }
+
     return {
       districts: DistrictsStore.getElectionDistricts(props.selectedYear),
       states: DistrictsStore.getStates(props.selectedYear),
@@ -33,7 +42,10 @@ export default class Map extends React.Component {
       offsetY: (DimensionsStore.getDimensions().mapHeight * props.zoom * props.y -
         DimensionsStore.getDimensions().mapHeight / 2) * -1,
       draggableX: 0,
-      draggableY: 0
+      draggableY: 0,
+      transitionDuration: transitionDuration,
+      lastSelectedParty: props.selectedParty,
+      lastViewableDistrict: props.viewableDistrict
     };
   }
 
@@ -142,7 +154,7 @@ export default class Map extends React.Component {
                       onDistrictUninspected={onDistrictUninspected}
                       onDistrictSelected={onDistrictSelected}
                       id={d.id}
-                      duration={2000}
+                      duration={this.state.transitionDuration}
                       pointerEvents={(selectedView === 'map') ? 'auto' : 'none'}
                     />
                   );
@@ -167,35 +179,46 @@ export default class Map extends React.Component {
                     cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
                     cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
                     r={(selectedView === 'cartogram') ? d.r : 0.01}
-                    cityLabel={d.id} 
+                    cityLabel={d.id}
                     color='#11181b'
                     fillOpacity={0.5}
                     stroke='transparent'
                     key={d.id || 'missing' + i}
                     id={d.id}
+                    duration={this.state.transitionDuration}
                   />
                 ))}
 
                 {/* district bubbles */}
-                { this.state.districtBubbles.map(d => (
-                  <Bubble
-                    cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                    cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                    r={dimensions.districtR}
-                    color={(selectedView === 'map') ? 'transparent' : (winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
-                    stroke={(selectedView === 'map' || (selectedParty && selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (selectedView === 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
-                    fillOpacity={((selectedParty && selectedParty !== d.regularized_party_of_victory) || (onlyFlipped && !d.flipped)) ? 0.05 : (viewableDistrict && viewableDistrict !== d.districtId) ? 0.3 : 1}
-                    label={ (d.flipped && ((!selectedParty || selectedParty === d.regularized_party_of_victory) && (!viewableDistrict || d.districtId === viewableDistrict))) ? 'F' : ''}
-                    labelColor={getColorForParty(d.regularized_party_of_victory)}
-                    key={d.id}
-                    id={d.districtId}
-                    pointerEvents={(selectedView === 'map') ? 'none' : 'auto'}
-                    selectedView={selectedView}
-                    onDistrictInspected={this.onDistrictInspected}
-                    onDistrictUninspected={onDistrictUninspected}
-                    onDistrictSelected={onDistrictSelected}
-                  />
-                ))} 
+                { this.state.districtBubbles.map((d) => {
+                  let fillOpacity = 1;
+                  if (selectedParty && selectedParty !== d.regularized_party_of_victory) {
+                    fillOpacity = 0.05;
+                  } else if ((!selectedParty && viewableDistrict && viewableDistrict !== d.districtId)) {
+                    fillOpacity = 0.1;
+                  }
+
+                  return (
+                    <Bubble
+                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                      r={dimensions.districtR}
+                      color={(selectedView === 'map') ? 'transparent' : (winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
+                      stroke={(selectedView === 'map' || (selectedParty && selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (selectedView === 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
+                      fillOpacity={fillOpacity}
+                      label={ (d.flipped && ((!selectedParty || selectedParty === d.regularized_party_of_victory) && (!viewableDistrict || d.districtId === viewableDistrict))) ? 'F' : ''}
+                      labelColor={getColorForParty(d.regularized_party_of_victory)}
+                      key={d.id}
+                      id={d.districtId}
+                      pointerEvents={(selectedView === 'map') ? 'none' : 'auto'}
+                      selectedView={selectedView}
+                      onDistrictInspected={this.onDistrictInspected}
+                      onDistrictUninspected={onDistrictUninspected}
+                      onDistrictSelected={onDistrictSelected}
+                      duration={this.state.transitionDuration}
+                    />
+                  );
+                })} 
 
               </g>
             </svg>

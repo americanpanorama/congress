@@ -68,7 +68,7 @@ export default class TimelineHandle extends React.Component {
 
   calculateNewYear (delta) {
     const theDelta = delta || this.state.delta;
-    return Math.round(this.state.selectedYear + 2 * theDelta / DimensionsStore.timelineXTermSpan());
+    return Math.round(this.state.selectedYear + 2 * theDelta / this.props.timelineXTermSpan);
   }
 
   handleMouseUp () {
@@ -104,89 +104,107 @@ export default class TimelineHandle extends React.Component {
   }
 
   render () {
+    const {
+      dimensions,
+      timelineXTermSpan,
+      timelineX
+    } = this.props;
+
     return (
-      <Draggable
-        axis='x'
-        position={{ x: DimensionsStore.timelineX(this.state.selectedYear) - DimensionsStore.timelineXTermSpan() * 6, y: 0 }}
-        grid={[DimensionsStore.timelineXTermSpan(), 0]}
-        onStart={this.handleMouseDown}
-        onStop={this.handleMouseUp}
-        onDrag={this.handleDrag}
+      <aside
+        id='handle'
+        style={{
+          width: dimensions.timelineWidth,
+          height: dimensions.timelineHeight - dimensions.timelineHorizontalGutter,
+          bottom: dimensions.gutterPadding,
+          left: dimensions.sidebarWidth + dimensions.gutterPadding * 2,
+          pointerEvents: 'none'
+        }}
       >
-        <svg
-          width={DimensionsStore.timelineXTermSpan() * 12}
-          height={DimensionsStore.getDimensions().timelineHeight - DimensionsStore.getDimensions().timelineHorizontalGutter}
-          style={{
-            zIndex: 10000,
-            pointerEvents: 'auto'
-          }}
+        <Draggable
+          axis='x'
+          position={{ x: timelineX - timelineXTermSpan * 6, y: 0 }}
+          grid={[timelineXTermSpan, 0]}
+          onStart={this.handleMouseDown}
+          onStop={this.handleMouseUp}
+          onDrag={this.handleDrag}
         >
-          <defs>
-            <linearGradient id='selectedYearBackground'>
-              <stop offset='0%' stopColor='#233036' stopOpacity={0} />
-              <stop offset='33%' stopColor='#233036' stopOpacity={1} />
-              <stop offset='67%' stopColor='#233036' stopOpacity={1} />
-              <stop offset='100%' stopColor='#233036' stopOpacity={0} />
-            </linearGradient>
-          </defs>
+          <svg
+            width={timelineXTermSpan * 12}
+            height={dimensions.timelineHeight - dimensions.timelineHorizontalGutter}
+            style={{
+              zIndex: 10000,
+              pointerEvents: 'auto'
+            }}
+          >
+            <defs>
+              <linearGradient id='selectedYearBackground'>
+                <stop offset='0%' stopColor='#233036' stopOpacity={0} />
+                <stop offset='33%' stopColor='#233036' stopOpacity={1} />
+                <stop offset='67%' stopColor='#233036' stopOpacity={1} />
+                <stop offset='100%' stopColor='#233036' stopOpacity={0} />
+              </linearGradient>
+            </defs>
 
-          <g transform={`translate(${DimensionsStore.timelineXTermSpan() * 6})`}>
-            <line
-              x1={0}
-              x2={0}
-              y1={0}
-              y2={DimensionsStore.getDimensions().timelineSteamgraphHeight + DimensionsStore.getDimensions().timelineAxisLongTickHeight}
-              stroke='#F0B67F'
-              strokeWidth={4}
-            />
+            <g transform={`translate(${timelineXTermSpan * 6})`}>
+              <line
+                x1={0}
+                x2={0}
+                y1={0}
+                y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+                stroke='#F0B67F'
+                strokeWidth={4}
+              />
 
-            <text
-              x={DimensionsStore.timelineXTermSpan() * -1}
-              y={this.state.demTextY}
-              textAnchor='end'
-              fill='white'
-              // style={{
-              //   textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
-              // }}
-            >
-              { this.state.demText }
-            </text>
+              <text
+                x={timelineXTermSpan * -1}
+                y={this.state.demTextY}
+                textAnchor='end'
+                fill='white'
+                // style={{
+                //   textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
+                // }}
+              >
+                { this.state.demText }
+              </text>
 
-            <text
-              x={DimensionsStore.timelineXTermSpan()}
-              y={this.state.notDemTextY}
-              textAnchor='start'
-              fill='white'
-              // style={{
-              //   textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
-              // }}
-            >
-              { this.state.notDemText }
-            </text>
+              <text
+                x={timelineXTermSpan}
+                y={this.state.notDemTextY}
+                textAnchor='start'
+                fill='white'
+                // style={{
+                //   textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
+                // }}
+              >
+                { this.state.notDemText }
+              </text>
 
-            <rect
-              x={DimensionsStore.timelineXTermSpan() * -15}
-              y={DimensionsStore.getDimensions().timelineSteamgraphHeight + DimensionsStore.getDimensions().timelineAxisLongTickHeight + 2}
-              width={DimensionsStore.timelineXTermSpan() * 30}
-              height={DimensionsStore.getDimensions().timelineAxisFontSizeSelected}
-              fill='url(#selectedYearBackground)'
-            />
+              <rect
+                x={timelineXTermSpan * -15}
+                y={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight + 2}
+                width={timelineXTermSpan * 30}
+                height={dimensions.timelineAxisFontSizeSelected}
+                fill='url(#selectedYearBackground)'
+              />
 
-            <text
-              x={0}
-              y={DimensionsStore.getDimensions().timelineSteamgraphHeight + DimensionsStore.getDimensions().timelineAxisHeight - DimensionsStore.getDimensions().timelineAxisShortTickHeight}
-              textAnchor='middle'
-              fill='#F0B67F'
-              style={{
-                fontSize: DimensionsStore.getDimensions().timelineAxisFontSizeSelected,
-                fontWeight: 'bold'
-              }}
-            >
-              {this.state.displayYear}
-            </text>
-          </g>
-        </svg>
-      </Draggable>
+              <text
+                x={0}
+                y={dimensions.timelineSteamgraphHeight +
+                  dimensions.timelineAxisHeight - dimensions.timelineAxisShortTickHeight}
+                textAnchor='middle'
+                fill='#F0B67F'
+                style={{
+                  fontSize: dimensions.timelineAxisFontSizeSelected,
+                  fontWeight: 'bold'
+                }}
+              >
+                {this.state.displayYear}
+              </text>
+            </g>
+          </svg>
+        </Draggable>
+      </aside>
     );
   }
 }
@@ -195,7 +213,21 @@ TimelineHandle.propTypes = {
   selectedYear: PropTypes.number.isRequired,
   onYearSelected: PropTypes.func.isRequired,
   partyCounts: PropTypes.arrayOf(PropTypes.object).isRequired,
-  nationalDomain: PropTypes.arrayOf(PropTypes.number).isRequired
+  nationalDomain: PropTypes.arrayOf(PropTypes.number).isRequired,
+  dimensions: PropTypes.shape({
+    timelineWidth: PropTypes.number.isRequired,
+    timelineHeight: PropTypes.number.isRequired,
+    timelineHorizontalGutter: PropTypes.number.isRequired,
+    gutter: PropTypes.number.isRequired,
+    sidebarWidth: PropTypes.number.isRequired,
+    timelineSteamgraphHeight: PropTypes.number.isRequired,
+    timelineAxisLongTickHeight: PropTypes.number.isRequired,
+    timelineAxisHeight: PropTypes.number.isRequired,
+    timelineAxisShortTickHeight: PropTypes.number.isRequired,
+    timelineAxisFontSizeSelected: PropTypes.number.isRequired
+  }).isRequired,
+  timelineXTermSpan: PropTypes.number.isRequired,
+  timelineX: PropTypes.number.isRequired
 };
 
 TimelineHandle.defaultProps = {

@@ -148,6 +148,7 @@ export default class MapContainer extends React.Component {
           onZoomOut={this.zoomOut}
           resetView={this.resetView}
           currentZoom={this.state.zoom}
+          resetable={this.state.zoom !== 1 || this.state.x !== 0.5 || this.state.y !== 0.5}
           dimensions={dimensions}
         />
 

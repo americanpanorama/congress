@@ -4,8 +4,8 @@ const repColor = '#FB6765';
 const repColorLight = '#FACFCF';
 const demColor = '#717EFF';
 const demColorLight = '#D2D2F8';
-const whigColor = '#D4C685';
-const thirdColor = '#98B9AB';
+const whigColor = '#FF7F50'; //'#D4C685';
+const thirdColor = '#D4C685'; // '#98B9AB';
 const equalColor = '#BEBEBE'
 
 export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };

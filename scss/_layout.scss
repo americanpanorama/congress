@@ -40,18 +40,22 @@ header {
 	}
 }
 
+button {
+	outline:none;
+}
+
 .theMap {
 	overflow: hidden;
 }
 
-aside#sidebar {
+#sidebar {
 	position: fixed;
 	background-color: #38444a;
 	color: white;
 	z-index: 10;
 	overflow-y: scroll;
 
-	.context {
+	&.context {
 		line-height: 1.2;
 
 		span {
@@ -64,6 +68,34 @@ aside#sidebar {
 
 	> * {
 		margin: 10px;
+	}
+
+	.districtLabel {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		text-align: center;
+
+		h2 {
+			margin: 0;
+			display: inline-block;
+			vertical-align: top;
+			line-height: 1.5;
+		}
+
+		button {
+			padding: 0;
+			border: none;
+			margin: 0 10px;
+			background-color: transparent;
+			vertical-align: middle;
+			display: inline-block;
+
+			svg {
+				vertical-align: top;
+			}
+		}
+
 	}
 }
 
@@ -103,25 +135,7 @@ aside#sidebar {
 	text-align: center;
 	margin: 0;
 
-	h2 {
-		margin: 0;
-		display: inline-block;
-		vertical-align: top;
-		line-height: 1.5;
-	}
 
-	button {
-		padding: 0;
-		border: none;
-		margin: 0 10px;
-		background-color: transparent;
-		vertical-align: middle;
-		display: inline-block;
-
-		svg {
-			vertical-align: top;
-		}
-	}
 }
 
 aside#info, aside#handle{

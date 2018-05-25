@@ -20,21 +20,29 @@ export default class District extends React.Component {
      this.props.stroke !== nextProps.stroke ||
      this.props.fillOpacity !== nextProps.fillOpacity ||
      this.props.strokeOpacity !== nextProps.strokeOpacity) {
-      d3.select(this.district.current)
-        .transition()
-        .ease(d3.easeSin)
-        .duration(this.props.duration)
-        .style('fill', nextProps.fill)
-        .style('stroke', nextProps.stroke)
-        .style('fill-opacity', nextProps.fillOpacity)
-        .style('stroke-opacity', nextProps.strokeOpacity)
-        .on('end', () => {
-          this.setState({
-            color: nextProps.fill,
-            fillOpacity: nextProps.fillOpacity,
-            strokeOpacity: nextProps.strokeOpacity
+      if (nextProps.duration > 0) {
+        d3.select(this.district.current)
+          .transition()
+          .ease(d3.easeSin)
+          .duration(nextProps.duration)
+          .style('fill', nextProps.fill)
+          .style('stroke', nextProps.stroke)
+          .style('fill-opacity', nextProps.fillOpacity)
+          .style('stroke-opacity', nextProps.strokeOpacity)
+          .on('end', () => {
+            this.setState({
+              color: nextProps.fill,
+              fillOpacity: nextProps.fillOpacity,
+              strokeOpacity: nextProps.strokeOpacity
+            });
           });
+      } else {
+        this.setState({
+          color: nextProps.fill,
+          fillOpacity: nextProps.fillOpacity,
+          strokeOpacity: nextProps.strokeOpacity
         });
+      }
     }
   }
 
@@ -65,7 +73,7 @@ District.propTypes = {
   fill: PropTypes.string.isRequired,
   stroke: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number.isRequired,
-  id: PropTypes.number.isRequired,
+  id: PropTypes.string.isRequired,
   strokeOpacity: PropTypes.number.isRequired,
   strokeWidth: PropTypes.number.isRequired,
   pointerEvents: PropTypes.string,

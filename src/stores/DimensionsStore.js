@@ -38,7 +38,7 @@ const DimensionsStore = {
 
     this.data.sidebarBottom = this.data.gutterPadding;
     this.data.sidebarLeft = this.data.gutterPadding;
-    this.data.sidebarHeight = this.data.timelineHeight;
+    this.data.sidebarHeight = this.data.timelineHeight + this.data.windowHeight / 24;
     this.data.sidebarWidth = this.data.timelineHeight;
 
     this.data.electionLabelBottom = this.data.timelineHeight + this.data.gutterPadding;

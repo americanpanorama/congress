@@ -16,7 +16,7 @@ const ZoomControls = props => (
       id='zoomInButton'
     >
       <svg
-        width={props.dimensions.zoomControlsWidth}
+        width={props.dimensions.zoomControlsHeight}
         height={props.dimensions.zoomControlsHeight}
       >
         <g transform={`translate(${props.dimensions.zoomControlsHeight / 2} ${props.dimensions.zoomControlsHeight / 2})`}>
@@ -32,7 +32,7 @@ const ZoomControls = props => (
             y1={0}
             y2={0}
             stroke='#233036'
-            strokeWidth={4}
+            strokeWidth={props.dimensions.zoomControlsHeight / 10}
           />
           <line
             x1={0}
@@ -40,7 +40,7 @@ const ZoomControls = props => (
             y1={props.dimensions.zoomControlsHeight / -4}
             y2={props.dimensions.zoomControlsHeight / 4}
             stroke='#233036'
-            strokeWidth={4}
+            strokeWidth={props.dimensions.zoomControlsHeight / 10}
           />
         </g>
       </svg>
@@ -48,9 +48,13 @@ const ZoomControls = props => (
 
     <button
       onClick={props.onZoomOut}
+      style={{
+        marginLeft: props.dimensions.zoomControlsHeight / 4,
+        marginRight: props.dimensions.zoomControlsHeight / 4
+      }}
     >
       <svg
-        width={props.dimensions.zoomControlsWidth}
+        width={props.dimensions.zoomControlsHeight}
         height={props.dimensions.zoomControlsHeight}
       >
         <g transform={`translate(${props.dimensions.zoomControlsHeight / 2} ${props.dimensions.zoomControlsHeight / 2})`}>
@@ -67,7 +71,7 @@ const ZoomControls = props => (
             y1={0}
             y2={0}
             stroke={(props.currentZoom > 1) ? '#233036' : '#73797C'}
-            strokeWidth={4}
+            strokeWidth={props.dimensions.zoomControlsHeight / 10}
           />
         </g>
       </svg>
@@ -78,7 +82,7 @@ const ZoomControls = props => (
       onClick={props.resetView}
     >
       <svg
-        width={props.dimensions.zoomControlsWidth}
+        width={props.dimensions.zoomControlsHeight}
         height={props.dimensions.zoomControlsHeight}
       >
         <defs>
@@ -92,23 +96,23 @@ const ZoomControls = props => (
             cy={0}
             r={props.dimensions.zoomControlsHeight / 2}
             fill='silver'
-            fillOpacity={(props.currentZoom > 1) ? 1 : 0.7}
+            fillOpacity={(props.resetable) ? 1 : 0.7}
           />
           <line
             x1={props.dimensions.zoomControlsHeight / -4}
             x2={props.dimensions.zoomControlsHeight / 4}
             y1={0}
             y2={0}
-            stroke={(props.currentZoom > 1) ? '#233036' : '#73797C'}
-            strokeWidth={4}
+            stroke={(props.resetable) ? '#233036' : '#73797C'}
+            strokeWidth={props.dimensions.zoomControlsHeight / 10}
           />
           <line
             x1={0}
             x2={0}
             y1={props.dimensions.zoomControlsHeight / -4}
             y2={props.dimensions.zoomControlsHeight / 4}
-            stroke={(props.currentZoom > 1) ? '#233036' : '#73797C'}
-            strokeWidth={4}
+            stroke={(props.resetable) ? '#233036' : '#73797C'}
+            strokeWidth={props.dimensions.zoomControlsHeight / 10}
           />
         </g>
       </svg>
@@ -123,5 +127,6 @@ ZoomControls.propTypes = {
   onZoomOut: PropTypes.func.isRequired,
   resetView: PropTypes.func.isRequired,
   currentZoom: PropTypes.number.isRequired,
+  resetable: PropTypes.bool.isRequired,
   dimensions: PropTypes.object.isRequired
 };

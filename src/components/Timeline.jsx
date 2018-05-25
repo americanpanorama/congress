@@ -119,95 +119,99 @@ export default class Timeline extends React.Component {
         y(0), y(this.props.maxRepublicans), y(this.props.maxRepublicans)]);
 
     return (
-      <svg
-        width={dimensions.timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth}
-        height={dimensions.timelineHeight}
+      <aside
+        id='info'
+        style={{
+          width: dimensions.timelineWidth,
+          height: dimensions.timelineHeight,
+          bottom: dimensions.gutterPadding,
+          left: dimensions.sidebarWidth + dimensions.gutterPadding * 2
+        }}
       >
-
-
-
-        {/* x axis: years */}
-        <g transform={`translate(0 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphHeight})`}>
-          <TimelineXAxis
-            x={x}
-            longTickHeight={dimensions.timelineAxisLongTickHeight}
-            shortTickHeight={dimensions.timelineAxisShortTickHeight}
-            height={dimensions.timelineAxisHeight - 2 * dimensions.timelineAxisGutter}
-            fontSize={dimensions.timelineAxisFontSize}
-          />
-        </g>
-
-        {/* y axis */}
-        <g transform={`translate(${dimensions.timelineWidth} ${dimensions.timelineHorizontalGutter})`}>
-          { (this.props.districtData) ?
-            <TimelineDistrictYAxis
-              y={yDistrict}
-              shortTickHeight={dimensions.timelineAxisShortTickHeight}
-            /> :
-            <TimelineNationalYAxis
-              y={y}
-              shortTickHeight={dimensions.timelineAxisShortTickHeight}
-              maxDemocrats={this.props.maxDemocrats}
-              maxRepublicans={this.props.maxRepublicans}
-            />
-          }
-        </g>
-
-        {/* steamgraph data */}
-        <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
-          { (this.props.districtData) ?
-            <TimelineDistrict
-              districtData={this.props.districtData}
-              y={yDistrict}
-              width={dimensions.timelineWidth}
-              height={dimensions.timelineHeight}
-            /> :
-            <Steamgraph
-              partyCount={this.props.partyCount}
-              partyCountKeys={this.props.partyCountKeys}
-              y={y}
-              width={dimensions.timelineWidth}
-              height={dimensions.timelineHeight}
-            />
-          }
-        </g>
-
-
-
-
-        {/* selected */}
-        <g 
-          transform={'translate(' + this.state.selectedX + ' ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}
-          ref='selectedLine'
+        <svg
+          width={dimensions.timelineWidth + DimensionsStore.getDimensions().timelineYAxisWidth}
+          height={dimensions.timelineHeight}
         >
-          { (this.props.districtData) ?
-            <circle
-              cx={0}
-              cy={ this.state.districtPercentY }
-              r={ 7 }
-              fill={ getColorForMargin(this.props.districtData[this.props.selectedYear].regularized_party_of_victory, 1) }
-              stroke={ '#F0B67F' }
-            /> : ''
-          }
-        </g>
+          {/* x axis: years */}
+          <g transform={`translate(0 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphHeight})`}>
+            <TimelineXAxis
+              x={x}
+              longTickHeight={dimensions.timelineAxisLongTickHeight}
+              shortTickHeight={dimensions.timelineAxisShortTickHeight}
+              height={dimensions.timelineAxisHeight - 2 * dimensions.timelineAxisGutter}
+              fontSize={dimensions.timelineAxisFontSize}
+            />
+          </g>
 
-        {/* clickable areas to select year */}
-        { this.props.congressYears.map(year => 
-          <rect
-            x={x(year)-(x(1862) - x(1861))}
-            y={0}
-            width={x(1862) - x(1860)}
-            height={dimensions.timelineHeight}
-            stroke='#999'
-            strokeWidth={0}
-            fill='transparent'
-            key={'clickbox'+year}
-            id={year}
-            onClick={ this.props.onYearSelected }
-          />
-        )}
+          {/* y axis */}
+          <g transform={`translate(${dimensions.timelineWidth} ${dimensions.timelineHorizontalGutter})`}>
+            { (this.props.districtData) ?
+              <TimelineDistrictYAxis
+                y={yDistrict}
+                shortTickHeight={dimensions.timelineAxisShortTickHeight}
+              /> :
+              <TimelineNationalYAxis
+                y={y}
+                shortTickHeight={dimensions.timelineAxisShortTickHeight}
+                maxDemocrats={this.props.maxDemocrats}
+                maxRepublicans={this.props.maxRepublicans}
+              />
+            }
+          </g>
 
-      </svg>
+          {/* steamgraph data */}
+          <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
+            { (this.props.districtData) ?
+              <TimelineDistrict
+                districtData={this.props.districtData}
+                y={yDistrict}
+                width={dimensions.timelineWidth}
+                height={dimensions.timelineHeight}
+              /> :
+              <Steamgraph
+                partyCount={this.props.partyCount}
+                partyCountKeys={this.props.partyCountKeys}
+                y={y}
+                width={dimensions.timelineWidth}
+                height={dimensions.timelineHeight}
+              />
+            }
+          </g>
+
+          {/* selected */}
+          <g 
+            transform={'translate(' + this.state.selectedX + ' ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}
+            ref='selectedLine'
+          >
+            { (this.props.districtData) ?
+              <circle
+                cx={0}
+                cy={ this.state.districtPercentY }
+                r={ 7 }
+                fill={ getColorForMargin(this.props.districtData[this.props.selectedYear].regularized_party_of_victory, 1) }
+                stroke={ '#F0B67F' }
+              /> : ''
+            }
+          </g>
+
+          {/* clickable areas to select year */}
+          { this.props.congressYears.map(year => 
+            <rect
+              x={x(year)-(x(1862) - x(1861))}
+              y={0}
+              width={x(1862) - x(1860)}
+              height={dimensions.timelineHeight}
+              stroke='#999'
+              strokeWidth={0}
+              fill='transparent'
+              key={'clickbox'+year}
+              id={year}
+              onClick={ this.props.onYearSelected }
+            />
+          )}
+
+        </svg>
+      </aside>
     );
   }
 }

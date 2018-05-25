@@ -25,55 +25,64 @@ export default class Bubble extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    const duration = 2000;
+    const { duration } = nextProps;
 
     if (this.props.r !== nextProps.r || this.props.color !== nextProps.color ||
       this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx ||
       this.props.cy !== nextProps.cy) {
-      d3.select(this.bubble.current)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-        .attr('r', nextProps.r)
-        .attr('transform', `translate(${nextProps.cx} ${nextProps.cy})`)
-        .attr('cy', nextProps.cy)
-        .style('fill', nextProps.color)
-        .style('stroke', nextProps.stroke)
-        .on('end', () => {
-          this.setState({
-            r: nextProps.r,
-            cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
-            cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
-            stroke: nextProps.stroke
+      if (duration > 0) {
+        d3.select(this.bubble.current)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeSin)
+          .attr('r', nextProps.r)
+          .attr('transform', `translate(${nextProps.cx} ${nextProps.cy})`)
+          .attr('cy', nextProps.cy)
+          .style('fill', nextProps.color)
+          .style('stroke', nextProps.stroke)
+          .on('end', () => {
+            this.setState({
+              r: nextProps.r,
+              cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
+              cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
+              stroke: nextProps.stroke
+            });
           });
+
+        d3.select(this.circle.current)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeSin)
+          .attr('r', nextProps.r)
+          .style('fill', nextProps.color)
+          .style('stroke', nextProps.stroke);
+
+        d3.select(this.cityLabel.current)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeSin)
+          .attr('transform', `translate(${(-1 * nextProps.r)}  ${(-1 * nextProps.r)}) rotate(-45, ${nextProps.r}, ${nextProps.r})`);
+
+        d3.select(this.cityLabelArc.current)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeSin)
+          .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
+
+        d3.select(this.cityLabelText.current)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeSin)
+          .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
+          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * nextProps.r / Math.max(this.props.r, nextProps.r));
+      } else {
+        this.setState({
+          r: nextProps.r,
+          cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
+          cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
+          stroke: nextProps.stroke
         });
-
-      d3.select(this.circle.current)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-        .attr('r', nextProps.r)
-        .style('fill', nextProps.color)
-        .style('stroke', nextProps.stroke);
-
-      d3.select(this.cityLabel.current)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-        .attr('transform', `translate(${(-1 * nextProps.r)}  ${(-1 * nextProps.r)}) rotate(-45, ${nextProps.r}, ${nextProps.r})`);
-
-      d3.select(this.cityLabelArc.current)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-        .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
-
-      d3.select(this.cityLabelText.current)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeSin)
-        .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
-        .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * nextProps.r / Math.max(this.props.r, nextProps.r));
+      }
     }
   }
 
@@ -171,7 +180,8 @@ Bubble.propTypes = {
   pointerEvents: PropTypes.string,
   id: PropTypes.string,
   label: PropTypes.string,
-  labelColor: PropTypes.string
+  labelColor: PropTypes.string,
+  duration: PropTypes.number.isRequired
 };
 
 Bubble.defaultProps = {
