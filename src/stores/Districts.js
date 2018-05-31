@@ -194,7 +194,61 @@ const DistrictsStore = {
 
   projectPoint(point) { return this.getProjection()(point); },
 
+  getBubbleForDistrict: function (id, year) {
+    const yearBubbles = this.data.bubbleCoords.find(bc => bc.year === year);x
+    if (yearBubbles.districts) {
+      return yearBubbles.districts.find(d => d.districtId === id);
+    }
+  },
+
   getBubbleCoords: function(year) { return this.data.bubbleCoords.find(bc => bc.year == year) || { districts: [], cities: [] }; },
+
+  cityHasParty: function (cityId, year, party) {
+    let hasParty = false;
+    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
+    this.getBubbleCoords(year).districts.forEach((d) => {
+      if (this.districtInCity(d, cityBubble) && d.regularized_party_of_victory === party) {
+        hasParty = true;
+      }
+    });
+    return hasParty;
+  },
+
+  cityPercentForParty: function (cityId, year, party) {
+    let districtCount = 0;
+    let partyCount = 0;
+    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
+    this.getBubbleCoords(year).districts.forEach((d) => {
+      if (this.districtInCity(d, cityBubble)) {
+        districtCount += 1;
+        if (d.regularized_party_of_victory === party) {
+          partyCount += 1;
+        }
+      }  
+    });
+    return partyCount / districtCount;
+  },
+
+  cityFlippedPercent: function (cityId, year) {
+    let districtCount = 0;
+    let flippedCount = 0;
+    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
+    this.getBubbleCoords(year).districts.forEach((d) => {
+      if (this.districtInCity(d, cityBubble)) {
+        districtCount += 1;
+        if (d.flipped) {
+          flippedCount += 1;
+        }
+      }  
+    });
+    return flippedCount / districtCount;
+  },
+
+  districtInCity: function (districtBubble, cityBubble) {
+    const xDiff = cityBubble.x - districtBubble.x;
+    const yDiff = cityBubble.y - districtBubble.y;
+    return cityBubble.r >= Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+  },
 
   getElectionDistrictIds: function(year) { return this.data.bubbleCoords.find(bc => bc.year == year).districts.map(d => d.id); },
 
@@ -352,7 +406,7 @@ const DistrictsStore = {
   parseRawPartyCounts() {
     let counts = [];
     Object.keys(Elections).map(year => {
-      if (year != 'NaN') {
+      if (year !== 'NaN') {
         this.data.congressYears.push(parseInt(year));
         const repCount = this.getPartyCountForYearAndParty(year, 'republican'),
           whigCount = this.getPartyCountForYearAndParty(year, 'whig'),

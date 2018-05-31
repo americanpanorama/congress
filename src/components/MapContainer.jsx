@@ -141,6 +141,7 @@ export default class MapContainer extends React.Component {
           winnerView={this.state.winnerView}
           onlyFlipped={this.props.onlyFlipped}
           toggleFlipped={this.props.toggleFlipped}
+          hasThird={this.props.hasThird}
         />
 
         <ZoomControls
@@ -166,7 +167,8 @@ MapContainer.propTypes = {
   onDistrictUninspected: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,
-  toggleFlipped: PropTypes.func.isRequired
+  toggleFlipped: PropTypes.func.isRequired,
+  hasThird: PropTypes.bool.isRequired
 };
 
 MapContainer.defaultProps = {

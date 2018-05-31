@@ -179,6 +179,7 @@ class App extends React.Component {
           onDistrictSelected={this.onDistrictSelected}
           onPartySelected={this.onPartySelected}
           toggleFlipped={this.toggleFlipped}
+          hasThird={DistrictsStore.getPartyCountForYearAndParty(this.state.selectedYear, 'third') > 0}
         />
 
         <Timeline

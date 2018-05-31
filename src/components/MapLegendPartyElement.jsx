@@ -22,6 +22,8 @@ export default class MapLegendParty extends React.Component {
       return x(perc);
     };
 
+    const ticks = (!this.props.gradientView) ? [1] : [1, 0.875, 0.75, 0.625, 0.5];
+
     return (
       <g
         transform={`translate(${dimensions.mapLegendWidth / 2})`}
@@ -53,10 +55,10 @@ export default class MapLegendParty extends React.Component {
             y={0}
             width={(!this.props.gradientView) ? dimensions.mapLegendRadius * 2 : getX(1) - getX(0.5)}
             height={dimensions.mapLegendRadius * 2}
-            fill={ (this.props.fill) ? this.props.fill : `url(#${this.props.party}-Gradient)` }
+            fill={(this.props.fill) ? this.props.fill : (!this.props.gradientView) ? getColorForMargin(this.props.party, 1) : `url(#${this.props.party}-Gradient)`}
           /> :
           <g>
-            { [1, 0.875, 0.75, 0.625, 0.5].map((sov, i) => (
+            { ticks.map((sov, i) => (
               <circle
                 cx={getXWithRadius(sov)}
                 cy={dimensions.mapLegendRadius}
@@ -96,9 +98,12 @@ MapLegendParty.propTypes = {
   labelColor: PropTypes.string.isRequired,
   checkboxColor: PropTypes.string.isRequired,
   selectedView: PropTypes.string.isRequired,
-  symbolLabel: PropTypes.string
+  gradientView: PropTypes.bool.isRequired,
+  symbolLabel: PropTypes.string,
+  fill: PropTypes.string
 };
 
 MapLegendParty.defaultProps = {
-  symbolLabel: ''
+  symbolLabel: '',
+  fill: ''
 };

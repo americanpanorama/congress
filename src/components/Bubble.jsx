@@ -12,7 +12,7 @@ export default class Bubble extends React.Component {
       stroke: this.props.stroke,
       cx: this.props.cx,
       cy: this.props.cy,
-      cityLabelOpacity: (this.props.r > 0.01) ? 1 : 0,
+      cityLabelOpacity: this.props.cityLabelOpacity,
       cityLabelSize: (this.props.r > 0.01) ? DimensionsStore.getDimensions().cityLabelFontSize : 0,
       dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r)
     };
@@ -29,7 +29,8 @@ export default class Bubble extends React.Component {
 
     if (this.props.r !== nextProps.r || this.props.color !== nextProps.color ||
       this.props.stroke !== nextProps.stroke || this.props.cx !== nextProps.cx ||
-      this.props.cy !== nextProps.cy) {
+      this.props.cy !== nextProps.cy ||
+      this.props.cityLabelOpacity !== nextProps.cityLabelOpacity) {
       if (duration > 0) {
         d3.select(this.bubble.current)
           .transition()
@@ -43,7 +44,7 @@ export default class Bubble extends React.Component {
           .on('end', () => {
             this.setState({
               r: nextProps.r,
-              cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
+              cityLabelOpacity: (nextProps.cityLabelOpacity),
               cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
               stroke: nextProps.stroke
             });
@@ -73,12 +74,12 @@ export default class Bubble extends React.Component {
           .transition()
           .duration(duration)
           .ease(d3.easeSin)
-          .style('fill-opacity', nextProps.r / Math.max(this.props.r, nextProps.r))
+          .style('fill-opacity', nextProps.cityLabelOpacity)
           .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * nextProps.r / Math.max(this.props.r, nextProps.r));
       } else {
         this.setState({
           r: nextProps.r,
-          cityLabelOpacity: (nextProps.r > 0.01) ? 1 : 0,
+          cityLabelOpacity: nextProps.cityLabelOpacity,
           cityLabelSize: (nextProps.r > 0.01) ? 12 : 0,
           stroke: nextProps.stroke
         });
@@ -174,6 +175,7 @@ Bubble.propTypes = {
   stroke: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number,
   cityLabel: PropTypes.string,
+  cityLabelOpacity: PropTypes.number,
   onDistrictSelected: PropTypes.func,
   onDistrictInspected: PropTypes.func,
   onDistrictUninspected: PropTypes.func,
@@ -187,6 +189,7 @@ Bubble.propTypes = {
 Bubble.defaultProps = {
   fillOpacity: 1,
   cityLabel: '',
+  cityLabelOpacity: 0,
   onDistrictSelected: () => false,
   onDistrictInspected: () => false,
   onDistrictUninspected: () => false,

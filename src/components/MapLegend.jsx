@@ -15,6 +15,8 @@ export default class MapLegend extends React.Component {
       return x(perc);
     };
 
+    const axisY = (this.props.hasThird) ? dimensions.mapLegendElementHeight * 6.5 : dimensions.mapLegendElementHeight * 5;
+
     return (
       <svg
         width={dimensions.mapLegendWidth}
@@ -33,6 +35,7 @@ export default class MapLegend extends React.Component {
               labelColor='white'
               checkboxColor={(this.props.onlyFlipped) ? '#F0B67F' : '#666'}
               selectedView={this.props.selectedView}
+              winnerView={this.props.winnerView}
               fill='grey'
               symbolLabel='F'
               onClick={this.props.toggleFlipped}
@@ -46,51 +49,57 @@ export default class MapLegend extends React.Component {
               labelColor={(!this.props.selectedParty || this.props.selectedParty === 'democrat') ? '#eee' : '#666'}
               checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'democrat') ? '#F0B67F' : '#666'}
               selectedView={this.props.selectedView}
+              winnerView={this.props.winnerView}
               gradientView={!this.props.winnerView}
               onClick={this.props.onPartySelected}
             />
           </g>
 
           <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 3.5})`}>
-            { (this.props.selectedYear >= 1856) ?
+            { (this.props.selectedYear >= 1856) &&
               <MapLegendPartyElement
                 party='republican'
                 label='Republican'
                 labelColor={(!this.props.selectedParty || this.props.selectedParty === 'republican') ? '#eee' : '#666'}
                 checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'republican') ? '#F0B67F' : '#666'}
                 selectedView={this.props.selectedView}
+                winnerView={this.props.winnerView}
                 gradientView={!this.props.winnerView}
                 onClick={this.props.onPartySelected}
-              /> : ''
+              />
             }
 
-            { (this.props.selectedYear <= 1854) ?
+            { (this.props.selectedYear <= 1854) &&
               <MapLegendPartyElement
                 party='whig'
                 label='Whig'
                 labelColor={(!this.props.selectedParty || this.props.selectedParty === 'whig') ? '#eee' : '#666'}
                 checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'whig') ? '#F0B67F' : '#666'}
                 selectedView={this.props.selectedView}
+                winnerView={this.props.winnerView}
                 gradientView={!this.props.winnerView}
                 onClick={this.props.onPartySelected}
-              /> : ''
+              />
             }
           </g>
 
-          <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 5})`}>
-            <MapLegendPartyElement
-              party='third'
-              label='Third'
-              labelColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#eee' : '#666'}
-              checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#F0B67F' : '#666'}
-              selectedView={this.props.selectedView}
-              gradientView={!this.props.winnerView}
-              onClick={this.props.onPartySelected}
-            />
-          </g>
+          { (this.props.hasThird) &&
+            <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 5})`}>
+              <MapLegendPartyElement
+                party='third'
+                label='Third'
+                labelColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#eee' : '#666'}
+                checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#F0B67F' : '#666'}
+                selectedView={this.props.selectedView}
+                winnerView={this.props.winnerView}
+                gradientView={!this.props.winnerView}
+                onClick={this.props.onPartySelected}
+              />
+            </g>
+          }
 
           { (!this.props.winnerView) &&
-            <g transform={`translate(${dimensions.mapLegendWidth / 2} ${dimensions.mapLegendElementHeight * 6.5})`}>
+            <g transform={`translate(${dimensions.mapLegendWidth / 2} ${axisY})`}>
               { [0.5, 0.625, 0.75, 0.875, 1].map(sov => (
                 <line
                   x1={getX(sov)}
@@ -114,6 +123,16 @@ export default class MapLegend extends React.Component {
                   {`${sov * 100}%`}
                 </text>
               ))}
+
+              <text
+                x={getX(0.75)}
+                y={dimensions.mapLegendFontSize * 4 / 3}
+                textAnchor='middle'
+                fontSize={dimensions.mapLegendFontSize * 2 / 3}
+                fill='#eee'
+              >
+                strength of victory
+              </text>
             </g>
           }
 
@@ -130,7 +149,8 @@ MapLegend.propTypes = {
   onPartySelected: PropTypes.func.isRequired,
   winnerView: PropTypes.bool.isRequired,
   onlyFlipped: PropTypes.bool.isRequired,
-  toggleFlipped: PropTypes.func.isRequired
+  toggleFlipped: PropTypes.func.isRequired,
+  hasThird: PropTypes.func.isRequired
 };
 
 MapLegend.defaultProps = {

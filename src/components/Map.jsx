@@ -75,6 +75,7 @@ export default class Map extends React.Component {
   render () {
     const dimensions = DimensionsStore.getDimensions();
     const {
+      selectedYear,
       selectedView,
       winnerView,
       selectedParty,
@@ -174,25 +175,63 @@ export default class Map extends React.Component {
                 ))}
 
                 {/* city bubbles */}
-                { this.state.cityBubbles.map((d, i) => (
-                  <Bubble
-                    cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                    cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                    r={(selectedView === 'cartogram') ? d.r : 0.01}
-                    cityLabel={d.id}
-                    color='#11181b'
-                    fillOpacity={0.5}
-                    stroke='transparent'
-                    key={d.id || 'missing' + i}
-                    id={d.id}
-                    duration={this.state.transitionDuration}
-                  />
-                ))}
+                { this.state.cityBubbles.map((d, i) => {
+                  let fillOpacity = 0.5;
+                  let cityLabelOpacity = 1;
+
+                    if (selectedView === 'map') {
+                      cityLabelOpacity = 0;
+                    } else {
+
+                    if (selectedParty) {
+                      const percentOfParty = DistrictsStore.cityPercentForParty(d.id, selectedYear, selectedParty);
+                      cityLabelOpacity = percentOfParty;
+                      //fillOpacity = 0.1 + percentOfParty * 0.4;
+                      if (percentOfParty === 0) {
+                        fillOpacity = 0.2;
+                      }
+                    }
+
+                    if (onlyFlipped) {
+                      const flippedPercent = DistrictsStore.cityFlippedPercent(d.id, selectedYear);
+                      //cityLabelOpacity = flippedPercent;
+                      if (flippedPercent === 0) {
+                        fillOpacity = 0.2;
+                        cityLabelOpacity = 0.2
+                      }
+                    }
+
+                    if (viewableDistrict && !DistrictsStore.districtInCity(DistrictsStore.getBubbleForDistrict(viewableDistrict, selectedYear), d)) {
+                      fillOpacity = 0.2;
+                      cityLabelOpacity = 0.2;
+                    }
+
+                  }
+
+
+
+                  return (
+                    <Bubble
+                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                      r={(selectedView === 'cartogram') ? d.r : 0.01}
+                      cityLabel={d.id}
+                      cityLabelOpacity={cityLabelOpacity}
+                      color='#11181b'
+                      fillOpacity={fillOpacity}
+                      stroke='transparent'
+                      key={d.id || 'missing' + i}
+                      id={d.id}
+                      duration={this.state.transitionDuration}
+                    />
+                  );
+                })}
 
                 {/* district bubbles */}
                 { this.state.districtBubbles.map((d) => {
                   let fillOpacity = 1;
-                  if (selectedParty && selectedParty !== d.regularized_party_of_victory) {
+                  if ((selectedParty && selectedParty !== d.regularized_party_of_victory)
+                    || (onlyFlipped && !d.flipped)) {
                     fillOpacity = 0.05;
                   } else if ((!selectedParty && viewableDistrict && viewableDistrict !== d.districtId)) {
                     fillOpacity = 0.1;
