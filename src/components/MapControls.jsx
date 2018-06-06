@@ -41,35 +41,38 @@ export default class MapControls extends React.Component {
           >
             Cartogram
           </span>
-          <ToggleButton
-            value={selectedView === 'map'}
-            onToggle={this.onViewSelected}
-            inactiveLabel={''}
-            activeLabel={''}
-            containerStyle={{
-              display: 'inline-block',
-              width: dimensions.vizControlTrackHeight * 2,
-              marginRight: 5,
-              marginLeft: 5
-            }}
-            colors={{
-              activeThumb: { base: '#eee' },
-              inactiveThumb: { base: '#eee' },
-              active: { base: '#777' },
-              inactive: { base: '#777' }
-            }}
-            activeLabelStyle={{ fontSize: 1 }}
-            inactiveLabelStyle={{ fontSize: 1 }}
-            trackStyle={{
-              height: dimensions.vizControlTrackHeight,
-              width: dimensions.vizControlTrackHeight * 2
-            }}
-            thumbStyle={{
-              height: dimensions.vizControlTrackHeight ,
-              width: dimensions.vizControlTrackHeight,
-            }}
-            thumbAnimateRange={[0, dimensions.vizControlTrackHeight]}
-          />
+          { true &&
+            <ToggleButton
+              value={selectedView === 'map'}
+              onToggle={onViewSelected}
+              inactiveLabel={''}
+              activeLabel={''}
+              containerStyle={{
+                display: 'inline-block',
+                width: dimensions.vizControlTrackHeight * 2,
+                marginRight: 5,
+                marginLeft: 5
+              }}
+              colors={{
+                activeThumb: { base: 'pink' },
+                inactiveThumb: { base: '#eee' },
+                active: { base: '#777' },
+                inactive: { base: '#777' }
+              }}
+              activeLabelStyle={{ fontSize: 1 }}
+              inactiveLabelStyle={{ fontSize: 1 }}
+              trackStyle={{
+                height: dimensions.vizControlTrackHeight,
+                width: dimensions.vizControlTrackHeight * 2
+              }}
+              thumbStyle={{
+                height: dimensions.vizControlTrackHeight,
+                width: dimensions.vizControlTrackHeight
+              }}
+              thumbAnimateRange={[0, dimensions.vizControlTrackHeight]}
+            />
+          }
+
           <span
             style={{
               color: (selectedView === 'map') ? '#F0B67F' : '#aaa',
@@ -114,8 +117,8 @@ export default class MapControls extends React.Component {
               marginLeft: 5
             }}
             colors={{
-              activeThumb: { base: '#eee' },
-              inactiveThumb: { base: '#eee' },
+              activeThumb: { base: '#eee', hover: '#d00' },
+              inactiveThumb: { base: '#eee', hover: '#00d' },
               active: { base: '#777' },
               inactive: { base: '#777' }
             }}
@@ -138,7 +141,7 @@ export default class MapControls extends React.Component {
               verticalAlign: 'top',
               lineHeight: '1em'
             }}
-            onClick={this.toggleView}
+            onClick={toggleView}
           >
               Strength of Victory
           </span>

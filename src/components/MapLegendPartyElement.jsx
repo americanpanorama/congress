@@ -98,12 +98,13 @@ MapLegendParty.propTypes = {
   labelColor: PropTypes.string.isRequired,
   checkboxColor: PropTypes.string.isRequired,
   selectedView: PropTypes.string.isRequired,
-  gradientView: PropTypes.bool.isRequired,
+  gradientView: PropTypes.bool,
   symbolLabel: PropTypes.string,
   fill: PropTypes.string
 };
 
 MapLegendParty.defaultProps = {
   symbolLabel: '',
-  fill: ''
+  fill: '',
+  gradientView: false
 };

@@ -75,7 +75,7 @@ class App extends React.Component {
       if (DistrictsStore.hasYearLoaded(year)) {
         clearInterval(loading);
         const selectedDistrict = (this.state.selectedDistrict) ? DistrictsStore.getDistrictId(year, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : null;
-        this.setState({ 
+        this.setState({
           selectedYear: year,
           selectedDistrict: selectedDistrict
         });
@@ -91,7 +91,10 @@ class App extends React.Component {
       selectedParty = e;
     }
 
-    this.setState({ selectedParty: selectedParty });
+    this.setState({
+      selectedParty: selectedParty,
+      selectedDistrict: null
+    });
   }
 
   onDistrictInspected (e) {
@@ -104,12 +107,19 @@ class App extends React.Component {
 
   onDistrictSelected (e) {
     const id = (e.currentTarget.id !== this.state.selectedDistrict) ? e.currentTarget.id : null;
-    this.setState({ selectedDistrict: id });
+    this.setState({
+      selectedDistrict: id,
+      selectedParty: null,
+      onlyFlipped: null
+    });
   }
 
   toggleFlipped (newState) {
     const theNewState = (typeof newState === 'boolean') ? newState : !this.state.onlyFlipped;
-    this.setState({ onlyFlipped: theNewState });
+    this.setState({ 
+      onlyFlipped: theNewState,
+      selectedDistrict: null
+    });
   }
 
   onModalClick (event) {

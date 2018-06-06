@@ -35,7 +35,6 @@ export default class MapLegend extends React.Component {
               labelColor='white'
               checkboxColor={(this.props.onlyFlipped) ? '#F0B67F' : '#666'}
               selectedView={this.props.selectedView}
-              winnerView={this.props.winnerView}
               fill='grey'
               symbolLabel='F'
               onClick={this.props.toggleFlipped}
@@ -49,7 +48,6 @@ export default class MapLegend extends React.Component {
               labelColor={(!this.props.selectedParty || this.props.selectedParty === 'democrat') ? '#eee' : '#666'}
               checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'democrat') ? '#F0B67F' : '#666'}
               selectedView={this.props.selectedView}
-              winnerView={this.props.winnerView}
               gradientView={!this.props.winnerView}
               onClick={this.props.onPartySelected}
             />
@@ -63,7 +61,6 @@ export default class MapLegend extends React.Component {
                 labelColor={(!this.props.selectedParty || this.props.selectedParty === 'republican') ? '#eee' : '#666'}
                 checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'republican') ? '#F0B67F' : '#666'}
                 selectedView={this.props.selectedView}
-                winnerView={this.props.winnerView}
                 gradientView={!this.props.winnerView}
                 onClick={this.props.onPartySelected}
               />
@@ -150,7 +147,7 @@ MapLegend.propTypes = {
   winnerView: PropTypes.bool.isRequired,
   onlyFlipped: PropTypes.bool.isRequired,
   toggleFlipped: PropTypes.func.isRequired,
-  hasThird: PropTypes.func.isRequired
+  hasThird: PropTypes.bool.isRequired
 };
 
 MapLegend.defaultProps = {

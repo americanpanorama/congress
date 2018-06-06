@@ -195,7 +195,7 @@ const DistrictsStore = {
   projectPoint(point) { return this.getProjection()(point); },
 
   getBubbleForDistrict: function (id, year) {
-    const yearBubbles = this.data.bubbleCoords.find(bc => bc.year === year);x
+    const yearBubbles = this.data.bubbleCoords.find(bc => bc.year === year);
     if (yearBubbles.districts) {
       return yearBubbles.districts.find(d => d.districtId === id);
     }

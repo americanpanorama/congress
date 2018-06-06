@@ -1,5 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
+import shallowCompare from 'react-addons-shallow-compare';
 
 import Draggable from 'react-draggable';
 
@@ -23,9 +24,10 @@ export default class Map extends React.Component {
   }
 
   static getDerivedStateFromProps (props, prevState) {
-    let transitionDuration = 2000;
+    let transitionDuration = 1000;
     // no transition on party selected
-    if (props.selectedParty !== prevState.lastSelectedParty) {
+    if (props.selectedParty !== prevState.lastSelectedParty ||
+      props.onlyFlipped !== prevState.lastFlipped) {
       transitionDuration = 0;
     } else if (props.viewableDistrict !== prevState.lastViewableDistrict) {
       // no transition on selection of district
@@ -45,8 +47,24 @@ export default class Map extends React.Component {
       draggableY: 0,
       transitionDuration: transitionDuration,
       lastSelectedParty: props.selectedParty,
+      lastFlipped: props.onlyFlipped,
       lastViewableDistrict: props.viewableDistrict
     };
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+    return (this.state.districts.length === 0 ||
+      this.state.districtBubbles.length === 0 ||
+      this.state.cityBubbles.length === 0 ||
+      this.props.onlyFlipped !== nextProps.onlyFlipped ||
+      this.props.selectedParty !== nextProps.selectedParty ||
+      this.props.selectedView !== nextProps.selectedView ||
+      this.props.selectedYear !== nextProps.selectedYear ||
+      this.props.viewableDistrict !== nextProps.viewableDistrict ||
+      this.props.winnerView !== nextProps.winnerView ||
+      this.props.x !== nextProps.x ||
+      this.props.y !== nextProps.y ||
+      this.props.zoom !== nextProps.zoom);
   }
 
   onDistrictInspected (e) {
@@ -127,25 +145,32 @@ export default class Map extends React.Component {
 
                 {/* district polygons */}
                 { this.state.districts.map((d) => {
-                  let fillOpacity = 1;
-                  if (selectedParty && selectedParty !== d.regularized_party_of_victory) {
-                    fillOpacity = 0.05;
-                  } else if ((selectedView === 'cartogram' && viewableDistrict !== d.id) || (viewableDistrict && viewableDistrict !== d.id) || (onlyFlipped && !d.flipped)) {
-                    fillOpacity = 0.1;
-                  }
+                  const color = (winnerView || (selectedView === 'cartogram' && viewableDistrict !== d.id)) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote);
 
-                  let strokeOpacity = 1;
-                  if (selectedView === 'cartogram' && (!viewableDistrict || viewableDistrict !== d.id)) {
+                  let fillOpacity = (selectedView === 'map') ? 1 : 0.1;
+                  let strokeOpacity = (selectedView === 'map') ? 1 : 0;
+                  // hide if not among selected party or selected flipped
+                  if ((selectedParty && selectedParty !== d.regularized_party_of_victory) ||
+                   (onlyFlipped && !d.flipped)) {
+                    fillOpacity = 0;
                     strokeOpacity = 0;
-                  } else if (viewableDistrict && viewableDistrict !== d.id) {
-                    strokeOpacity = 0.2;
+                  }
+                  // obscure if not selected district
+                  if (viewableDistrict) {
+                    if (viewableDistrict === d.id) {
+                      fillOpacity = 1;
+                      strokeOpacity = 1;
+                    } else {
+                      fillOpacity = 0.1;
+                      strokeOpacity = (selectedView === 'map') ? 1 : 0;
+                    }
                   }
 
                   return (
                     <District
                       d={DistrictsStore.getPath(d.the_geojson)}
                       key={`polygon${d.id}`}
-                      fill={(winnerView || selectedView === 'cartogram') ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
+                      fill={color}
                       fillOpacity={fillOpacity}
                       stroke='#eee'
                       strokeWidth={(!viewableDistrict || viewableDistrict !== d.id) ? 0.5 : 2}
@@ -179,10 +204,9 @@ export default class Map extends React.Component {
                   let fillOpacity = 0.5;
                   let cityLabelOpacity = 1;
 
-                    if (selectedView === 'map') {
-                      cityLabelOpacity = 0;
-                    } else {
-
+                  if (selectedView === 'map') {
+                    cityLabelOpacity = 0;
+                  } else {
                     if (selectedParty) {
                       const percentOfParty = DistrictsStore.cityPercentForParty(d.id, selectedYear, selectedParty);
                       cityLabelOpacity = percentOfParty;
@@ -205,10 +229,7 @@ export default class Map extends React.Component {
                       fillOpacity = 0.2;
                       cityLabelOpacity = 0.2;
                     }
-
                   }
-
-
 
                   return (
                     <Bubble
@@ -220,7 +241,7 @@ export default class Map extends React.Component {
                       color='#11181b'
                       fillOpacity={fillOpacity}
                       stroke='transparent'
-                      key={d.id || 'missing' + i}
+                      key={d.id}
                       id={d.id}
                       duration={this.state.transitionDuration}
                     />
@@ -229,11 +250,33 @@ export default class Map extends React.Component {
 
                 {/* district bubbles */}
                 { this.state.districtBubbles.map((d) => {
-                  let fillOpacity = 1;
-                  if ((selectedParty && selectedParty !== d.regularized_party_of_victory)
-                    || (onlyFlipped && !d.flipped)) {
-                    fillOpacity = 0.05;
-                  } else if ((!selectedParty && viewableDistrict && viewableDistrict !== d.districtId)) {
+                  let color;
+                  let stroke;
+                  let fillOpacity = (selectedView === 'cartogram') ? 1 : 0;
+                  if (selectedView === 'map') {
+                    color = 'transparent';
+                    stroke = 'transparent';
+                  } else if (winnerView) {
+                    color = getColorForParty(d.regularized_party_of_victory);
+                    stroke = getColorForParty(d.regularized_party_of_victory);
+                  } else {
+                    color = getColorForMargin(d.regularized_party_of_victory, d.percent_vote);
+                    stroke = getColorForMargin(d.regularized_party_of_victory, d.percent_vote);
+                  }
+
+                  // change stroke of selected district to white
+                  if (selectedView === 'cartogram' && viewableDistrict && viewableDistrict === d.districtId) {
+                    stroke = 'white';
+                  }
+                  // (selectedView === 'map' || (selectedParty && selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (selectedView === 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' 
+                  
+                  // hide if not among selected party or selected flipped
+                  if ((selectedParty && selectedParty !== d.regularized_party_of_victory) ||
+                   (onlyFlipped && !d.flipped)) {
+                    fillOpacity = 0.1;
+                  }
+                  // obscure if not selected district
+                  if (viewableDistrict && viewableDistrict !== d.districtId) {
                     fillOpacity = 0.1;
                   }
 
@@ -242,10 +285,10 @@ export default class Map extends React.Component {
                       cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
                       cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
                       r={dimensions.districtR}
-                      color={(selectedView === 'map') ? 'transparent' : (winnerView) ? getColorForParty(d.regularized_party_of_victory) : getColorForMargin(d.regularized_party_of_victory, d.percent_vote)}
-                      stroke={(selectedView === 'map' || (selectedParty && selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (selectedView === 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' : getColorForParty(d.regularized_party_of_victory) }
+                      color={color}
+                      stroke={stroke}
                       fillOpacity={fillOpacity}
-                      label={ (d.flipped && ((!selectedParty || selectedParty === d.regularized_party_of_victory) && (!viewableDistrict || d.districtId === viewableDistrict))) ? 'F' : ''}
+                      label={(d.flipped && ((!selectedParty || selectedParty === d.regularized_party_of_victory) && (!viewableDistrict || d.districtId === viewableDistrict))) ? 'F' : ''}
                       labelColor={getColorForParty(d.regularized_party_of_victory)}
                       key={d.id}
                       id={d.districtId}
@@ -257,8 +300,7 @@ export default class Map extends React.Component {
                       duration={this.state.transitionDuration}
                     />
                   );
-                })} 
-
+                })}
               </g>
             </svg>
           </Draggable>
