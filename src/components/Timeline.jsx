@@ -25,50 +25,50 @@ export default class Timeline extends React.Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.selectedYear !== nextProps.selectedYear) {
-      let demChange = (nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin) -(this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin),
-        notDemChange = (nextProps.selectedYear >= 1856 && this.props.selectedYear < 1856 || nextProps.selectedYear < 1856 && this.props.selectedYear >= 1856) ? '' : (nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin) -(this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin) : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin) -(this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin);
+  // componentWillReceiveProps(nextProps) {
+  //   if (this.props.selectedYear !== nextProps.selectedYear) {
+  //     let demChange = (nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin) -(this.props.partyCountForSelectedYear.demAboveMargin + this.props.partyCountForSelectedYear.demBelowMargin),
+  //       notDemChange = (nextProps.selectedYear >= 1856 && this.props.selectedYear < 1856 || nextProps.selectedYear < 1856 && this.props.selectedYear >= 1856) ? '' : (nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin) -(this.props.partyCountForSelectedYear.repAboveMargin + this.props.partyCountForSelectedYear.repBelowMargin) : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin) -(this.props.partyCountForSelectedYear.whigAboveMargin + this.props.partyCountForSelectedYear.whigBelowMargin);
 
-      d3.select(this.refs['demCount'])
-        .transition()
-        .duration(2000)
-          .attr('y', this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2))
-          .text(((demChange > 0) ? '+' : '') + demChange);
-      d3.select(this.refs['notDemCount'])
-        .transition()
-        .duration(2000)
-          .attr('y', (notDemChange) ? this.y()((this.props.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2) : 0)
-          .text(((notDemChange && notDemChange > 0) ? '+' : '') + notDemChange);
+  //     d3.select(this.refs['demCount'])
+  //       .transition()
+  //       .duration(2000)
+  //         .attr('y', this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2))
+  //         .text(((demChange > 0) ? '+' : '') + demChange);
+  //     d3.select(this.refs['notDemCount'])
+  //       .transition()
+  //       .duration(2000)
+  //         .attr('y', (notDemChange) ? this.y()((this.props.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2) : 0)
+  //         .text(((notDemChange && notDemChange > 0) ? '+' : '') + notDemChange);
 
-      d3.select(this.refs['selectedLine']).selectAll('circle')
-        .transition()
-        .duration(2000)
-          .attr('cy', this.getDistrictY(nextProps.districtData[nextProps.selectedYear]));       
+  //     d3.select(this.refs['selectedLine']).selectAll('circle')
+  //       .transition()
+  //       .duration(2000)
+  //         .attr('cy', this.getDistrictY(nextProps.districtData[nextProps.selectedYear]));       
 
-      d3.select(this.refs['selectedLine'])
-        .transition()
-        .duration(2000)
-          .attr('transform', 'translate(' + this.x()(nextProps.selectedYear) + ' ' + (DimensionsStore.getDimensions().timelineHorizontalGutter  + DimensionsStore.getDimensions().timelineSteamgraphGutter) + ')')
-        .on('end', () => {
-          this.setState({
-            selectedX: this.x()(nextProps.selectedYear),
-            demCountY: this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2),
-            demCount: nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
-            notDemCount: (nextProps.selectedYear >= 1856) ? nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin + ((nextProps.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin + ((nextProps.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
-            notDemCountY: this.y()((nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2),
-            districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
+  //     d3.select(this.refs['selectedLine'])
+  //       .transition()
+  //       .duration(2000)
+  //         .attr('transform', 'translate(' + this.x()(nextProps.selectedYear) + ' ' + (DimensionsStore.getDimensions().timelineHorizontalGutter  + DimensionsStore.getDimensions().timelineSteamgraphGutter) + ')')
+  //       .on('end', () => {
+  //         this.setState({
+  //           selectedX: this.x()(nextProps.selectedYear),
+  //           demCountY: this.y()((nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin)/-2),
+  //           demCount: nextProps.partyCountForSelectedYear.demAboveMargin + nextProps.partyCountForSelectedYear.demBelowMargin + ((this.props.partyCountForSelectedYear.demAboveMargin > 0) ? ' (+' + this.props.partyCountForSelectedYear.demAboveMargin + ')' : '' ),
+  //           notDemCount: (nextProps.selectedYear >= 1856) ? nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin + ((nextProps.partyCountForSelectedYear.repAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.repAboveMargin + ')' : '' ) : nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin + ((nextProps.partyCountForSelectedYear.whigAboveMargin > 0) ? ' (+' + nextProps.partyCountForSelectedYear.whigAboveMargin + ')' : '' ),
+  //           notDemCountY: this.y()((nextProps.selectedYear >= 1856) ? (nextProps.partyCountForSelectedYear.repAboveMargin + nextProps.partyCountForSelectedYear.repBelowMargin)/2 : (nextProps.partyCountForSelectedYear.whigAboveMargin + nextProps.partyCountForSelectedYear.whigBelowMargin)/2),
+  //           districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
       
-          });
-        });
-    }
+  //         });
+  //       });
+  //   }
 
-    else if (nextProps.districtData) {
-      this.setState({
-        districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
-      });
-    }
-  }
+  //   else if (nextProps.districtData) {
+  //     this.setState({
+  //       districtPercentY: this.getDistrictY(nextProps.districtData[nextProps.selectedYear])
+  //     });
+  //   }
+  // }
 
   x() { 
     return d3.scaleLinear()
@@ -125,7 +125,8 @@ export default class Timeline extends React.Component {
           width: dimensions.timelineWidth,
           height: dimensions.timelineHeight,
           bottom: dimensions.gutterPadding,
-          left: dimensions.sidebarWidth + dimensions.gutterPadding * 2
+          left: dimensions.sidebarWidth + dimensions.gutterPadding * 2,
+          cursor: 'pointer'
         }}
       >
         <svg
@@ -149,6 +150,7 @@ export default class Timeline extends React.Component {
               <TimelineDistrictYAxis
                 y={yDistrict}
                 shortTickHeight={dimensions.timelineAxisShortTickHeight}
+                axisHeight={dimensions.timelineAxisOffsetForDistrict}
               /> :
               <TimelineNationalYAxis
                 y={y}
@@ -160,14 +162,16 @@ export default class Timeline extends React.Component {
           </g>
 
           {/* steamgraph data */}
-          <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
-            { (this.props.districtData) ?
+          { (this.props.districtData) ?
+            <g transform={`translate(0 ${dimensions.timelineHorizontalGutter})`}>
               <TimelineDistrict
                 districtData={this.props.districtData}
+                x={x}
                 y={yDistrict}
-                width={dimensions.timelineWidth}
-                height={dimensions.timelineHeight}
-              /> :
+                axisHeight={dimensions.timelineAxisLongTickHeight + dimensions.timelineSteamgraphHeight - (y(this.props.maxRepublicans) - y(this.props.maxDemocrats * -1))}
+              />
+            </g> :
+            <g transform={'translate(0 ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}>
               <Steamgraph
                 partyCount={this.props.partyCount}
                 partyCountKeys={this.props.partyCountKeys}
@@ -175,24 +179,8 @@ export default class Timeline extends React.Component {
                 width={dimensions.timelineWidth}
                 height={dimensions.timelineHeight}
               />
-            }
-          </g>
-
-          {/* selected */}
-          <g 
-            transform={'translate(' + this.state.selectedX + ' ' + (dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter) + ')'}
-            ref='selectedLine'
-          >
-            { (this.props.districtData) ?
-              <circle
-                cx={0}
-                cy={ this.state.districtPercentY }
-                r={ 7 }
-                fill={ getColorForMargin(this.props.districtData[this.props.selectedYear].regularized_party_of_victory, 1) }
-                stroke={ '#F0B67F' }
-              /> : ''
-            }
-          </g>
+            </g>
+          }
 
           {/* clickable areas to select year */}
           { this.props.congressYears.map(year => 

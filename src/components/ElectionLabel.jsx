@@ -16,7 +16,7 @@ const ElectionLabel = props => (
       onClick={(props.previousYear) ? props.onYearSelected : () => false}
       id={props.previousYear}
       style={{
-        height: props.dimensions.nextPreviousButtonHeight
+        marginTop: props.dimensions.nextPreviousButtonHeight / 2
       }}
     >
       <svg
@@ -29,13 +29,13 @@ const ElectionLabel = props => (
             cy={0}
             r={props.dimensions.nextPreviousButtonHeight / 2}
             fill='silver'
-            fillOpacity={(props.previousYear) ? 1 : 0.7}
+            fillOpacity={1}
           />
           <path
             d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
             fill='transparent'
-            stroke={(props.previousYear) ? '#233036' : '#73797C'}
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 5}
+            stroke='#233036'
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
           />
         </g>
       </svg>
@@ -50,11 +50,13 @@ const ElectionLabel = props => (
     <button
       onClick={(props.nextYear) ? props.onYearSelected : () => false}
       id={props.nextYear}
-      style={{ height: props.dimensions.nextPreviousButtonHeight }}
+      style={{
+        marginTop: props.dimensions.nextPreviousButtonHeight / 2
+      }}
     >
       <svg
-        width={props.dimensions.nextPreviousButtonHeight}
-        height={props.dimensions.nextPreviousButtonHeight}
+        width={props.dimensions.nextPreviousButtonHeight + 2}
+        height={props.dimensions.nextPreviousButtonHeight + 2}
       >
         <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(135)`}>
           <circle
@@ -62,13 +64,13 @@ const ElectionLabel = props => (
             cy={0}
             r={props.dimensions.nextPreviousButtonHeight / 2}
             fill='silver'
-            fillOpacity={(props.nextYear) ? 1 : 0.7}
+            fillOpacity={1}
           />
           <path
             d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
             fill='transparent'
-            stroke={(props.nextYear) ? '#233036' : '#73797C'}
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 5}
+            stroke='#233036'
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
           />
         </g>
       </svg>

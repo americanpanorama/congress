@@ -45,7 +45,7 @@ const DistrictLabel = props => (
                   y1={props.dimensions.nextPreviousButtonHeight / 4}
                   y2={props.dimensions.nextPreviousButtonHeight / -4}
                   stroke='#233036'
-                  strokeWidth={4}
+                  strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
                 />
                 <line
                   x1={props.dimensions.nextPreviousButtonHeight / -4}
@@ -53,7 +53,7 @@ const DistrictLabel = props => (
                   y1={0}
                   y2={0}
                   stroke='#233036'
-                  strokeWidth={4}
+                  strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
                 />
               </g>
             </svg>

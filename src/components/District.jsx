@@ -23,7 +23,6 @@ export default class District extends React.Component {
       if (nextProps.duration > 0) {
         d3.select(this.district.current)
           .transition()
-          .ease(d3.easeSin)
           .duration(nextProps.duration)
           .style('fill', nextProps.fill)
           .style('stroke', nextProps.stroke)
@@ -61,7 +60,10 @@ export default class District extends React.Component {
         onFocus={this.props.onDistrictInspected}
         onMouseLeave={this.props.onDistrictUninspected}
         id={this.props.id}
-        style={{ pointerEvents: this.props.pointerEvents }}
+        style={{ 
+          pointerEvents: this.props.pointerEvents,
+          cursor: (this.props.pointerEvents == 'auto') ? 'pointer' : 'none'
+        }}
         ref={this.district}
       />
     );

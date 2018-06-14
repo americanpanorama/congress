@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
-import { getColorForParty } from './utils/HelperFunctions';
+import { getColorForParty, formatPersonName } from './utils/HelperFunctions';
 
 import TheMap from './components/MapContainer';
 import Context from './components/Context';
@@ -106,11 +106,16 @@ class App extends React.Component {
   }
 
   onDistrictSelected (e) {
-    const id = (e.currentTarget.id !== this.state.selectedDistrict) ? e.currentTarget.id : null;
+    let id = null;
+    if (typeof e === 'string') {
+      id = e;
+    } else if (e.currentTarget.id !== this.state.selectedDistrict) {
+      id = e.currentTarget.id;
+    }
     this.setState({
       selectedDistrict: id,
       selectedParty: null,
-      onlyFlipped: null
+      onlyFlipped: false
     });
   }
 
@@ -141,9 +146,13 @@ class App extends React.Component {
   }
 
   render () {
-    const viewableDistrict = this.state.inspectedDistrict || this.state.selectedDistrict;
     const dimensions = DimensionsStore.getDimensions();
-
+    const viewableDistrict = this.state.inspectedDistrict || this.state.selectedDistrict;
+    let districtData;
+    if (viewableDistrict) {
+      districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict);
+    }
+    
     return (
       <div>
         {/* masthead */}
@@ -208,6 +217,9 @@ class App extends React.Component {
           selectedYear={this.state.selectedYear}
           onYearSelected={this.onYearSelected}
           partyCounts={DistrictsStore.getRawPartyCounts()}
+          showPartyCounts={!viewableDistrict}
+          districtCircleY={(viewableDistrict && districtData.regularized_party_of_victory !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent_vote, districtData.regularized_party_of_victory, DistrictsStore.getMaxBottomOffset()) : false}
+          districtCircleFill={(viewableDistrict) ? getColorForParty(districtData.regularized_party_of_victory) : 'transparent'}
           nationalDomain={[DistrictsStore.getMaxTopOffset() * -1,
             DistrictsStore.getMaxBottomOffset()]}
           dimensions={dimensions}
@@ -228,8 +240,10 @@ class App extends React.Component {
             label={DistrictsStore.getDistrictLabel(this.state.selectedYear, viewableDistrict)}
             isSelected={viewableDistrict === this.state.selectedDistrict}
             backgroundColor={(!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)}
-            victor={DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor}
+            victor={formatPersonName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor)}
             party={(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory === 'third') ? DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).party_of_victory : ''}
+            previousDistrict={DistrictsStore.getStatePreviousDistrictId(this.state.selectedYear, viewableDistrict)}
+            nextDistrict={DistrictsStore.getStateNextDistrictId(this.state.selectedYear, viewableDistrict)}
             onDistrictSelected={this.onDistrictSelected}
             dimensions={dimensions}
           /> :
@@ -237,6 +251,7 @@ class App extends React.Component {
             selectedYear={this.state.selectedYear}
             onPartySelected={this.onPartySelected}
             onlyFlipped={this.state.onlyFlipped}
+            onDistrictSelected={this.onDistrictSelected}
             toggleView={this.toggleView}
             toggleFlipped={this.toggleFlipped}
             zoomToBounds={this.zoomToBounds}

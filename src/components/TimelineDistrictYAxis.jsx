@@ -24,9 +24,26 @@ const TimelineDistrictYAxis = props => (
           x={props.shortTickHeight * 2}
           y={props.y(percent) + 6}
           fill='white'
-
         >
           {`${Math.round(Math.abs(percent * 100))}%${(percent === 0.5) ? ' or less' : ''}`}
+        </text>
+
+        <text
+          x={props.shortTickHeight * 2}
+          y={props.y(-1) - 15}
+          fill='white'
+          textAnchor='middle'
+        >
+          strength of victory
+        </text>
+
+
+        <text
+          x={props.shortTickHeight * 2}
+          y={props.y(1) + props.axisHeight + 6}
+          fill='white'
+        >
+          no data
         </text>
       </g>
     ))}
@@ -37,5 +54,6 @@ export default TimelineDistrictYAxis;
 
 TimelineDistrictYAxis.propTypes = {
   y: PropTypes.func.isRequired,
-  shortTickHeight: PropTypes.number.isRequired
+  shortTickHeight: PropTypes.number.isRequired,
+  axisHeight: PropTypes.number.isRequired
 };

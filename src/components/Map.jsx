@@ -5,6 +5,7 @@ import shallowCompare from 'react-addons-shallow-compare';
 import Draggable from 'react-draggable';
 
 import Bubble from './Bubble';
+import BubbleCity from './BubbleCity';
 import District from './District';
 
 import DimensionsStore from '../stores/DimensionsStore';
@@ -64,7 +65,8 @@ export default class Map extends React.Component {
       this.props.winnerView !== nextProps.winnerView ||
       this.props.x !== nextProps.x ||
       this.props.y !== nextProps.y ||
-      this.props.zoom !== nextProps.zoom);
+      this.props.zoom !== nextProps.zoom ||
+      this.props.geolocation !== nextProps.geolocation);
   }
 
   onDistrictInspected (e) {
@@ -101,8 +103,11 @@ export default class Map extends React.Component {
       onlyFlipped,
       onDistrictUninspected,
       onDistrictSelected,
-      zoom
+      zoom,
+      geolocation
     } = this.props;
+
+    console.log(geolocation);
 
     return (
       <div
@@ -173,7 +178,7 @@ export default class Map extends React.Component {
                       fill={color}
                       fillOpacity={fillOpacity}
                       stroke='#eee'
-                      strokeWidth={(!viewableDistrict || viewableDistrict !== d.id) ? 0.5 : 2}
+                      strokeWidth={(!viewableDistrict || viewableDistrict !== d.id) ? 0.5 / zoom : 2 / zoom}
                       strokeOpacity={strokeOpacity}
                       selectedView={selectedView}
                       onDistrictInspected={this.onDistrictInspected}
@@ -192,12 +197,47 @@ export default class Map extends React.Component {
                     fill='transparent'
                     stroke='#eee'
                     strokeOpacity={(selectedView === 'cartogram') ? 0.2 : 1}
-                    strokeWidth={(!viewableDistrict || s.properties.abbr_name === DistrictsStore.getElectionDataForDistrict(this.props.selectedYear, viewableDistrict).state) ? 1.5 : 0.3}
+                    strokeWidth={(!viewableDistrict || s.properties.abbr_name === DistrictsStore.getElectionDataForDistrict(this.props.selectedYear, viewableDistrict).state) ? 1.5 / zoom : 0.3 / zoom}
                     key={`stateBoundaries${s.properties.name}`}
                     filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
                     style={{ pointerEvents: 'none' }}
                   />
                 ))}
+
+                {/* users location 
+                    <line
+                      x1={-15 / zoom}
+                      x2={15 / zoom}
+                      y1={0}
+                      y2={0}
+                      stroke='#233036'
+                      strokeWidth={5 / zoom}
+                    />
+                    <line
+                      x1={0}
+                      x2={0}
+                      y1={-15 / zoom}
+                      y2={15 / zoom}
+                      stroke='#233036'
+                      strokeWidth={5 / zoom}
+                    />
+                    <line
+                      x1={-15 / zoom}
+                      x2={15 / zoom}
+                      y1={0}
+                      y2={0}
+                      stroke='#F0B67F'
+                      strokeWidth={2 / zoom}
+                    />
+                    <line
+                      x1={0}
+                      x2={0}
+                      y1={-15 / zoom}
+                      y2={15 / zoom}
+                      stroke='#F0B67F'
+                      strokeWidth={2 / zoom}
+                    />
+                */}
 
                 {/* city bubbles */}
                 { this.state.cityBubbles.map((d, i) => {
@@ -232,17 +272,14 @@ export default class Map extends React.Component {
                   }
 
                   return (
-                    <Bubble
+                    <BubbleCity
                       cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
                       cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
                       r={(selectedView === 'cartogram') ? d.r : 0.01}
+                      fillOpacity={fillOpacity}
                       cityLabel={d.id}
                       cityLabelOpacity={cityLabelOpacity}
-                      color='#11181b'
-                      fillOpacity={fillOpacity}
-                      stroke='transparent'
                       key={d.id}
-                      id={d.id}
                       duration={this.state.transitionDuration}
                     />
                   );
@@ -293,14 +330,60 @@ export default class Map extends React.Component {
                       key={d.id}
                       id={d.districtId}
                       pointerEvents={(selectedView === 'map') ? 'none' : 'auto'}
-                      selectedView={selectedView}
-                      onDistrictInspected={this.onDistrictInspected}
-                      onDistrictUninspected={onDistrictUninspected}
                       onDistrictSelected={onDistrictSelected}
                       duration={this.state.transitionDuration}
                     />
                   );
                 })}
+
+                { (geolocation) &&
+                  <g 
+                    transform={`translate(${geolocation[0]} ${geolocation[1]}) rotate(45)`}
+                    style={{
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={20 / zoom}
+                      fill='silver'
+                      fillOpacity={0.2}
+                      stroke='green'
+                      strokeWidth={0.5 / zoom}
+                    />
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={8 / zoom}
+                      fill='silver'
+                      fillOpacity={0.75}
+                    >
+                      <animate 
+                        attributeName="r" 
+                        begin="0s" 
+                        dur="4s" 
+                        repeatCount="indefinite" 
+                        values={`${8 / zoom};${3 / zoom};${8 / zoom}`}
+                      />
+                    </circle>
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={6 / zoom}
+                      fill='green'
+                    >
+                      <animate 
+                        attributeName="r" 
+                        begin="0s" 
+                        dur="4s" 
+                        repeatCount="indefinite" 
+                        values={`${6 / zoom};${1 / zoom};${6 / zoom}`}
+                      />
+                    </circle>
+                  </g>
+                }
+
               </g>
             </svg>
           </Draggable>
@@ -315,6 +398,7 @@ Map.propTypes = {
   winnerView: PropTypes.bool.isRequired,
   selectedYear: PropTypes.number.isRequired,
   selectedParty: PropTypes.string,
+  geolocation: PropTypes.array,
   onlyFlipped: PropTypes.bool.isRequired,
   viewableDistrict: PropTypes.string,
   onDistrictInspected: PropTypes.func.isRequired,
@@ -328,5 +412,6 @@ Map.propTypes = {
 
 Map.defaultProps = {
   viewableDistrict: '',
-  selectedParty: ''
+  selectedParty: '',
+  geolocation: null
 };

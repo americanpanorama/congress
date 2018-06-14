@@ -83,7 +83,7 @@ const DimensionsStore = {
     this.data.timelineAxisFontSizeSelected = this.data.timelineAxisHeight * 9/12;
     this.data.timelineElectionFontSize = this.data.timelineHorizontalGutter * 7/12;
     this.data.timelineCongressFontSize = this.data.timelineHorizontalGutter * 5/12;
-
+    this.data.timelineAxisOffsetForDistrict = this.data.timelineAxisLongTickHeight + this.data.timelineSteamgraphGutter * 2;
 
     this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
 
@@ -98,6 +98,7 @@ const DimensionsStore = {
     this.data.textWidth = this.data.electionLabelWidth;
     this.data.textCloseTop = this.data.textTop + 10;
     this.data.textCloseRight = this.data.electionLabelLeft + 10;
+
 
     this.emit(AppActionTypes.storeChanged);
   },
@@ -137,6 +138,31 @@ const DimensionsStore = {
       .domain(theDomain)
       .range([0, this.data.timelineSteamgraphHeight - this.data.timelineSteamgraphGutter * 2]);
     return y(count);
+  },
+
+  timelineDistrictY: function (percent, maxRepublicans) {
+    const y = d3.scaleLinear()
+      .domain([-1, -0.5, 0, 0.5, 1])
+      .range([
+        this.timelineNationalY(maxRepublicans * -1), 
+        this.timelineNationalY(0), 
+        this.timelineNationalY(0),
+        this.timelineNationalY(0), 
+        this.timelineNationalY(maxRepublicans)
+      ]);
+    return y(percent);
+  },
+
+  timelineDistrictYWithParty: function (percent, party, maxRepublicans) {
+    let y = this.timelineDistrictY(1, maxRepublicans) + this.data.timelineAxisOffsetForDistrict;
+    if (percent > 0) {
+      if (party === 'democrat') {
+        y = this.timelineDistrictY(percent * -1, maxRepublicans);
+      } else if (party === 'republican' || party === 'whig') {
+        y = this.timelineDistrictY(percent, maxRepublicans);
+      }
+    }
+    return y;
   }
 };
 

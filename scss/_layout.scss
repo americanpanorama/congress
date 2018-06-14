@@ -70,6 +70,34 @@ button {
 		margin: 10px;
 	}
 
+	ul.districtData {
+		padding: 0;
+
+		li {
+			list-style: none;
+			margin-bottom: 10px;
+
+			.label {
+				display: inline-block;
+				width: 25%;
+				margin-right: 5%;
+				text-align: right;
+				color: #ddd;
+				vertical-align: top;
+				padding-top: 2px;
+			}
+
+			.data {
+				display: inline-block;
+				font-size: 1.2em;
+				width: 65%;
+			}
+		}
+
+	}
+
+
+
 	.districtLabel {
 		margin: 0;
 		padding: 0;
@@ -84,13 +112,11 @@ button {
 		}
 
 		button {
+			position: absolute;
 			padding: 0;
 			border: none;
-			margin: 0 10px;
+			margin: 0;
 			background-color: transparent;
-			vertical-align: middle;
-			display: inline-block;
-
 			svg {
 				vertical-align: top;
 			}

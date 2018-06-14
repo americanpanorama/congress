@@ -11,6 +11,8 @@ export default class TimelineHandle extends React.Component {
 
     this.state = {
       activeDrags: 0,
+      dragging: false,
+      draggableX: this.props.timelineX - this.props.timelineXTermSpan * 6,
       delta: 0,
       selectedYear: this.props.selectedYear,
       displayYear: this.props.selectedYear,
@@ -22,7 +24,7 @@ export default class TimelineHandle extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['handleMouseDown', 'handleDrag', 'handleMouseUp'];
+    const handlers = ['handleMouseDown', 'handleDrag', 'handleMouseUp', 'onYearSelected'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
 
     this.handle = React.createRef();
@@ -30,14 +32,18 @@ export default class TimelineHandle extends React.Component {
 
   componentWillReceiveProps (nextProps) {
     if (this.props.selectedYear !== nextProps.selectedYear) {
+      const notDemParty = (this.props.selectedYear >= 1856) ? 'rep' : 'whig';
+
       this.setState({
         selectedYear: nextProps.selectedYear,
-        displayYear: nextProps.selectedYear
+        displayYear: nextProps.selectedYear,
+        draggableX: nextProps.timelineX - nextProps.timelineXTermSpan * 6,
+        demText: this.getPartyText(nextProps.selectedYear, 'dem'),
+        demTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, 'dem') / -2),
+        notDemText: this.getPartyText(nextProps.selectedYear, notDemParty),
+        notDemTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, notDemParty) / 2),
+        dragging: false
       });
-    }
-
-    if (this.getPartyText(nextProps.selectedYear, 'dem') !== this.state.demText) {
-      this.setState({ demText: this.getPartyText(nextProps.selectedYear, 'dem') });
     }
   }
 
@@ -73,14 +79,19 @@ export default class TimelineHandle extends React.Component {
 
   handleMouseUp () {
     const newYear = this.calculateNewYear();
-    this.setState({
-      delta: 0,
-      selectedYear: newYear
-    });
-    this.props.onYearSelected(newYear);
+
+    if (newYear !== this.props.selectedYear) {
+      console.log(this.state.delta, this.state.draggableX + this.state.delta);
+      this.setState({
+        delta: 0,
+        selectedYear: newYear,
+        draggableX: this.state.draggableX + this.state.delta
+      });
+      this.props.onYearSelected(newYear);
+    }
   }
 
-  handleMouseDown (e) {
+  handleMouseDown (e, ui) {
     this.setState({ activeDrags: this.state.activeDrags + 1 });
   }
 
@@ -99,15 +110,33 @@ export default class TimelineHandle extends React.Component {
       demTextY: demTextY,
       notDemText: notDemText,
       notDemTextY: notDemTextY,
-      delta: delta
+      delta: delta,
+      dragging: true
     });
+  }
+
+  onYearSelected (e) {
+    if (!this.state.dragging) {
+      const newYear = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
+      this.props.onYearSelected(newYear);
+    } else {
+      {/* mouse up should have happened, I think */}
+      this.setState({
+        dragging: false
+      });
+    }
   }
 
   render () {
     const {
       dimensions,
       timelineXTermSpan,
-      timelineX
+      timelineX,
+      selectedYear,
+      onYearSelected,
+      showPartyCounts,
+      districtCircleY,
+      districtCircleFill
     } = this.props;
 
     return (
@@ -118,12 +147,13 @@ export default class TimelineHandle extends React.Component {
           height: dimensions.timelineHeight - dimensions.timelineHorizontalGutter,
           bottom: dimensions.gutterPadding,
           left: dimensions.sidebarWidth + dimensions.gutterPadding * 2,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          cursor: 'ew-resize'
         }}
       >
         <Draggable
           axis='x'
-          position={{ x: timelineX - timelineXTermSpan * 6, y: 0 }}
+          position={{ x: this.state.draggableX, y: 0 }}
           grid={[timelineXTermSpan, 0]}
           onStart={this.handleMouseDown}
           onStop={this.handleMouseUp}
@@ -140,8 +170,8 @@ export default class TimelineHandle extends React.Component {
             <defs>
               <linearGradient id='selectedYearBackground'>
                 <stop offset='0%' stopColor='#233036' stopOpacity={0} />
-                <stop offset='33%' stopColor='#233036' stopOpacity={1} />
-                <stop offset='67%' stopColor='#233036' stopOpacity={1} />
+                <stop offset='50%' stopColor='#233036' stopOpacity={1} />
+
                 <stop offset='100%' stopColor='#233036' stopOpacity={0} />
               </linearGradient>
             </defs>
@@ -155,30 +185,6 @@ export default class TimelineHandle extends React.Component {
                 stroke='#F0B67F'
                 strokeWidth={4}
               />
-
-              <text
-                x={timelineXTermSpan * -1}
-                y={this.state.demTextY}
-                textAnchor='end'
-                fill='white'
-                // style={{
-                //   textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
-                // }}
-              >
-                { this.state.demText }
-              </text>
-
-              <text
-                x={timelineXTermSpan}
-                y={this.state.notDemTextY}
-                textAnchor='start'
-                fill='white'
-                // style={{
-                //   textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
-                // }}
-              >
-                { this.state.notDemText }
-              </text>
 
               <rect
                 x={timelineXTermSpan * -15}
@@ -201,7 +207,62 @@ export default class TimelineHandle extends React.Component {
               >
                 {this.state.displayYear}
               </text>
+
+              { (showPartyCounts) &&
+                <React.Fragment>
+                  <text
+                    x={timelineXTermSpan * -1}
+                    y={this.state.demTextY}
+                    textAnchor='end'
+                    fill='white'
+                    // style={{
+                    //   textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
+                    // }}
+                  >
+                    { this.state.demText }
+                  </text>
+
+                  <text
+                    x={timelineXTermSpan}
+                    y={this.state.notDemTextY}
+                    textAnchor='start'
+                    fill='white'
+                    // style={{
+                    //   textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
+                    // }}
+                  >
+                    { this.state.notDemText }
+                  </text>
+                </React.Fragment>
+              }
+
+              { (districtCircleY && !this.state.dragging) &&
+                <circle
+                  cx={0}
+                  cy={districtCircleY}
+                  r={7}
+                  fill={districtCircleFill}
+                  stroke='#F0B67F'
+                />
+              }}
+
+              {/* clickable areas to select year */}
+              { [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6].map(congressOffset => 
+                <rect
+                  x={timelineXTermSpan * (congressOffset - 0.5) }
+                  y={0}
+                  width={timelineXTermSpan}
+                  height={dimensions.timelineHeight}
+                  fill='transparent'
+                  key={'clickbox'+congressOffset}
+                  id={selectedYear + congressOffset * 2}
+                  onClick={this.onYearSelected}
+                />
+              )}
+
             </g>
+
+
           </svg>
         </Draggable>
       </aside>
@@ -213,12 +274,17 @@ TimelineHandle.propTypes = {
   selectedYear: PropTypes.number.isRequired,
   onYearSelected: PropTypes.func.isRequired,
   partyCounts: PropTypes.arrayOf(PropTypes.object).isRequired,
+  showPartyCounts: PropTypes.bool.isRequired,
+  districtCircleY: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.bool
+  ]).isRequired,
+  districtCircleFill: PropTypes.string,
   nationalDomain: PropTypes.arrayOf(PropTypes.number).isRequired,
   dimensions: PropTypes.shape({
     timelineWidth: PropTypes.number.isRequired,
     timelineHeight: PropTypes.number.isRequired,
     timelineHorizontalGutter: PropTypes.number.isRequired,
-    gutter: PropTypes.number.isRequired,
     sidebarWidth: PropTypes.number.isRequired,
     timelineSteamgraphHeight: PropTypes.number.isRequired,
     timelineAxisLongTickHeight: PropTypes.number.isRequired,
@@ -231,5 +297,5 @@ TimelineHandle.propTypes = {
 };
 
 TimelineHandle.defaultProps = {
-
+  districtCircleFill: 'transparent'
 };

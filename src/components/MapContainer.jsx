@@ -7,30 +7,29 @@ import MapLegend from './MapLegend';
 import ZoomControls from './ZoomControls';
 
 import DimensionsStore from '../stores/DimensionsStore';
+import DistrictStore from '../stores/Districts';
 import HashManager from '../stores/HashManager';
 
 export default class MapContainer extends React.Component {
   constructor (props) {
     super(props);
 
-    this.state = {};
-
-    // bind handlers
-    const handlers = ['changeHash', 'onViewSelected', 'toggleView', 'onZoomIn', 'zoomOut', 'zoom', 'resetView', 'onDistrictInspected', 'onMapDrag'];
-    handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
-  }
-
-  static getDerivedStateFromProps (props) {
     const theHash = HashManager.getState();
     const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d)) : [0.5, 0.5, 1];
 
-    return {
+    this.state = {
       selectedView: theHash.view || 'cartogram',
-      winnerView: theHash.show === 'winner',
+      winnerView: !theHash.show || theHash.show === 'winner',
       zoom: z,
       x: x,
-      y: y
+      y: y,
+      geolocation: null,
+      geolocating: false
     };
+
+    // bind handlers
+    const handlers = ['changeHash', 'onViewSelected', 'toggleView', 'onZoomIn', 'zoomOut', 'zoom', 'resetView', 'onDistrictInspected', 'onMapDrag', 'geolocate', 'selectCurrentLocation'];
+    handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
   componentDidUpdate () { this.changeHash(); }
@@ -93,6 +92,34 @@ export default class MapContainer extends React.Component {
     this.setState({ winnerView: !this.state.winnerView });
   }
 
+  geolocate () {
+    this.setState({
+      geolocating: true
+    });
+    //try to retrieve the users location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        this.setState({
+          geolocation: [position.coords.longitude, position.coords.latitude],
+          geolocating: false
+        }, this.selectCurrentLocation);
+      }, (error) => {
+        console.warn('Geolocation error occurred. Error code: ' + error.code);
+      });
+    }
+  }
+
+  selectCurrentLocation () {
+    if (this.state.geolocation) {
+      const districtId = DistrictStore.findDistrict(this.state.geolocation, this.props.selectedYear);
+      if (districtId) {
+        this.props.onDistrictSelected(districtId);
+      }
+    } else {
+      this.geolocate();
+    }
+  }
+
   changeHash () {
     const vizState = {
       view: this.state.selectedView,
@@ -115,6 +142,7 @@ export default class MapContainer extends React.Component {
           winnerView={this.state.winnerView}
           selectedYear={this.props.selectedYear}
           selectedParty={this.props.selectedParty}
+          geolocation={(this.state.geolocation) ? DistrictStore.projectPoint(this.state.geolocation) : null}
           onlyFlipped={this.props.onlyFlipped}
           viewableDistrict={this.props.viewableDistrict}
           onDistrictInspected={this.props.onDistrictInspected}
@@ -136,7 +164,7 @@ export default class MapContainer extends React.Component {
         <MapLegend
           selectedView={this.state.selectedView}
           selectedYear={this.props.selectedYear}
-          selectedParty={this.state.selectedParty}
+          selectedParty={this.props.selectedParty}
           onPartySelected={this.props.onPartySelected}
           winnerView={this.state.winnerView}
           onlyFlipped={this.props.onlyFlipped}
@@ -148,8 +176,10 @@ export default class MapContainer extends React.Component {
           onZoomIn={this.onZoomIn}
           onZoomOut={this.zoomOut}
           resetView={this.resetView}
+          selectCurrentLocation={this.selectCurrentLocation}
           currentZoom={this.state.zoom}
           resetable={this.state.zoom !== 1 || this.state.x !== 0.5 || this.state.y !== 0.5}
+          geolocating={this.state.geolocating}
           dimensions={dimensions}
         />
 

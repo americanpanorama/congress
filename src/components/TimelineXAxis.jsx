@@ -1,18 +1,18 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { yearForCongress } from '../utils/HelperFunctions';
+import { yearForCongress, congressForYear } from '../utils/HelperFunctions';
 
 const TimelineXAxis = props => (
   <React.Fragment>
     <line
-      x1={props.x(1788)}
+      x1={props.x(1824)}
       x2={props.x(2016)}
       y1={props.longTickHeight}
       y2={props.longTickHeight}
       stroke='white'
     />
 
-    { Array.from({ length: 115 }, (v, i) => yearForCongress(i + 1)).map(year => (
+    { Array.from({ length: (2016 - 1824) / 2 }, (v, i) => 1824 + i * 2).map(year => (
       <line
         x1={props.x(year)}
         x2={props.x(year)}

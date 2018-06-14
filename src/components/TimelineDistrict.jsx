@@ -4,11 +4,8 @@ import * as d3 from 'd3';
 import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 
 const TimelineDistrict = (props) => {
-  const x = d3.scaleLinear()
-    .domain([1824, 2016])
-    .range([15, props.width]);
   const line = d3.line()
-    .x(d => x(d.year))
+    .x(d => props.x(d.year))
     .y(d => props.y(d.percent))
     .curve(d3.curveCatmullRom);
   const lineData = [];
@@ -24,10 +21,8 @@ const TimelineDistrict = (props) => {
     if (!districtData) {
       return;
     }
-    let y = props.y(1);
-    if (districtData.regularized_party_of_victory === 'third') {
-      y = props.y(0.5);
-    } else if (districtData.percent_vote > 0) {
+    let y = props.y(1) + props.axisHeight;
+    if (districtData.percent_vote > 0) {
       if (districtData.regularized_party_of_victory === 'democrat') {
         y = props.y(districtData.percent_vote * -1);
       } else if (districtData.regularized_party_of_victory === 'republican' || districtData.regularized_party_of_victory === 'whig') {
@@ -40,21 +35,57 @@ const TimelineDistrict = (props) => {
   return (
     <React.Fragment>
       <rect
-        x={0}
-        y={0}
-        width={props.width}
-        height={props.y(0)}
+        x={props.x(1824)}
+        y={props.y(-1)}
+        width={props.x(2016) - props.x(1824)}
+        height={props.y(0) - props.y(-1)}
         fill={getColorForParty('democrat')}
-        fillOpacity={0.05}
+        fillOpacity={0.2}
       />
 
       <rect
-        x={0}
+        x={props.x(1856)}
         y={props.y(0)}
-        width={props.width}
+        width={props.x(2016) - props.x(1856)}
         height={props.y(1) - props.y(0)}
         fill={getColorForParty('republican')}
-        fillOpacity={0.05}
+        fillOpacity={0.2}
+      />
+
+      <rect
+        x={props.x(1824)}
+        y={props.y(0)}
+        width={props.x(1854) - props.x(1824)}
+        height={props.y(1) - props.y(0)}
+        fill={getColorForParty('whig')}
+        fillOpacity={0.2}
+      />
+
+      <line
+        x1={props.x(1824)}
+        x2={props.x(2016)}
+        y1={props.y(-0.75)}
+        y2={props.y(-0.75)}
+        stroke='#233036'
+        strokeWidth={0.5}
+      />
+
+      <line
+        x1={props.x(1824)}
+        x2={props.x(2016)}
+        y1={props.y(0.5)}
+        y2={props.y(0.5)}
+        stroke='#233036'
+        strokeWidth={2}
+      />
+
+      <line
+        x1={props.x(1824)}
+        x2={props.x(2016)}
+        y1={props.y(0.75)}
+        y2={props.y(0.75)}
+        stroke='#233036'
+        strokeWidth={0.5}
       />
 
       <path
@@ -68,7 +99,7 @@ const TimelineDistrict = (props) => {
         if (['democrat', 'republican', 'whig'].includes(props.districtData[year].regularized_party_of_victory)) {
           return (
             <circle
-              cx={x(year)}
+              cx={props.x(year)}
               cy={getDistrictY(props.districtData[year])}
               r={5}
               fill={getColorForMargin(props.districtData[year].regularized_party_of_victory, 1)}
@@ -79,12 +110,12 @@ const TimelineDistrict = (props) => {
         } else if (props.districtData[year].regularized_party_of_victory === 'third') {
           return (
             <rect
-              x={x(year - 1)}
-              y={0}
-              width={x(1863) - x(1861)}
-              height={props.y(1)}
+              x={props.x(year - 1)}
+              y={props.y(-1)}
+              width={props.x(1863) - props.x(1861)}
+              height={props.y(1) - props.y(-1)}
               fill={getColorForParty('third')}
-              fillOpacity={0.4}
+              fillOpacity={0.5}
               key={`districtMOVFor-${year}`}
             />
           );
@@ -99,6 +130,7 @@ export default TimelineDistrict;
 
 TimelineDistrict.propTypes = {
   districtData: PropTypes.objectOf(PropTypes.object).isRequired,
+  x: PropTypes.func.isRequired,
   y: PropTypes.func.isRequired,
-  width: PropTypes.number.isRequired
+  axisHeight: PropTypes.number.isRequired
 };

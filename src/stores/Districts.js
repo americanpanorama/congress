@@ -5,13 +5,12 @@ import * as d3 from 'd3';
 import AppDispatcher from '../utils/AppDispatcher';
 import { AppActionTypes } from '../utils/AppActionCreator';
 
-import { congressForYear, getStateAbbr, getStateName } from '../utils/HelperFunctions';
+import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong } from '../utils/HelperFunctions';
 
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
 import SpatialIds from '../../data/spatialids.json';
 import StatesTopoJson from '../../data/states.json';
-import Slivers from '../../data/sliversTJ.json';
 import MetroNames from '../../data/metroNames.json';
 
 import DimensionsStore from './DimensionsStore';
@@ -44,13 +43,7 @@ const DistrictsStore = {
               response.status);
             return;
           }
-
-          // Examine the text in the response
           response.json().then((data) => {
-            // data.objects = {
-            //   type: 'GeometryCollection',
-            //   geometries: Object.keys(data.objects).map(k => data.objects[k])
-            // };
             const theGeoJson = data; //topojson.feature(data, data.objects);
             theGeoJson.features.forEach(d => {
               if (!this.data.districts[d.properties.id]) {
@@ -63,7 +56,6 @@ const DistrictsStore = {
                   the_geojson: d.geometry
                 };
               }
-
               this.data.congressDistricts[year].push(d.properties.id);
             });
 
@@ -77,34 +69,11 @@ const DistrictsStore = {
   },
 
   parseStates: function() { 
-    // Slivers.objects = {
-    //   type: 'GeometryCollection',
-    //   geometries: Object.keys(Slivers.objects).map(k => Slivers.objects[k])
-    // };
-    // const theGeoJson = topojson.feature(Slivers, Slivers.objects);
-    // this.data.slivers = theGeoJson;
-
     this.data.states = topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features; 
     this.emit(AppActionTypes.storeChanged);
   },
 
   parseBubbles: function() {
-    // let yearsWeHave = bubbleXYs.map(yearData => yearData.year);
-    // for (let y = 1836; y <= )
-    // let yearsWeHave = Object.keys(Elections).map(y => parseInt(y)),
-    //   firstYear = yearsWeHave[0],
-    //   lastYear = yearsWeHave[yearsWeHave.length-1],
-    //   missing = [];
-    // for (let y = firstYear; y < lastYear; y = y+2) {
-    //   if (!yearsWeHave.includes(y)) {
-    //     missing.push(y);
-    //   }
-    // }
-    // console.log('From ' + firstYear + ' to ' + lastYear);
-    // console.log('missing: ');
-    // console.log(missing);
-
-
     this.data.bubbleCoords = bubbleXYs
       .map(yearData => {
         return {
@@ -133,6 +102,7 @@ const DistrictsStore = {
                 previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
                 previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
                 flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
+
               return {
                 id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
                 x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
@@ -163,12 +133,6 @@ const DistrictsStore = {
         };
       });
 
-    // let cities = [];
-    // this.data.bubbleCoords.forEach(yearData => {
-    //   yearData.cities.forEach(city => cities.push(city.id));
-    // });
-    // cities = Array.from(new Set(cities));
-    // console.log(cities);
     this.emit(AppActionTypes.storeChanged);
   },
 
@@ -244,6 +208,36 @@ const DistrictsStore = {
     return flippedCount / districtCount;
   },
 
+  getStatePreviousDistrictId: function (year, id) {
+    let previousId = false;
+    const districtData = this.getElectionDataForDistrict(year, id);
+    const { state, district } = districtData;
+    if (district !== 0) {
+      const nextAbbr = `${state}${district - 1}`;
+      previousId = this.getDistrictIdFromStateDistrict(year, nextAbbr);
+    }
+    return previousId;
+  },
+
+  getStateNextDistrictId: function (year, id) {
+    const districtData = this.getElectionDataForDistrict(year, id);
+    const { state, district } = districtData;
+    const nextAbbr = `${state}${district + 1}`;
+    return this.getDistrictIdFromStateDistrict(year, nextAbbr);
+  },
+
+  getDistrictIdFromStateDistrict: function (year, abbr) {
+    let nextId = false;
+    const yearData = bubbleXYs.find(yd => yd.year === year);
+    if (yearData && yearData.districts) {
+      const nextDistrict = yearData.districts.find(d => d.district === abbr);
+      if (nextDistrict) {
+        nextId = nextDistrict.id;
+      }
+    }
+    return nextId;
+  },
+
   districtInCity: function (districtBubble, cityBubble) {
     const xDiff = cityBubble.x - districtBubble.x;
     const yDiff = cityBubble.y - districtBubble.y;
@@ -255,9 +249,6 @@ const DistrictsStore = {
   getElectionDistricts: function(year) { 
     const districts = [],
       opacity = d3.scaleLinear().domain([0,10000,600000]).range([1,0.2,0.2]);
-
-  
-              
 
     Object.keys(this.data.districts).forEach(id => {
       if (this.data.congressDistricts[year] && this.data.congressDistricts[year].includes(id) && this.data.districts[id] && Elections[year][getStateAbbr(this.data.districts[id].statename)] && Elections[year][getStateAbbr(this.data.districts[id].statename)][this.data.districts[id].district]) {
@@ -311,13 +302,13 @@ const DistrictsStore = {
     return districtId;
   },
 
-  getDistrictNum(year, spatialId) {
+  getDistrictNum: function (year, spatialId) {
     if (!year || !spatialId) { return false; }
     let districtNum;
-    const yearData = bubbleXYs.find(yearData => yearData.year == year);
+    const yearData = bubbleXYs.find(yd => yd.year === year);
     if (yearData && yearData.districts) {
-      yearData.districts.every(d => {
-        if (d.id == spatialId) {
+      yearData.districts.every((d) => {
+        if (d.id === spatialId) {
           districtNum = d.district.substring(2);
           return false;
         }
@@ -581,11 +572,28 @@ const DistrictsStore = {
     return areaData;
   },
 
-  getDistrictLabel (year, id) {
-    return `${getStateName(this.getElectionDataForDistrict(year, id).state)} ${ this.getElectionDataForDistrict(year, id).district}`;
+  getDistrictLabel: function (year, id) {
+    return `${getStateAbbrLong(this.getElectionDataForDistrict(year, id).state)} ${this.getElectionDataForDistrict(year, id).district}`;
+  },
+
+  findDistrict: function (point, year) {
+    const theStateGeoJson = this.data.states
+      .filter(state => state.properties.abbr_name !== 'VA' || state.properties.year !== 1788)
+      .find(state => d3.geoContains(state, point));
+    if (theStateGeoJson) {
+      // some stuff for VA and WV
+      const stateAbbr = (theStateGeoJson.properties.abbr_name == 'WV' && year < 1864) ? 'VA' : theStateGeoJson.properties.abbr_name;
+      const theDistrict = DistrictsStore.getElectionDistricts(year)
+        .filter(dist => dist.statename == getStateName(stateAbbr))
+        .find(dist => d3.geoContains(dist.the_geojson, point));
+      if (theDistrict) {
+        return theDistrict.id;
+      }
+    }
+    return false;
   }
 
-}
+};
 
 // Mixin EventEmitter functionality
 Object.assign(DistrictsStore, EventEmitter.prototype);
