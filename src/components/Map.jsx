@@ -107,8 +107,6 @@ export default class Map extends React.Component {
       geolocation
     } = this.props;
 
-    console.log(geolocation);
-
     return (
       <div
         style={{
@@ -203,41 +201,6 @@ export default class Map extends React.Component {
                     style={{ pointerEvents: 'none' }}
                   />
                 ))}
-
-                {/* users location 
-                    <line
-                      x1={-15 / zoom}
-                      x2={15 / zoom}
-                      y1={0}
-                      y2={0}
-                      stroke='#233036'
-                      strokeWidth={5 / zoom}
-                    />
-                    <line
-                      x1={0}
-                      x2={0}
-                      y1={-15 / zoom}
-                      y2={15 / zoom}
-                      stroke='#233036'
-                      strokeWidth={5 / zoom}
-                    />
-                    <line
-                      x1={-15 / zoom}
-                      x2={15 / zoom}
-                      y1={0}
-                      y2={0}
-                      stroke='#F0B67F'
-                      strokeWidth={2 / zoom}
-                    />
-                    <line
-                      x1={0}
-                      x2={0}
-                      y1={-15 / zoom}
-                      y2={15 / zoom}
-                      stroke='#F0B67F'
-                      strokeWidth={2 / zoom}
-                    />
-                */}
 
                 {/* city bubbles */}
                 { this.state.cityBubbles.map((d, i) => {

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server --open",
-    "dist": "gulp dist",
+    "start": "webpack-dev-server --open --config webpack.dev.js",
+    "dist": "webpack --config webpack.prod.js",
     "lint": "eslint ./src",
     "build:basemaps": "node_modules/.bin/cartodb-yaml ./basemaps/cartodb/basemaps.yml > ./basemaps/cartodb/basemaps.json"
   },
@@ -20,10 +20,13 @@
     "csvtojson": "^1.1.9",
     "d3": "^4.12.2",
     "mapshaper": "^0.4.60",
+    "parse-full-name": "^1.2.3",
     "prop-types": "^15.6.1",
     "queue-async": "^1.0.7",
     "react": "^16.3.0",
+    "react-addons-shallow-compare": "^15.6.2",
     "react-dom": "^16.3.0",
+    "react-download-svg": "0.0.4",
     "react-draggable": "^3.0.5",
     "react-toggle-button": "^2.2.0",
     "topojson-client": "^3.0.0",
@@ -54,7 +57,10 @@
     "node-sass": "^4.7.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.20.1",
+    "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.11.0"
+    "webpack-cli": "^2.1.4",
+    "webpack-dev-server": "^2.11.0",
+    "webpack-merge": "^4.1.2"
   }
 }

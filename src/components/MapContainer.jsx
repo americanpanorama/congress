@@ -15,20 +15,16 @@ export default class MapContainer extends React.Component {
     super(props);
 
     const theHash = HashManager.getState();
-    const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d)) : [0.5, 0.5, 1];
 
     this.state = {
       selectedView: theHash.view || 'cartogram',
       winnerView: !theHash.show || theHash.show === 'winner',
-      zoom: z,
-      x: x,
-      y: y,
       geolocation: null,
       geolocating: false
     };
 
     // bind handlers
-    const handlers = ['changeHash', 'onViewSelected', 'toggleView', 'onZoomIn', 'zoomOut', 'zoom', 'resetView', 'onDistrictInspected', 'onMapDrag', 'geolocate', 'selectCurrentLocation'];
+    const handlers = ['changeHash', 'onViewSelected', 'toggleView', 'zoom', 'onDistrictInspected', 'geolocate', 'selectCurrentLocation'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -47,27 +43,6 @@ export default class MapContainer extends React.Component {
     }
   }
 
-  onZoomIn () {
-    this.setState({
-      zoom: Math.min(this.state.zoom * 1.62, 20)
-    });
-  }
-
-  onMapDrag (x, y) {
-    this.setState({
-      x: x,
-      y: y
-    });
-  }
-
-  resetView () {
-    this.setState({
-      zoom: 1,
-      x: 0.5,
-      y: 0.5
-    });
-  }
-
   zoom (zMultipier, point) {
     const z = Math.min(this.state.zoom * zMultipier, 20);
     const newWidth = DimensionsStore.getDimensions().mapWidth * z;
@@ -82,12 +57,6 @@ export default class MapContainer extends React.Component {
     });
   }
 
-  zoomOut () {
-    this.setState({
-      zoom: Math.max(this.state.zoom / 1.62, 1)
-    });
-  }
-
   toggleView (e) {
     this.setState({ winnerView: !this.state.winnerView });
   }
@@ -96,7 +65,7 @@ export default class MapContainer extends React.Component {
     this.setState({
       geolocating: true
     });
-    //try to retrieve the users location
+    // try to retrieve the users location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         this.setState({
@@ -123,9 +92,6 @@ export default class MapContainer extends React.Component {
   changeHash () {
     const vizState = {
       view: this.state.selectedView,
-      xyz: [this.state.x, this.state.y, this.state.zoom]
-        .map(d => Math.round(d * 1000) / 1000)
-        .join('/'),
       show: (this.state.winnerView) ? 'winner' : 'strength'
     };
 
@@ -148,10 +114,10 @@ export default class MapContainer extends React.Component {
           onDistrictInspected={this.props.onDistrictInspected}
           onDistrictUninspected={this.props.onDistrictUninspected}
           onDistrictSelected={this.props.onDistrictSelected}
-          onMapDrag={this.onMapDrag}
-          x={this.state.x}
-          y={this.state.y}
-          zoom={this.state.zoom}
+          onMapDrag={this.props.onMapDrag}
+          x={this.props.x}
+          y={this.props.y}
+          zoom={this.props.zoom}
         />
 
         <MapControls
@@ -173,12 +139,12 @@ export default class MapContainer extends React.Component {
         />
 
         <ZoomControls
-          onZoomIn={this.onZoomIn}
-          onZoomOut={this.zoomOut}
-          resetView={this.resetView}
+          onZoomIn={this.props.onZoomIn}
+          onZoomOut={this.props.zoomOut}
+          resetView={this.props.resetView}
           selectCurrentLocation={this.selectCurrentLocation}
-          currentZoom={this.state.zoom}
-          resetable={this.state.zoom !== 1 || this.state.x !== 0.5 || this.state.y !== 0.5}
+          currentZoom={this.props.zoom}
+          resetable={this.props.zoom !== 1 || this.props.x !== 0.5 || this.props.y !== 0.5}
           geolocating={this.state.geolocating}
           dimensions={dimensions}
         />
@@ -191,6 +157,9 @@ export default class MapContainer extends React.Component {
 MapContainer.propTypes = {
   selectedYear: PropTypes.number.isRequired,
   selectedParty: PropTypes.string,
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired,
+  zoom: PropTypes.number.isRequired,
   onlyFlipped: PropTypes.bool.isRequired,
   viewableDistrict: PropTypes.string,
   onDistrictInspected: PropTypes.func.isRequired,
@@ -198,6 +167,10 @@ MapContainer.propTypes = {
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,
   toggleFlipped: PropTypes.func.isRequired,
+  onZoomIn: PropTypes.func.isRequired,
+  zoomOut: PropTypes.func.isRequired,
+  onMapDrag: PropTypes.func.isRequired,
+  resetView: PropTypes.func.isRequired,
   hasThird: PropTypes.bool.isRequired
 };
 

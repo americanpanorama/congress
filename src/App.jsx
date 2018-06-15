@@ -22,7 +22,7 @@ class App extends React.Component {
 
     // initialize state
     const theHash = HashManager.getState();
-    const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/') : [0, 0, 1];
+    const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d, 10)) : [0.5, 0.5, 1];
     this.state = {
       selectedYear: parseInt(theHash.year, 10) || 1952,
       selectedDistrict: theHash.district || null,
@@ -36,7 +36,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -127,6 +127,33 @@ class App extends React.Component {
     });
   }
 
+  onZoomIn () {
+    this.setState({
+      zoom: Math.min(this.state.zoom * 1.62, 20)
+    });
+  }
+
+  zoomOut () {
+    this.setState({
+      zoom: Math.max(this.state.zoom / 1.62, 1)
+    });
+  }
+
+  onMapDrag (x, y) {
+    this.setState({
+      x: x,
+      y: y
+    });
+  }
+
+  resetView () {
+    this.setState({
+      zoom: 1,
+      x: 0.5,
+      y: 0.5
+    });
+  }
+
   onModalClick (event) {
     const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
     AppActions.onModalClick(subject);
@@ -139,7 +166,10 @@ class App extends React.Component {
   changeHash () {
     const vizState = {
       year: this.state.selectedYear,
-      district: this.state.selectedDistrict
+      district: this.state.selectedDistrict,
+      xyz: [this.state.x, this.state.y, this.state.zoom]
+        .map(d => Math.round(d * 1000) / 1000)
+        .join('/')
     };
 
     HashManager.updateHash(vizState);
@@ -193,10 +223,17 @@ class App extends React.Component {
           onlyFlipped={this.state.onlyFlipped}
           selectedParty={this.state.selectedParty}
           viewableDistrict={this.state.inspectedDistrict || this.state.selectedDistrict}
+          x={this.state.x}
+          y={this.state.y}
+          zoom={this.state.zoom}
           onDistrictInspected={this.onDistrictInspected}
           onDistrictUninspected={this.onDistrictUninspected}
           onDistrictSelected={this.onDistrictSelected}
           onPartySelected={this.onPartySelected}
+          onZoomIn={this.onZoomIn}
+          onMapDrag={this.onMapDrag}
+          resetView={this.resetView}
+          zoomOut={this.zoomOut}
           toggleFlipped={this.toggleFlipped}
           hasThird={DistrictsStore.getPartyCountForYearAndParty(this.state.selectedYear, 'third') > 0}
         />

@@ -23,9 +23,11 @@
     "indent": [2, 2],
     "semi": [2, "always"],
     "jsx-quotes": ["error", "prefer-single"],
+    "object-shorthand": ["error", "never"],
     "operator-linebreak": "off",
     "click-events-have-key-events": "off",
-    "no-static-element-interactions": "off"
+    "no-static-element-interactions": "off",
+    "func-names": ["error", "as-needed"]
   },
   "extends": ["airbnb-standard"]
 }

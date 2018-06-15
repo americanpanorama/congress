@@ -561,7 +561,7 @@ const DistrictsStore = {
 
   getSpatialIdData(spatialId) {
     let areaData = {};
-    for (let y = 1824; y <= 2004; y = y+2) {
+    for (let y = 1824; y <= 2010; y = y+2) {
       let districtId = this.getDistrictId(y, spatialId),
         districtData = this.getElectionDataForDistrict(y, districtId);
       if (districtData) {
@@ -573,7 +573,8 @@ const DistrictsStore = {
   },
 
   getDistrictLabel: function (year, id) {
-    return `${getStateAbbrLong(this.getElectionDataForDistrict(year, id).state)} ${this.getElectionDataForDistrict(year, id).district}`;
+    const state = getStateAbbrLong(this.getElectionDataForDistrict(year, id).state);
+    return (this.getElectionDataForDistrict(year, id).district === 0) ? `${state} At Large` : `${state} ${this.getElectionDataForDistrict(year, id).district}`;
   },
 
   findDistrict: function (point, year) {
