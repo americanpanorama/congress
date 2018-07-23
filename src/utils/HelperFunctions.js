@@ -158,7 +158,7 @@ export const getStateAbbrLong = function (postalCode) {
 
 export const formatPersonName = function (name) {
   let formattedName;
-  if (name.split(',').length <= 2) {
+  if (name && name.split(',').length <= 2) {
     let {
       first,
       middle,

@@ -73,16 +73,19 @@ const DistrictsStore = {
     this.emit(AppActionTypes.storeChanged);
   },
 
-  parseBubbles: function() {
+  parseBubbles: function () {
     this.data.bubbleCoords = bubbleXYs
-      .map(yearData => {
+      .map((yearData) => {
         return {
           year: yearData.year,
           districts: yearData.districts
             .filter(d => d.id)
             .map((d, i) => {
-              const state = d.district.substring(0,2),
-                district = parseInt(d.district.substring(2));
+              const state = d.district.substring(0, 2);
+              const district = parseInt(d.district.substring(2), 10);
+              if (SpatialIds[yearData.year][d.id] === 'spatialId865') {
+                console.log(yearData.year, d);
+              }
               if (!Elections[yearData.year][state][district]) {
                 return {
                   id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
@@ -105,10 +108,10 @@ const DistrictsStore = {
 
               return {
                 id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
-                x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
-                y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
-                xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
-                yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
+                x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
+                y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
+                xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
+                yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
                 state: state,
                 district: district,
                 districtId: d.id,
@@ -123,10 +126,10 @@ const DistrictsStore = {
           cities: yearData.cities.map(d => {
             return {
               id: MetroNames[d.id],
-              x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
-              y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
-              xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().width/2,
-              yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getMapDimensions().height/2,
+              x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
+              y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
+              xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
+              yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
               r: d.r * DimensionsStore.getMapScale()
             };
           }),
@@ -138,22 +141,22 @@ const DistrictsStore = {
 
   hasYearLoaded: function(year) { return this.data.congressDistricts[year] && this.data.congressDistricts[year].length > 0; },
 
-  getPartyCounts: function() { return this.data.partyCounts; },
+  getPartyCounts: function () { return this.data.partyCounts; },
 
-  getCongressYears: function() { return this.data.congressYears; },
+  getCongressYears: function () { return this.data.congressYears; },
 
-  getPathFunction: function() { return d3.geoPath(this.getProjection()); },
+  getPathFunction: function () { return d3.geoPath(this.getProjection()); },
 
-  getPath: function(g) { return this.getPathFunction()(g); },
+  getPath: function (g) { return this.getPathFunction()(g); },
 
-  getTheMap: function() { return this.data.theMap; },
+  getTheMap: function () { return this.data.theMap; },
 
   getVisibleBounds: function() { return this.data.theMap.getBounds(); },
 
   getProjection: function() {
     return d3.geoAlbersUsa()
       .scale(DimensionsStore.getMapScale())
-      .translate([DimensionsStore.getDimensions().mapWidth/2, DimensionsStore.getDimensions().mapHeight/2]);
+      .translate([DimensionsStore.getDimensions().mapProjectionWidth/2, DimensionsStore.getDimensions().mapProjectionHeight/2]);
   },
 
   projectPoint(point) { return this.getProjection()(point); },
@@ -269,9 +272,41 @@ const DistrictsStore = {
     return districts;
   },
 
-  getElectionDataForDistrict: function(year, id) {
-    const yearData = this.data.bubbleCoords.find(d => parseInt(d.year) == parseInt(year));
-    return (yearData) ? yearData.districts.find(d => d.districtId == id) : false;
+  // getElectionDistrict: function (year, id) {
+  //   return this.getElectionDistricts(year).find(d => d.id )
+  // },
+
+  getElectionDataForDistrict: function (year, id) {
+    const yearData = this.data.bubbleCoords.find(d => parseInt(d.year, 10) === parseInt(year, 10));
+    return (yearData) ? yearData.districts.find(d => d.districtId === id) : false;
+  },
+
+  getXYZForDistrict: function (id) {
+    const centroid = this.getPathFunction().centroid(this.data.districts[id].the_geojson);
+    const x = centroid[0] / DimensionsStore.getDimensions().mapProjectionWidth;
+    const y = centroid[1] / DimensionsStore.getDimensions().mapProjectionHeight;
+    const bounds = this.getPathFunction().bounds(this.data.districts[id].the_geojson);
+    // calculate the highest zoom level that doesn't expand beyond the bounding box
+    const maxHorizontal = Math.max(centroid[0] - bounds[0][0], bounds[1][0] - centroid[0]);
+    let zHorizontal = 1;
+    while (maxHorizontal * zHorizontal < DimensionsStore.getDimensions().mapWidth / 2) {
+      zHorizontal *= 1.62;
+    }
+    const maxVertical = Math.max(centroid[1] - bounds[0][1], bounds[1][1] - centroid[1]);
+    let zVertical = 1;
+    while (maxVertical * zVertical < DimensionsStore.getDimensions().mapHeight / 2) {
+      zVertical *= 1.62;
+    }
+    const z = Math.round(Math.min(zHorizontal, zVertical) / 1.62 * 100) / 100;
+    return {
+      x: x,
+      y: y,
+      z: z
+    };
+
+    // const theBounds = DistrictsStore.getPathFunction().bounds(d.the_geojson);
+    // const theBoundsPerc = theBounds.map(point => [point[0] / DimensionsStore.getDimensions().mapProjectionWidth, point[1] / DimensionsStore.getDimensions().mapProjectionHeight]);
+    // console.log(theBoundsPerc);
   },
 
   getYears: function() { return Object.keys(Elections).map(y => parseInt(y)); },

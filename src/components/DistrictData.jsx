@@ -154,14 +154,23 @@ const DistrictData = props => (
         </li>
       }
     </ul>
+
+    <div
+      onClick={props.onZoomToDistrict}
+      id={props.id}
+    >
+      zoom to district
+    </div>
   </div>
 );
 
 export default DistrictData;
 
 DistrictData.propTypes = {
+  id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
+  onZoomToDistrict: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
   backgroundColor: PropTypes.string,
   victor: PropTypes.string.isRequired,

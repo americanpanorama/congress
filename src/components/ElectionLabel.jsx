@@ -12,34 +12,37 @@ const ElectionLabel = props => (
       bottom: props.dimensions.electionLabelBottom
     }}
   >
-    <button
-      onClick={(props.previousYear) ? props.onYearSelected : () => false}
-      id={props.previousYear}
-      style={{
-        marginTop: props.dimensions.nextPreviousButtonHeight / 2
-      }}
-    >
-      <svg
-        width={props.dimensions.nextPreviousButtonHeight}
-        height={props.dimensions.nextPreviousButtonHeight}
+    { (props.previousYear) &&
+      <button
+        onClick={(props.previousYear) ? props.onYearSelected : () => false}
+        id={props.previousYear}
+        style={{
+          marginTop: props.dimensions.nextPreviousButtonHeight / 2
+        }}
       >
-        <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(315)`}>
-          <circle
-            cx={0}
-            cy={0}
-            r={props.dimensions.nextPreviousButtonHeight / 2}
-            fill='silver'
-            fillOpacity={1}
-          />
-          <path
-            d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
-            fill='transparent'
-            stroke='#233036'
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
-          />
-        </g>
-      </svg>
-    </button>
+        <svg
+          width={props.dimensions.nextPreviousButtonHeight}
+          height={props.dimensions.nextPreviousButtonHeight}
+        >
+          <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(315)`}>
+            <circle
+              cx={0}
+              cy={0}
+              r={props.dimensions.nextPreviousButtonHeight / 2}
+              fill='silver'
+              fillOpacity={1}
+            />
+            <path
+              d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
+              fill='transparent'
+              stroke='#233036'
+              strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+            />
+          </g>
+        </svg>
+      </button>
+    }
+
     <h2
       style={{
         fontSize: props.dimensions.electionLabelFontSize
@@ -47,34 +50,37 @@ const ElectionLabel = props => (
     >
       {`Election of ${props.selectedYear}: The ${ordinalSuffixOf(congressForYear(props.selectedYear))} Congress`}
     </h2>
-    <button
-      onClick={(props.nextYear) ? props.onYearSelected : () => false}
-      id={props.nextYear}
-      style={{
-        marginTop: props.dimensions.nextPreviousButtonHeight / 2
-      }}
-    >
-      <svg
-        width={props.dimensions.nextPreviousButtonHeight + 2}
-        height={props.dimensions.nextPreviousButtonHeight + 2}
+
+    { (props.nextYear) &&
+      <button
+        onClick={(props.nextYear) ? props.onYearSelected : () => false}
+        id={props.nextYear}
+        style={{
+          marginTop: props.dimensions.nextPreviousButtonHeight / 2
+        }}
       >
-        <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(135)`}>
-          <circle
-            cx={0}
-            cy={0}
-            r={props.dimensions.nextPreviousButtonHeight / 2}
-            fill='silver'
-            fillOpacity={1}
-          />
-          <path
-            d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
-            fill='transparent'
-            stroke='#233036'
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
-          />
-        </g>
-      </svg>
-    </button>
+        <svg
+          width={props.dimensions.nextPreviousButtonHeight + 2}
+          height={props.dimensions.nextPreviousButtonHeight + 2}
+        >
+          <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(135)`}>
+            <circle
+              cx={0}
+              cy={0}
+              r={props.dimensions.nextPreviousButtonHeight / 2}
+              fill='silver'
+              fillOpacity={1}
+            />
+            <path
+              d={`M${props.dimensions.nextPreviousButtonHeight / -8},${props.dimensions.nextPreviousButtonHeight / 4} V${props.dimensions.nextPreviousButtonHeight / -8} H${props.dimensions.nextPreviousButtonHeight / 4}`}
+              fill='transparent'
+              stroke='#233036'
+              strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+            />
+          </g>
+        </svg>
+      </button>
+    }
   </div>
 );
 
@@ -82,8 +88,14 @@ export default ElectionLabel;
 
 ElectionLabel.propTypes = {
   selectedYear: PropTypes.number.isRequired,
-  previousYear: PropTypes.number.isRequired,
-  nextYear: PropTypes.number.isRequired,
+  previousYear: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.bool
+  ]).isRequired,
+  nextYear: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.bool
+  ]).isRequired,
   onYearSelected: PropTypes.func.isRequired,
   dimensions: PropTypes.shape({
     electionLabelLeft: PropTypes.number.isRequired,

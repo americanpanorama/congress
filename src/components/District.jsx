@@ -55,10 +55,10 @@ export default class District extends React.Component {
         strokeWidth={this.props.strokeWidth}
         strokeOpacity={this.state.strokeOpacity}
         onClick={this.props.onDistrictSelected}
-        onMouseEnter={this.props.onDistrictInspected}
-        onMouseOver={this.props.onDistrictInspected}
-        onFocus={this.props.onDistrictInspected}
-        onMouseLeave={this.props.onDistrictUninspected}
+        // onMouseEnter={this.props.onDistrictInspected}
+        // onMouseOver={this.props.onDistrictInspected}
+        // onFocus={this.props.onDistrictInspected}
+        // onMouseLeave={this.props.onDistrictUninspected}
         id={this.props.id}
         style={{ 
           pointerEvents: this.props.pointerEvents,

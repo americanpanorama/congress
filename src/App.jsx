@@ -36,7 +36,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -116,6 +116,16 @@ class App extends React.Component {
       selectedDistrict: id,
       selectedParty: null,
       onlyFlipped: false
+    });
+  }
+
+  onZoomToDistrict (e) {
+    const id = (typeof e === 'string') ? e : e.currentTarget.id;
+    const xyz = DistrictsStore.getXYZForDistrict(id);
+    this.setState({
+      x: xyz.x,
+      y: xyz.y,
+      zoom: xyz.z
     });
   }
 
@@ -274,6 +284,7 @@ class App extends React.Component {
 
         { (viewableDistrict) ?
           <DistrictData
+            id={viewableDistrict}
             label={DistrictsStore.getDistrictLabel(this.state.selectedYear, viewableDistrict)}
             isSelected={viewableDistrict === this.state.selectedDistrict}
             backgroundColor={(!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)}
@@ -282,6 +293,7 @@ class App extends React.Component {
             previousDistrict={DistrictsStore.getStatePreviousDistrictId(this.state.selectedYear, viewableDistrict)}
             nextDistrict={DistrictsStore.getStateNextDistrictId(this.state.selectedYear, viewableDistrict)}
             onDistrictSelected={this.onDistrictSelected}
+            onZoomToDistrict={this.onZoomToDistrict}
             dimensions={dimensions}
           /> :
           <Context

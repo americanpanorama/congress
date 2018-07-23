@@ -34,6 +34,32 @@ const DimensionsStore = {
     this.data.mapHeight = this.data.windowHeight * 7.5 / 12;
     this.data.mapWidth = this.data.windowWidth;
 
+    // calculate the amount of padding either top/bottom or left/right for the map when displayed at zoom 0
+    // the ratio of width to height for albers is 960 / 500 or 1.92
+    const projWxHRatio = 960 / 500;
+    const vpWxHRatio = this.data.mapWidth / this.data.mapHeight;
+
+    // if viewport wider than map so left/right padding
+    if (vpWxHRatio > projWxHRatio) {
+      this.data.mapProjectionWidth = projWxHRatio * this.data.mapHeight;
+      this.data.mapProjectionHeight = this.data.mapHeight;
+      this.data.mapLRPadding = (this.data.mapWidth - this.data.mapProjectionWidth) / 2;
+      this.data.mapTBPadding = 0;
+    } else if (vpWxHRatio > projWxHRatio) {
+      this.data.mapProjectionWidth = this.data.mapWidth;
+      this.data.mapProjectionHeight = this.data.mapWidth / projWxHRatio;
+      this.data.mapLRPadding = 0;
+      this.data.mapTBPadding = (this.data.mapHeight / this.data.mapProjectionHeight) / 2;
+    } else {
+      this.data.mapProjectionWidth = this.data.mapWidth;
+      this.data.mapProjectionHeight = this.data.mapHeight;
+      this.data.mapLRPadding = 0; 
+      this.data.mapTBPadding = 0;
+    }
+
+    this.data.mapWidthPaddingPerc = (vpWxHRatio > projWxHRatio) ? this.data.mapWidth / this.data.mapHeight : 0;
+    // 1920*(((1920+400) / 1000) / (960/500)-1)/2
+
     this.data.vizControlTrackHeight = this.data.headerSubtitleFontSize * 0.8;
 
     this.data.sidebarBottom = this.data.gutterPadding;

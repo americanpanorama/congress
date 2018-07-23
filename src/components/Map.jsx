@@ -1,6 +1,5 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import shallowCompare from 'react-addons-shallow-compare';
 
 import Draggable from 'react-draggable';
 
@@ -20,7 +19,7 @@ export default class Map extends React.Component {
     this.state = {};
 
     // bind handlers
-    const handlers = ['handleMouseUp', 'handleMouseDown', 'onDistrictInspected'];
+    const handlers = ['handleMouseUp', 'handleMouseDown', 'onDistrictSelected'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -35,15 +34,17 @@ export default class Map extends React.Component {
       transitionDuration = 0;
     }
 
+    const dimensions = DimensionsStore.getDimensions();
+
     return {
       districts: DistrictsStore.getElectionDistricts(props.selectedYear),
       states: DistrictsStore.getStates(props.selectedYear),
       cityBubbles: DistrictsStore.getBubbleCoords(props.selectedYear).cities,
       districtBubbles: DistrictsStore.getBubbleCoords(props.selectedYear).districts,
-      offsetX: (DimensionsStore.getDimensions().mapWidth * props.zoom * props.x -
-        DimensionsStore.getDimensions().mapWidth / 2) * -1,
-      offsetY: (DimensionsStore.getDimensions().mapHeight * props.zoom * props.y -
-        DimensionsStore.getDimensions().mapHeight / 2) * -1,
+      offsetX: (dimensions.mapProjectionWidth * props.zoom * props.x -
+        dimensions.mapWidth / 2) * -1,
+      offsetY: (dimensions.mapProjectionHeight * props.zoom * props.y -
+        dimensions.mapHeight / 2) * -1,
       draggableX: 0,
       draggableY: 0,
       transitionDuration: transitionDuration,
@@ -69,9 +70,9 @@ export default class Map extends React.Component {
       this.props.geolocation !== nextProps.geolocation);
   }
 
-  onDistrictInspected (e) {
-    if (!this.state.isDragging) {
-      this.props.onDistrictInspected(e);
+  onDistrictSelected (e) {
+    if (!this.state.wasDrug) {
+      this.props.onDistrictSelected(e);
     }
   }
 
@@ -81,15 +82,21 @@ export default class Map extends React.Component {
 
   handleMouseUp (e, ui) {
     const vpWidth = DimensionsStore.getDimensions().mapWidth;
-    const currentWidth = vpWidth * this.props.zoom;
-    const propOffsetX = ((this.state.offsetX + ui.x) * -1 + vpWidth / 2) / currentWidth;
+    const currentWidth = DimensionsStore.getDimensions().mapProjectionWidth * this.props.zoom;
+    const propOffsetX = (vpWidth / 2 - this.state.offsetX - ui.x) / currentWidth;
     const vpHeight = DimensionsStore.getDimensions().mapHeight;
-    const currentHeight = vpHeight * this.props.zoom;
-    const propOffsetY = ((this.state.offsetY + ui.y) * -1 + vpHeight / 2) / currentHeight;
+    const currentHeight = DimensionsStore.getDimensions().mapProjectionHeight * this.props.zoom;
+    const propOffsetY = (vpHeight / 2 - this.state.offsetY - ui.y) / currentHeight;
+
+    // calculate whether the map was moved
+    const wasDrug = propOffsetX !== this.props.x || propOffsetY !== this.props.y;
 
     this.props.onMapDrag(propOffsetX, propOffsetY);
 
-    this.setState({ isDragging: false });
+    this.setState({
+      isDragging: false,
+      wasDrug: wasDrug
+    });
   }
 
   render () {
@@ -102,7 +109,6 @@ export default class Map extends React.Component {
       viewableDistrict,
       onlyFlipped,
       onDistrictUninspected,
-      onDistrictSelected,
       zoom,
       geolocation
     } = this.props;
@@ -117,8 +123,8 @@ export default class Map extends React.Component {
       >
         <div
           style={{
-            width: dimensions.mapWidth * zoom,
-            height: dimensions.mapHeight * zoom,
+            width: dimensions.mapProjectionWidth * zoom,
+            height: dimensions.mapProjectionHeight * zoom,
             transform: `translate(${this.state.offsetX}px, ${this.state.offsetY}px)`
           }}
         >
@@ -128,8 +134,8 @@ export default class Map extends React.Component {
             onStop={this.handleMouseUp}
           >
             <svg
-              width={dimensions.mapWidth * zoom}
-              height={dimensions.mapHeight * zoom}
+              width={dimensions.mapProjectionWidth * zoom}
+              height={dimensions.mapProjectionHeight * zoom}
             >
               <filter id='glow' x='-50%' y='-10%' width='200%' height='160%'>
                 <feGaussianBlur stdDeviation='10' result='glow' />
@@ -181,7 +187,7 @@ export default class Map extends React.Component {
                       selectedView={selectedView}
                       onDistrictInspected={this.onDistrictInspected}
                       onDistrictUninspected={onDistrictUninspected}
-                      onDistrictSelected={onDistrictSelected}
+                      onDistrictSelected={this.onDistrictSelected}
                       id={d.id}
                       duration={this.state.transitionDuration}
                       pointerEvents={(selectedView === 'map') ? 'auto' : 'none'}
@@ -293,7 +299,7 @@ export default class Map extends React.Component {
                       key={d.id}
                       id={d.districtId}
                       pointerEvents={(selectedView === 'map') ? 'none' : 'auto'}
-                      onDistrictSelected={onDistrictSelected}
+                      onDistrictSelected={this.onDistrictSelected}
                       duration={this.state.transitionDuration}
                     />
                   );
