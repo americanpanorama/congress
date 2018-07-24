@@ -17,25 +17,17 @@ export default class MapContainer extends React.Component {
     const theHash = HashManager.getState();
 
     this.state = {
-      selectedView: theHash.view || 'cartogram',
       winnerView: !theHash.show || theHash.show === 'winner',
       geolocation: null,
       geolocating: false
     };
 
     // bind handlers
-    const handlers = ['changeHash', 'onViewSelected', 'toggleView', 'zoom', 'onDistrictInspected', 'geolocate', 'selectCurrentLocation'];
+    const handlers = ['changeHash', 'toggleView', 'zoom', 'onDistrictInspected', 'geolocate', 'selectCurrentLocation'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
   componentDidUpdate () { this.changeHash(); }
-
-  onViewSelected (e) {
-    const selectedView = (this.state.selectedView === 'map') ? 'cartogram' : 'map';
-    this.setState({
-      selectedView: selectedView
-    });
-  }
 
   onDistrictInspected (e) {
     if (!this.state.isDragging) {
@@ -91,7 +83,6 @@ export default class MapContainer extends React.Component {
 
   changeHash () {
     const vizState = {
-      view: this.state.selectedView,
       show: (this.state.winnerView) ? 'winner' : 'strength'
     };
 
@@ -104,7 +95,7 @@ export default class MapContainer extends React.Component {
     return (
       <React.Fragment>
         <TheMap
-          selectedView={this.state.selectedView}
+          selectedView={this.props.selectedView}
           winnerView={this.state.winnerView}
           selectedYear={this.props.selectedYear}
           selectedParty={this.props.selectedParty}
@@ -115,20 +106,21 @@ export default class MapContainer extends React.Component {
           onDistrictUninspected={this.props.onDistrictUninspected}
           onDistrictSelected={this.props.onDistrictSelected}
           onMapDrag={this.props.onMapDrag}
+          onZoomInToPoint={this.props.onZoomInToPoint}
           x={this.props.x}
           y={this.props.y}
           zoom={this.props.zoom}
         />
 
         <MapControls
-          selectedView={this.state.selectedView}
+          selectedView={this.props.selectedView}
           winnerView={this.state.winnerView}
-          onViewSelected={this.onViewSelected}
+          onViewSelected={this.props.onViewSelected}
           toggleView={this.toggleView}
         />
 
         <MapLegend
-          selectedView={this.state.selectedView}
+          selectedView={this.props.selectedView}
           selectedYear={this.props.selectedYear}
           selectedParty={this.props.selectedParty}
           onPartySelected={this.props.onPartySelected}
@@ -155,6 +147,7 @@ export default class MapContainer extends React.Component {
 }
 
 MapContainer.propTypes = {
+  selectedView: PropTypes.string.isRequired,
   selectedYear: PropTypes.number.isRequired,
   selectedParty: PropTypes.string,
   x: PropTypes.number.isRequired,
@@ -166,6 +159,8 @@ MapContainer.propTypes = {
   onDistrictUninspected: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,
+  onZoomInToPoint: PropTypes.func.isRequired,
+  onViewSelected: PropTypes.func.isRequired,
   toggleFlipped: PropTypes.func.isRequired,
   onZoomIn: PropTypes.func.isRequired,
   zoomOut: PropTypes.func.isRequired,

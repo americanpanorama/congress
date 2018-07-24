@@ -83,9 +83,7 @@ const DistrictsStore = {
             .map((d, i) => {
               const state = d.district.substring(0, 2);
               const district = parseInt(d.district.substring(2), 10);
-              if (SpatialIds[yearData.year][d.id] === 'spatialId865') {
-                console.log(yearData.year, d);
-              }
+
               if (!Elections[yearData.year][state][district]) {
                 return {
                   id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
@@ -307,6 +305,35 @@ const DistrictsStore = {
     // const theBounds = DistrictsStore.getPathFunction().bounds(d.the_geojson);
     // const theBoundsPerc = theBounds.map(point => [point[0] / DimensionsStore.getDimensions().mapProjectionWidth, point[1] / DimensionsStore.getDimensions().mapProjectionHeight]);
     // console.log(theBoundsPerc);
+  },
+
+  getXYXForDistrictAndBubble: function (id, year) {
+    const bounds = this.getPathFunction().bounds(this.data.districts[id].the_geojson);
+    const theBubble = this.getBubbleForDistrict(id, year);
+    const radius = 5;
+    const minX = Math.min(bounds[0][0], theBubble.x - radius);
+    const maxX = Math.max(bounds[1][0], theBubble.x + radius);
+    const minY = Math.min(bounds[0][1], theBubble.y - radius);
+    const maxY = Math.max(bounds[1][1], theBubble.y + radius);
+
+    let zHorizontal = 1;
+    while ((maxX - minX) * zHorizontal < DimensionsStore.getDimensions().mapWidth / 2) {
+      zHorizontal *= 1.62;
+    }
+    let zVertical = 1;
+    while ((maxY - minY) * zVertical < DimensionsStore.getDimensions().mapHeight / 2) {
+      zVertical *= 1.62;
+    }
+
+    const x = (minX + maxX) / 2 / DimensionsStore.getDimensions().mapProjectionWidth;
+    const y = (minY + maxY) / 2 / DimensionsStore.getDimensions().mapProjectionHeight;
+    const z = Math.round(Math.min(zHorizontal, zVertical) / 1.62 * 100) / 100;
+
+    return {
+      x: x,
+      y: y,
+      z: z
+    };
   },
 
   getYears: function() { return Object.keys(Elections).map(y => parseInt(y)); },

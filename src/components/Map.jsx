@@ -109,6 +109,7 @@ export default class Map extends React.Component {
       viewableDistrict,
       onlyFlipped,
       onDistrictUninspected,
+      onZoomInToPoint,
       zoom,
       geolocation
     } = this.props;
@@ -136,6 +137,7 @@ export default class Map extends React.Component {
             <svg
               width={dimensions.mapProjectionWidth * zoom}
               height={dimensions.mapProjectionHeight * zoom}
+              onDoubleClick={onZoomInToPoint}
             >
               <filter id='glow' x='-50%' y='-10%' width='200%' height='160%'>
                 <feGaussianBlur stdDeviation='10' result='glow' />
@@ -185,8 +187,6 @@ export default class Map extends React.Component {
                       strokeWidth={(!viewableDistrict || viewableDistrict !== d.id) ? 0.5 / zoom : 2 / zoom}
                       strokeOpacity={strokeOpacity}
                       selectedView={selectedView}
-                      onDistrictInspected={this.onDistrictInspected}
-                      onDistrictUninspected={onDistrictUninspected}
                       onDistrictSelected={this.onDistrictSelected}
                       id={d.id}
                       duration={this.state.transitionDuration}
@@ -374,6 +374,7 @@ Map.propTypes = {
   onDistrictUninspected: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onMapDrag: PropTypes.func.isRequired,
+  onZoomInToPoint: PropTypes.func.isRequired,
   x: PropTypes.number.isRequired,
   y: PropTypes.number.isRequired,
   zoom: PropTypes.number.isRequired

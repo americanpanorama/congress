@@ -24,6 +24,7 @@ class App extends React.Component {
     const theHash = HashManager.getState();
     const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d, 10)) : [0.5, 0.5, 1];
     this.state = {
+      selectedView: theHash.view || 'cartogram',
       selectedYear: parseInt(theHash.year, 10) || 1952,
       selectedDistrict: theHash.district || null,
       selectedParty: null,
@@ -36,7 +37,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -63,6 +64,13 @@ class App extends React.Component {
   }
 
   onWindowResize () { AppActions.windowResized(); }
+
+  onViewSelected (e) {
+    const selectedView = (this.state.selectedView === 'map') ? 'cartogram' : 'map';
+    this.setState({
+      selectedView: selectedView
+    });
+  }
 
   onYearSelected (e) {
     const year = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
@@ -106,6 +114,7 @@ class App extends React.Component {
   }
 
   onDistrictSelected (e) {
+    console.log('single');
     let id = null;
     if (typeof e === 'string') {
       id = e;
@@ -121,7 +130,11 @@ class App extends React.Component {
 
   onZoomToDistrict (e) {
     const id = (typeof e === 'string') ? e : e.currentTarget.id;
-    const xyz = DistrictsStore.getXYZForDistrict(id);
+    const xyz = (this.state.selectedView === 'map') ?
+      DistrictsStore.getXYZForDistrict(id) :
+      DistrictsStore.getXYXForDistrictAndBubble(id, this.state.selectedYear);
+
+    console.log(xyz);
     this.setState({
       x: xyz.x,
       y: xyz.y,
@@ -146,6 +159,21 @@ class App extends React.Component {
   zoomOut () {
     this.setState({
       zoom: Math.max(this.state.zoom / 1.62, 1)
+    });
+  }
+
+  onZoomInToPoint (e) {
+    console.log('double');
+    const dimensions = DimensionsStore.getDimensions();
+    const x = e.nativeEvent.offsetX /
+      (dimensions.mapProjectionWidth * this.state.zoom);
+    const y = e.nativeEvent.offsetY /
+      (dimensions.mapProjectionHeight * this.state.zoom);
+
+    this.setState({
+      x: x,
+      y: y,
+      zoom: Math.min(this.state.zoom * 1.62, 20)
     });
   }
 
@@ -175,6 +203,7 @@ class App extends React.Component {
 
   changeHash () {
     const vizState = {
+      selectedView: this.state.selectedView,
       year: this.state.selectedYear,
       district: this.state.selectedDistrict,
       xyz: [this.state.x, this.state.y, this.state.zoom]
@@ -229,6 +258,7 @@ class App extends React.Component {
         </header>
 
         <TheMap
+          selectedView={this.state.selectedView}
           selectedYear={this.state.selectedYear}
           onlyFlipped={this.state.onlyFlipped}
           selectedParty={this.state.selectedParty}
@@ -236,11 +266,13 @@ class App extends React.Component {
           x={this.state.x}
           y={this.state.y}
           zoom={this.state.zoom}
+          onViewSelected={this.onViewSelected}
           onDistrictInspected={this.onDistrictInspected}
           onDistrictUninspected={this.onDistrictUninspected}
           onDistrictSelected={this.onDistrictSelected}
           onPartySelected={this.onPartySelected}
           onZoomIn={this.onZoomIn}
+          onZoomInToPoint={this.onZoomInToPoint}
           onMapDrag={this.onMapDrag}
           resetView={this.resetView}
           zoomOut={this.zoomOut}
