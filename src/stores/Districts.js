@@ -184,7 +184,7 @@ const DistrictsStore = {
     }
   },
 
-  getBubbleCoords: function(year) { return this.data.bubbleCoords.find(bc => bc.year == year) || { districts: [], cities: [] }; },
+  getBubbleCoords: function(year) { return this.data.bubbleCoords.find(bc => bc.year === year) || { districts: [], cities: [] }; },
 
   cityHasParty: function (cityId, year, party) {
     let hasParty = false;
@@ -263,7 +263,7 @@ const DistrictsStore = {
     return cityBubble.r >= Math.sqrt(xDiff * xDiff + yDiff * yDiff);
   },
 
-  getElectionDistrictIds: function(year) { return this.data.bubbleCoords.find(bc => bc.year == year).districts.map(d => d.id); },
+  getElectionDistrictIds: function(year) { return this.data.bubbleCoords.find(bc => bc.year === year).districts.map(d => d.id); },
 
   getElectionDistricts: function(year) { 
     const districts = [],
@@ -359,20 +359,20 @@ const DistrictsStore = {
   getPreviousElectionYear: function(year) { 
     const electionYears = this.getYears(),
       iCurrent = electionYears.indexOf(parseInt(year));
-    return (iCurrent == 0) ? false : electionYears[iCurrent-1];
+    return (iCurrent === 0) ? false : electionYears[iCurrent-1];
   },
 
   getNextElectionYear: function(year) { 
     const electionYears = this.getYears(),
       iCurrent = electionYears.indexOf(parseInt(year));
-    return (iCurrent + 1 == electionYears.length) ? false : electionYears[iCurrent+1];
+    return (iCurrent + 1 === electionYears.length) ? false : electionYears[iCurrent+1];
   },
 
   getDistrictId(year, spatialId)  {
     let districtId = null;
     if (SpatialIds[year]) {
       Object.keys(SpatialIds[year]).every(aDistrictId => {
-        if (SpatialIds[year][aDistrictId] == spatialId) {
+        if (SpatialIds[year][aDistrictId] === spatialId) {
           districtId = aDistrictId;
           return false;
         }
@@ -407,7 +407,7 @@ const DistrictsStore = {
       let dist = {};
       Object.keys(Elections[year]).forEach(state => {
         Object.keys(Elections[year][state]).forEach(district => {
-          const party = (Elections[year][state][district].regularized_party_of_victory == 'Republican' || Elections[year][state][district].regularized_party_of_victory == 'Democrat') ? Elections[year][state][district].regularized_party_of_victory : 'Third';
+          const party = (Elections[year][state][district].regularized_party_of_victory === 'Republican' || Elections[year][state][district].regularized_party_of_victory === 'Democrat') ? Elections[year][state][district].regularized_party_of_victory : 'Third';
           dist[state] = dist[state] || {};
           dist[state][party] = dist[state][party] = dist[state][party] + 1 || 1;
         })
@@ -460,7 +460,7 @@ const DistrictsStore = {
     }
   },
 
-  getRawPartyCounts (year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year === year) : this.data.rawPartyCounts; },
+  getRawPartyCounts: function (year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year === year) : this.data.rawPartyCounts; },
 
   getPartyCountsKeys() { return this.data.partyCountsKeys; },
 
@@ -472,7 +472,7 @@ const DistrictsStore = {
       .sort();
 
     const statesGeojson = stateNames.map(sn => {
-      const districtsGeojson = districts.filter(d => d.statename == sn)
+      const districtsGeojson = districts.filter(d => d.statename === sn)
         .map(d => d.the_geojson);
       //const stateGeojson = geojsonMerge.merge(districtsGeojson);
       const stateGeojson = dissolve(districtsGeojson);
@@ -483,10 +483,10 @@ const DistrictsStore = {
     return statesGeojson;
   },
 
-  getPartyCountForYearAndParty(year, party) {
+  getPartyCountForYearAndParty: function (year, party) {
     return Object.keys(Elections[year]).reduce((accumulator, state) => {
         return accumulator + Object.keys(Elections[year][state]).reduce((accumulator2, districtNum) => {
-          return accumulator2 + ((Elections[year][state][districtNum].regularized_party_of_victory == party) ? 1 : 0) 
+          return accumulator2 + ((Elections[year][state][districtNum].regularized_party_of_victory === party) ? 1 : 0) 
         }, 0);
       }, 0);
   },
@@ -495,36 +495,37 @@ const DistrictsStore = {
 
   getMaxBottomOffset() { return Math.max(...this.data.rawPartyCounts.map(yd => yd.thirdCount/2 + yd.repBelowMargin + yd.repAboveMargin)); },
 
-  parseRawPartyCounts() {
-    let counts = [];
-    Object.keys(Elections).map(year => {
+  parseRawPartyCounts: function () {
+    const counts = [];
+    Object.keys(Elections).forEach((year) => {
       if (year !== 'NaN') {
         this.data.congressYears.push(parseInt(year));
-        const repCount = this.getPartyCountForYearAndParty(year, 'republican'),
-          whigCount = this.getPartyCountForYearAndParty(year, 'whig'),
-          demCount = this.getPartyCountForYearAndParty(year, 'democrat'),
-          demAboveMargin = (year < 1856) ? demCount - whigCount : demCount - repCount;
-        // var yearData = {
-        //   year: parseInt(year),
-        //   demBelowMargin: (repAboveMargin >= 0) ? demCount : demCount + repAboveMargin,
-        //   thirdCount: this.getPartyCountForYearAndParty(year, 'third'),
-        //   repBelowMargin: (repAboveMargin <= 0) ? repCount : repCount - repAboveMargin,
-        // };
-        // if (repAboveMargin < 0) {
-        //   yearData.demAboveMargin = repAboveMargin * -1;
-        // } else if (repAboveMargin > 0) {
-        //   yearData.repAboveMargin = repAboveMargin;
-        // }
-        // counts.push(yearData);
+
+        const repCount = this.getPartyCountForYearAndParty(year, 'republican');
+        const whigCount = this.getPartyCountForYearAndParty(year, 'whig');
+        const demCount = this.getPartyCountForYearAndParty(year, 'democrat');
+
+        const demAboveMargin = (year < 1856) ? Math.max(demCount - whigCount, 0) :
+          Math.max(demCount - repCount, 0);
+        const demBelowMargin = (demAboveMargin <= 0) ? demCount : demCount - demAboveMargin;
+
+        const repAboveMargin = Math.max(repCount - demCount, 0);
+        const repBelowMargin = (repAboveMargin > 0) ? repCount - repAboveMargin : repCount;
+
+        const whigAboveMargin = (whigCount > demCount) ? whigCount - demCount : 0;
+        const whigBelowMargin = (whigAboveMargin > 0) ? whigCount - whigAboveMargin : whigCount;
+
+        const thirdCount = this.getPartyCountForYearAndParty(year, 'third');
+
         counts.push({
           year: parseInt(year),
-          demAboveMargin: (demAboveMargin > 0) ? demAboveMargin : 0,
-          demBelowMargin: (demAboveMargin <= 0) ? demCount : demCount - demAboveMargin,
-          thirdCount: this.getPartyCountForYearAndParty(year, 'third'),
-          whigBelowMargin: (demAboveMargin >= 0) ? whigCount : demCount,
-          repBelowMargin: (demAboveMargin >= 0) ? repCount : demCount,
-          whigAboveMargin: (demAboveMargin >= 0) ? 0 : whigCount - demCount,
-          repAboveMargin: (demAboveMargin >= 0) ? 0 : repCount - demCount
+          demAboveMargin: demAboveMargin,
+          demBelowMargin: demBelowMargin,
+          thirdCount: thirdCount,
+          whigBelowMargin: whigBelowMargin,
+          repBelowMargin: repBelowMargin,
+          whigAboveMargin: whigAboveMargin,
+          repAboveMargin: repAboveMargin
         });
       }
     });
@@ -532,108 +533,91 @@ const DistrictsStore = {
     this.data.rawPartyCounts = counts;
   },
 
-  parsePartyCounts() {
-    function offset(series, order) {
-      series.forEach(partyCounts => {
-        if (partyCounts.key == 'demAboveMargin') {
-          partyCounts = partyCounts.map((stackData,i) => {
-            stackData[0] = -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-            // a little hacky, but set this to zero so that you can prevent gaps between curves that don't match because they don't share all points
-            stackData[1] = 0; //-1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-          });
-        }
-        if (partyCounts.key == 'demBelowMargin') {
-          partyCounts = partyCounts.map(stackData => {
-            stackData[0] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-            stackData[1] = -1 * (stackData.data.thirdCount/2);
-          });
-        }
-        if (partyCounts.key == 'thirdCount') {
-          partyCounts = partyCounts.map(stackData => {
-            stackData[0] = -1 * (stackData.data.thirdCount/2);
-            stackData[1] = stackData.data.thirdCount/2;
-          });
-        }
-        if (partyCounts.key == 'repBelowMargin') {
-          partyCounts = partyCounts.map(stackData => {
-            stackData[0] = stackData.data.thirdCount/2;
-            stackData[1] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
-          });
-        }
-        if (partyCounts.key == 'repAboveMargin') {
-          partyCounts = partyCounts.map((stackData, i) => {
-            if (false && i > 0 && partyCounts[i-1].data.repAboveMargin == 0) {
-              stackData[0] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-              stackData[1] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
-            } else {
-              stackData[0] = 0; //stackData.data.thirdCount/2 + stackData.data.repBelowMargin;
-              stackData[1] = stackData.data.thirdCount/2 + stackData.data.repBelowMargin + stackData.data.repAboveMargin;
-            }
-          });
-        }
-        if (partyCounts.key == 'whigBelowMargin') {
-          partyCounts = partyCounts.map(stackData => {
-            stackData[0] = stackData.data.thirdCount/2;
-            stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
-          });
-        }
-        if (partyCounts.key == 'whigAboveMargin') {
-          partyCounts = partyCounts.map((stackData, i) => {
-            if (false && i > 0 && partyCounts[i-1].data.whigAboveMargin == 0) {
-              stackData[0] = -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount/2);
-              stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
-            } else {
-              stackData[0] = 0; //stackData.data.thirdCount/2 + stackData.data.whigBelowMargin;
-              stackData[1] = stackData.data.thirdCount/2 + stackData.data.whigBelowMargin + stackData.data.whigAboveMargin;
-            }
-          });
-        }
-      });
-    }
+  parsePartyCounts: function () {
     const stack = d3.stack()
-      .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount','whigBelowMargin','repBelowMargin','whigAboveMargin','repAboveMargin'])
-      .offset(offset);
-    var stackedData = stack(this.data.rawPartyCounts);
+      .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'whigBelowMargin', 'repBelowMargin', 'whigAboveMargin', 'repAboveMargin']);
+
+    // calculate preliminary steamgraph values
+    console.log(this.data.rawPartyCounts);
+    let stackedData = stack(this.data.rawPartyCounts);
+
+    // recalculate to offset democrats up and republicans and whigs down
+    stackedData.forEach((partyCounts, i) => {
+      partyCounts.forEach((stackData, j) => {
+        const formulas0 = {
+          demAboveMargin: () => -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount / 2),
+          demBelowMargin: () => -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount / 2),
+          thirdCount: () => -1 * (stackData.data.thirdCount / 2),
+          repBelowMargin: () => stackData.data.thirdCount / 2,
+          whigBelowMargin: () => stackData.data.thirdCount / 2,
+          repAboveMargin: () => 0,
+          whigAboveMargin: () => 0
+        };
+        const formulas1 = {
+          demAboveMargin: () => 0,
+          demBelowMargin: () => -1 * (stackData.data.thirdCount / 2),
+          thirdCount: () => stackData.data.thirdCount / 2,
+          repBelowMargin: () => stackData.data.thirdCount / 2 + stackData.data.repBelowMargin,
+          whigBelowMargin: () => stackData.data.thirdCount / 2 + stackData.data.whigBelowMargin,
+          repAboveMargin: () => stackData.data.thirdCount / 2 + stackData.data.repBelowMargin + stackData.data.repAboveMargin,
+          whigAboveMargin: () => stackData.data.thirdCount / 2 + stackData.data.whigBelowMargin + stackData.data.whigAboveMargin
+        };
+        const coords = [formulas0[partyCounts.key](), formulas1[partyCounts.key]()];
+        coords.data = stackData.data;
+        stackedData[i][j] = coords;
+      });
+    });
+
+    console.log(stackedData[4]);
+
 
     // split the margins into separate series
-    let demMajorityYears = stackedData[0].filter(yd => yd.data.demAboveMargin > 0).map(yd => yd.data.year),
-      demStartYears = demMajorityYears.filter((year, i) => i == 0 || !demMajorityYears.includes(year - 2)),
-      demEndYears = demMajorityYears.filter((year, i) => i == demMajorityYears.length -1 || !demMajorityYears.includes(year + 2)),
-      demSpans = demStartYears.map((sy, i) => [sy, demEndYears[i]]),
-      demSeries = [];
-    demSpans.forEach(span => {
-      const startIndex = stackedData[0].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[0].findIndex(yd => yd.data.year == span[1]),
-        aDemSeries = stackedData[0].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+    const demMajorityYears = stackedData[0]
+      .filter(yd => yd.data.demAboveMargin > 0)
+      .map(yd => yd.data.year);
+    const demStartYears = demMajorityYears
+      .filter((year, i) => i === 0 || !demMajorityYears.includes(year - 2));
+    const demEndYears = demMajorityYears
+      .filter((year, i) => i === demMajorityYears.length - 1 || !demMajorityYears.includes(year + 2));
+    const demSpans = demStartYears.map((sy, i) => [sy, demEndYears[i]]);
+    const demSeries = [];
+    demSpans.forEach((span) => {
+      const startIndex = stackedData[0].findIndex(yd => yd.data.year === span[0]);
+      const endIndex = stackedData[0].findIndex(yd => yd.data.year === span[1]);
+      const aDemSeries = stackedData[0].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
       demSeries.push(aDemSeries);
     });
 
-    let repMajorityYears = stackedData[6].filter(yd => yd.data.repAboveMargin > 0).map(yd => yd.data.year),
-      repStartYears = repMajorityYears.filter((year, i) => i == 0 || !repMajorityYears.includes(year - 2)),
-      repEndYears = repMajorityYears.filter((year, i) => i == repMajorityYears.length -1 || !repMajorityYears.includes(year + 2)),
-      repSpans = repStartYears.map((sy, i) => [sy, repEndYears[i]]),
-      repSeries = [];
-    repSpans.forEach(span => {
-      const startIndex = stackedData[6].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[6].findIndex(yd => yd.data.year == span[1]),
-        aRepSeries = stackedData[6].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+    const repMajorityYears = stackedData[6]
+      .filter(yd => yd.data.repAboveMargin > 0)
+      .map(yd => yd.data.year);
+    const repStartYears = repMajorityYears
+      .filter((year, i) => i === 0 || !repMajorityYears.includes(year - 2));
+    const repEndYears = repMajorityYears
+      .filter((year, i) => i === repMajorityYears.length -1 || !repMajorityYears.includes(year + 2));
+    const repSpans = repStartYears.map((sy, i) => [sy, repEndYears[i]]);
+    const repSeries = [];
+    repSpans.forEach((span) => {
+      const startIndex = stackedData[6].findIndex(yd => yd.data.year === span[0]);
+      const endIndex = stackedData[6].findIndex(yd => yd.data.year === span[1]);
+      const aRepSeries = stackedData[6].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
       repSeries.push(aRepSeries);
     });
 
-    let whigMajorityYears = stackedData[5].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year),
-      whigStartYears = whigMajorityYears.filter((year, i) => i == 0 || !whigMajorityYears.includes(year - 2)),
-      whigEndYears = whigMajorityYears.filter((year, i) => i == whigMajorityYears.length -1 || !whigMajorityYears.includes(year + 2)),
-      whigSpans = whigStartYears.map((sy, i) => [sy, whigEndYears[i]]),
-      whigSeries = [];
-    whigSpans.forEach(span => {
-      const startIndex = stackedData[5].findIndex(yd => yd.data.year == span[0]),
-        endIndex = stackedData[5].findIndex(yd => yd.data.year == span[1]),
-        aWhigSeries = stackedData[5].slice(startIndex, (startIndex == endIndex) ? endIndex + 2 : endIndex + 1);
+    const whigMajorityYears = stackedData[5].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year);
+    const whigStartYears = whigMajorityYears.filter((year, i) => i === 0 || !whigMajorityYears.includes(year - 2));
+    const whigEndYears = whigMajorityYears.filter((year, i) => i === whigMajorityYears.length -1 || !whigMajorityYears.includes(year + 2));
+    const whigSpans = whigStartYears.map((sy, i) => [sy, whigEndYears[i]]);
+    const whigSeries = [];
+    whigSpans.forEach((span) => {
+      const startIndex = stackedData[5].findIndex(yd => yd.data.year === span[0]);
+      const endIndex = stackedData[5].findIndex(yd => yd.data.year === span[1]);
+      const aWhigSeries = stackedData[5].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
       whigSeries.push(aWhigSeries);
     });
 
-    stackedData.splice(5,2);
-    stackedData.splice(0,1);
+    stackedData.splice(5, 2);
+    stackedData.splice(0, 1);
     stackedData = repSeries.concat(stackedData);
     stackedData = whigSeries.concat(stackedData);
     stackedData = demSeries.concat(stackedData);
@@ -684,9 +668,9 @@ const DistrictsStore = {
       .find(state => d3.geoContains(state, point));
     if (theStateGeoJson) {
       // some stuff for VA and WV
-      const stateAbbr = (theStateGeoJson.properties.abbr_name == 'WV' && year < 1864) ? 'VA' : theStateGeoJson.properties.abbr_name;
+      const stateAbbr = (theStateGeoJson.properties.abbr_name === 'WV' && year < 1864) ? 'VA' : theStateGeoJson.properties.abbr_name;
       const theDistrict = DistrictsStore.getElectionDistricts(year)
-        .filter(dist => dist.statename == getStateName(stateAbbr))
+        .filter(dist => dist.statename === getStateName(stateAbbr))
         .find(dist => d3.geoContains(dist.the_geojson, point));
       if (theDistrict) {
         return theDistrict.id;

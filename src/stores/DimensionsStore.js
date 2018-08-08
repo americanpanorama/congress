@@ -22,16 +22,16 @@ const DimensionsStore = {
 
     this.data.gutterPadding = this.data.windowHeight * 0.01;
 
-    this.data.headerHeight = this.data.windowHeight * 1/12 - this.data.gutterPadding * 1.5;
+    this.data.headerHeight = this.data.windowHeight * 2 / 24;
     this.data.headerGutter = this.data.headerHeight * 0.01;
     this.data.headerTitleFontSize = this.data.headerHeight / 2 - this.data.headerGutter * 1.5;
     this.data.headerSubtitleFontSize = this.data.headerHeight / 3 - this.data.headerGutter * 1.5;
 
-    this.data.timelineHeight = this.data.windowHeight / 4 - this.data.gutterPadding * 1.5;
+    this.data.timelineHeight = this.data.windowHeight * 6 / 24 - this.data.gutterPadding;
 
     this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
-    this.data.mapHeight = this.data.windowHeight * 7.5 / 12;
+    this.data.mapHeight = this.data.windowHeight * 15 / 24;
     this.data.mapWidth = this.data.windowWidth;
 
     // calculate the amount of padding either top/bottom or left/right for the map when displayed at zoom 0
@@ -64,8 +64,8 @@ const DimensionsStore = {
 
     this.data.sidebarBottom = this.data.gutterPadding;
     this.data.sidebarLeft = this.data.gutterPadding;
-    this.data.sidebarHeight = this.data.timelineHeight + this.data.windowHeight / 24;
-    this.data.sidebarWidth = this.data.timelineHeight;
+    this.data.sidebarHeight = this.data.windowHeight * 7 / 24 - this.data.sidebarBottom; //this.data.timelineHeight + this.data.windowHeight / 24;
+    this.data.sidebarWidth = this.data.timelineHeight + this.data.gutterPadding;
 
     this.data.electionLabelBottom = this.data.timelineHeight + this.data.gutterPadding;
     this.data.electionLabelLeft = this.data.timelineHeight + this.data.gutterPadding;
