@@ -33,6 +33,36 @@ export default class Context extends React.Component {
         }}
         className='context'
       >
+        {(this.props.selectedYear === 1930) &&
+          <p>Voters turned Republicans out of office across the country as the electorate rejected conservative approaches to the Great Depression.  <span onClick={this.toggleFlippedPartyOff}>Democrats picked up 52 seats</span> in the election, barely missing taking control of the House, 216-218.  However, several special elections after the death of elected members led to Democratic control of the House, 218-217.  <span onClick={this.props.onDistrictSelected} id='048066072015'>John Nance Garner</span> (D-TX) succeeded <span onClick={this.props.onDistrictSelected} id='039064072001'>Nicholas Longworth</span> (R-OH) as Speaker of the House.  In the Senate, Democrats picked up 6 seats but Republicans retained control of the chamber, 50-45.</p>
+        }
+        {(this.props.selectedYear === 1932) &&
+          <p>The electoral wave rejecting the Republican party continued in 1932, when <span onClick={this.toggleFlippedPartyOff}>Democrats picked up 97 seats</span> in the House to take a 313-117 advantage, with the Farmer-Labor party gaining 4 more seats for a total of 5.  <span onClick={this.props.onDistrictSelected} id='017063077020'>Henry Rainey</span> (D-IL) replaced <span onClick={this.props.onDistrictSelected} id='048073073015'>John Garner</span> (D-TX) as Speaker when Garner became Vice President.  In the Senate, Democrats gained 12 seats to take control, 59-36.</p>
+        }
+        {(this.props.selectedYear === 1934) &&
+          <p>Voters largely approved of the wave of New Deal legislation and programs to address the Great Depression returning control to Democrats in the House and <span onClick={this.toggleFlippedPartyOff}>adding 9 more seats</span> than in 1932, for an advantage over Republicans of 322-103. <span onClick={this.props.onDistrictSelected} id='047074077005'>Joseph Byrns</span> (D-TN) succeeded Henry Rainey (D-IL) as Speaker of the House, until Byrns died in 1936, when <span onClick={this.props.onDistrictSelected} id='001073087007'>William Bankhead</span> (D-AL) assumed the Speakership.  The Progressive Party won 7 seats, and the Farm-Laborer Party dropped to 3 seats in the House.  In the Senate, Democrats picked up 9 seats to take a 69-25 advantage in the chamber.  The Progressive and Farmer-Labor parties each won 1 Senate seat.</p>
+        }
+        {(this.props.selectedYear === 1936) &&
+          <p>Democrats strengthened their hold on the House of Representatives in 1936 campaigning on consolidation and protection of the New Deal.  Democrats <span onClick={this.toggleFlippedPartyOff}>picked up 12 seats</span> to take a 334-88 advantage in the House.  In the Senate, Democrats gained 5 seats and increased their advantage over Republicans, 74-17, while Farmer-Labor remained at 2 seats, the Progressive Party at 1 seat, and 1 Independent won a seat.</p>
+        }
+        {(this.props.selectedYear === 1938) &&
+          <p>The 1938 elections saw a resurgence of the Republican Party, as the GOP <span onClick={this.toggleFlippedPartyOff}>picked up 81 seats</span> in the House of Representatives to cut the Democratic advantage to 262-169.  The Progressive and Farmer-Labor parties lost seats, dropping to 2 and 1, respectively, while the American Labor party won a single seat.  In the Senate, Republicans picked up 7 seats to cut the Democratic control to a 68-23 advantage, with the Farmer-Labor party holding 2 seats, Progressives 1, and 1 Independent.</p>
+        }
+        {(this.props.selectedYear === 1940) &&
+          <p>Democrats held their support in the fall of 1940 as economic growth returned after the recession of 1937. The continuing isolationism of the nation, despite the growing war in Europe, meant that mobilization was not a decisive issue for this election.  <span onClick={this.toggleFlippedPartyOff}>Democrats picked up 5 seats</span> in the House to increase their advantage to 267-162.  <span onClick={this.selectPartyFlippedOff} id='third'>Minor parties held six seats</span>, including 3 for the Progressive party, 1 for American Labor, 1 for Farmer-Labor, and one Independent.  In the Senate, Republicans picked up 3 seats, but Democrats retained control of the chamber, 66-27.  The Progressive and Farmer-Labor parties each won one seat.</p>
+        }
+        {(this.props.selectedYear === 1942) &&
+          <p>Republicans made significant gains in the 1942 elections as the reform and economic recovery of the New Deal wound down, replaced by appropriations and mobilization for World War II.  <span onClick={this.toggleFlippedPartyOff}>Republicans picked up 47 seats in the House</span> to cut Democratic control to a narrow 222-209 advantage.  In the Senate, Republicans picked up 9 seats to cut the Democratic advantage to 57-38.</p>
+        }
+        {(this.props.selectedYear === 1944) &&
+          <p></p>
+        }
+        {(this.props.selectedYear === 1946) &&
+          <p>The end of World War II and the Roosevelt administration led to a landslide set of victories for Republicans in the 1946 Congressional elections.  Republicans took control of the House for the first time since the 1930 election, <span onClick={this.toggleFlippedPartyOff}>picking up 55 seats</span> and taking a 246-188 advantage over Democrats.  <span onClick={this.props.onDistrictSelected} id='025078087014'>Joseph Martin</span> (R-MA) took up the gavel of the Speaker of the House, succeeding <span onClick={this.props.onDistrictSelected} id='048074082004'>Sam Rayburn</span> (D-TX).  In the Senate, Republicans picked up 11 seats to take control of the upper chamber and a 50-46 advantage.</p>
+        }
+        {(this.props.selectedYear === 1948) &&
+          <p></p>
+        }
         {(this.props.selectedYear === 1950) &&
           <p>In the 1950 elections, both chambers of Congress shifted in favor of the Republicans. Democrats maintained a narrow majority of 48 seats in the Senate, while Republicans controlled 47 and there was a single independent. Meanwhile, the Democrats <span onClick={this.toggleFlippedPartyOff}>lost nearly thirty seats</span> in the House, but maintained <span onClick={this.selectPartyFlippedOff} id='democrat'>a majority of 234</span>. <span onClick={this.selectPartyFlippedOff} id='republican'>Republicans held 199</span>, while <span onClick={this.selectPartyFlippedOff} id='third'>Independents held 2</span>.  Future President Richard Nixon (R-CA) won the election for Senator of California, rising from the House of Representatives. Increasing anxieties about the Cold War contributed to a Red Scare where government officials accused and harassed leftist organizations and individuals under the banner of anti-communism.</p>
         }
