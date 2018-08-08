@@ -19,7 +19,7 @@ export default class Map extends React.Component {
     this.state = {};
 
     // bind handlers
-    const handlers = ['handleMouseUp', 'handleMouseDown', 'onDistrictSelected'];
+    const handlers = ['handleMouseUp', 'onDistrictSelected'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -76,10 +76,6 @@ export default class Map extends React.Component {
     }
   }
 
-  handleMouseDown () {
-    this.setState({ isDragging: true });
-  }
-
   handleMouseUp (e, ui) {
     const vpWidth = DimensionsStore.getDimensions().mapWidth;
     const currentWidth = DimensionsStore.getDimensions().mapProjectionWidth * this.props.zoom;
@@ -94,7 +90,6 @@ export default class Map extends React.Component {
     this.props.onMapDrag(propOffsetX, propOffsetY);
 
     this.setState({
-      isDragging: false,
       wasDrug: wasDrug
     });
   }
@@ -108,7 +103,6 @@ export default class Map extends React.Component {
       selectedParty,
       viewableDistrict,
       onlyFlipped,
-      onDistrictUninspected,
       onZoomInToPoint,
       zoom,
       geolocation
@@ -131,7 +125,6 @@ export default class Map extends React.Component {
         >
           <Draggable
             position={{ x: this.state.draggableX, y: this.state.draggableY }}
-            onDrag={this.handleMouseDown}
             onStop={this.handleMouseUp}
           >
             <svg
@@ -147,12 +140,19 @@ export default class Map extends React.Component {
                 <feGaussianBlur stdDeviation='5' result='blur' />
               </filter>
               <g
-                // onDoubleClick={ this.onZoomIn }
-                // onMouseUp={this.handleMouseUp }
-                // onMouseDown={this.handleMouseDown }
-                // onMouseMove={this.handleMouseMove }
                 transform={`scale(${zoom})`}
               >
+
+                {/* line connecting district and bubble if district is selected on cartogram */}
+                { (viewableDistrict && selectedView === 'cartogram') &&
+                  <line
+                    x1={DistrictsStore.getBubbleForDistrict(viewableDistrict, selectedYear).x}
+                    y1={DistrictsStore.getBubbleForDistrict(viewableDistrict, selectedYear).y}
+                    x2={DistrictsStore.getDistrictCentroid(viewableDistrict)[0]}
+                    y2={DistrictsStore.getDistrictCentroid(viewableDistrict)[1]}
+                    stroke='white'
+                  />
+                }
 
                 {/* district polygons */}
                 { this.state.districts.map((d) => {
@@ -195,14 +195,15 @@ export default class Map extends React.Component {
                   );
                 })}
 
+                {/* states */}
                 { this.state.states.map(s => (
                   <path
-                    d={DistrictsStore.getPath(s.geometry)}
+                    d={DistrictsStore.getPath(s)}
                     fill='transparent'
                     stroke='#eee'
                     strokeOpacity={(selectedView === 'cartogram') ? 0.2 : 1}
                     strokeWidth={(!viewableDistrict || s.properties.abbr_name === DistrictsStore.getElectionDataForDistrict(this.props.selectedYear, viewableDistrict).state) ? 1.5 / zoom : 0.3 / zoom}
-                    key={`stateBoundaries${s.properties.name}`}
+                    key={`stateBoundaries${s.properties.statename}`}
                     filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
                     style={{ pointerEvents: 'none' }}
                   />
@@ -219,7 +220,7 @@ export default class Map extends React.Component {
                     if (selectedParty) {
                       const percentOfParty = DistrictsStore.cityPercentForParty(d.id, selectedYear, selectedParty);
                       cityLabelOpacity = percentOfParty;
-                      //fillOpacity = 0.1 + percentOfParty * 0.4;
+                      // fillOpacity = 0.1 + percentOfParty * 0.4;
                       if (percentOfParty === 0) {
                         fillOpacity = 0.2;
                       }
@@ -275,7 +276,7 @@ export default class Map extends React.Component {
                     stroke = 'white';
                   }
                   // (selectedView === 'map' || (selectedParty && selectedParty !== d.regularized_party_of_victory)) ? 'transparent' : (selectedView === 'cartogram' && viewableDistrict && viewableDistrict == d.districtId) ? 'white' 
-                  
+            
                   // hide if not among selected party or selected flipped
                   if ((selectedParty && selectedParty !== d.regularized_party_of_victory) ||
                    (onlyFlipped && !d.flipped)) {
@@ -306,7 +307,7 @@ export default class Map extends React.Component {
                 })}
 
                 { (geolocation) &&
-                  <g 
+                  <g
                     transform={`translate(${geolocation[0]} ${geolocation[1]}) rotate(45)`}
                     style={{
                       pointerEvents: 'none'
@@ -328,11 +329,11 @@ export default class Map extends React.Component {
                       fill='silver'
                       fillOpacity={0.75}
                     >
-                      <animate 
-                        attributeName="r" 
-                        begin="0s" 
-                        dur="4s" 
-                        repeatCount="indefinite" 
+                      <animate
+                        attributeName='r'
+                        begin='0s'
+                        dur='4s'
+                        repeatCount='indefinite'
                         values={`${8 / zoom};${3 / zoom};${8 / zoom}`}
                       />
                     </circle>
@@ -342,11 +343,11 @@ export default class Map extends React.Component {
                       r={6 / zoom}
                       fill='green'
                     >
-                      <animate 
-                        attributeName="r" 
-                        begin="0s" 
-                        dur="4s" 
-                        repeatCount="indefinite" 
+                      <animate
+                        attributeName='r'
+                        begin='0s'
+                        dur='4s'
+                        repeatCount='indefinite'
                         values={`${6 / zoom};${1 / zoom};${6 / zoom}`}
                       />
                     </circle>
@@ -370,8 +371,6 @@ Map.propTypes = {
   geolocation: PropTypes.array,
   onlyFlipped: PropTypes.bool.isRequired,
   viewableDistrict: PropTypes.string,
-  onDistrictInspected: PropTypes.func.isRequired,
-  onDistrictUninspected: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onMapDrag: PropTypes.func.isRequired,
   onZoomInToPoint: PropTypes.func.isRequired,

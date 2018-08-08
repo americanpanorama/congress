@@ -27,7 +27,7 @@ class App extends React.Component {
       selectedView: theHash.view || 'cartogram',
       selectedYear: parseInt(theHash.year, 10) || 1952,
       selectedDistrict: theHash.district || null,
-      selectedParty: null,
+      selectedParty: theHash.party || null,
       onlyFlipped: false,
       inspectedDistrict: null,
       dorling: theHash.view !== 'map',
@@ -114,7 +114,6 @@ class App extends React.Component {
   }
 
   onDistrictSelected (e) {
-    console.log('single');
     let id = null;
     if (typeof e === 'string') {
       id = e;
@@ -134,7 +133,6 @@ class App extends React.Component {
       DistrictsStore.getXYZForDistrict(id) :
       DistrictsStore.getXYXForDistrictAndBubble(id, this.state.selectedYear);
 
-    console.log(xyz);
     this.setState({
       x: xyz.x,
       y: xyz.y,
@@ -163,7 +161,6 @@ class App extends React.Component {
   }
 
   onZoomInToPoint (e) {
-    console.log('double');
     const dimensions = DimensionsStore.getDimensions();
     const x = e.nativeEvent.offsetX /
       (dimensions.mapProjectionWidth * this.state.zoom);
@@ -203,9 +200,10 @@ class App extends React.Component {
 
   changeHash () {
     const vizState = {
-      selectedView: this.state.selectedView,
+      view: this.state.selectedView,
       year: this.state.selectedYear,
       district: this.state.selectedDistrict,
+      party: this.state.selectedParty,
       xyz: [this.state.x, this.state.y, this.state.zoom]
         .map(d => Math.round(d * 1000) / 1000)
         .join('/')
@@ -267,8 +265,6 @@ class App extends React.Component {
           y={this.state.y}
           zoom={this.state.zoom}
           onViewSelected={this.onViewSelected}
-          onDistrictInspected={this.onDistrictInspected}
-          onDistrictUninspected={this.onDistrictUninspected}
           onDistrictSelected={this.onDistrictSelected}
           onPartySelected={this.onPartySelected}
           onZoomIn={this.onZoomIn}
@@ -281,14 +277,13 @@ class App extends React.Component {
         />
 
         <Timeline
+          electionYears={DistrictsStore.getElectionYears()}
           partyCount={DistrictsStore.getPartyCounts()}
           partyCountKeys={DistrictsStore.getPartyCountsKeys()}
           maxDemocrats={DistrictsStore.getMaxTopOffset()}
           maxRepublicans={DistrictsStore.getMaxBottomOffset()}
           congressYears={DistrictsStore.getCongressYears()}
           onYearSelected={this.onYearSelected}
-          selectedYear={this.state.selectedYear}
-          partyCountForSelectedYear={DistrictsStore.getRawPartyCounts(this.state.selectedYear)}
           districtData={(viewableDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) : false}
         />
 

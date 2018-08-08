@@ -50,7 +50,10 @@ const config = {
       filename: '[name].[contenthash].css',
       disable: process.env.NODE_ENV === 'development'
     })
-  ]
+  ],
+  node: {
+    fs: 'empty'
+  }
 };
 
 module.exports = config;

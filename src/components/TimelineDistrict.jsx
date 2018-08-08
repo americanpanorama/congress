@@ -1,11 +1,15 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
+import DimensionsStore from '../stores/DimensionsStore';
 import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 
 const TimelineDistrict = (props) => {
+  const earliestYear = Math.min(...props.electionYears);
+  const lastYear = Math.max(...props.electionYears);
+
   const line = d3.line()
-    .x(d => props.x(d.year))
+    .x(d => DimensionsStore.timelineX(d.year))
     .y(d => props.y(d.percent))
     .curve(d3.curveCatmullRom);
   const lineData = [];
@@ -35,35 +39,35 @@ const TimelineDistrict = (props) => {
   return (
     <React.Fragment>
       <rect
-        x={props.x(1824)}
+        x={DimensionsStore.timelineX(earliestYear)}
         y={props.y(-1)}
-        width={props.x(2016) - props.x(1824)}
+        width={DimensionsStore.timelineX(lastYear) - DimensionsStore.timelineX(earliestYear)}
         height={props.y(0) - props.y(-1)}
         fill={getColorForParty('democrat')}
         fillOpacity={0.2}
       />
 
       <rect
-        x={props.x(1856)}
+        x={DimensionsStore.timelineX(1856)}
         y={props.y(0)}
-        width={props.x(2016) - props.x(1856)}
+        width={DimensionsStore.timelineX(lastYear) - DimensionsStore.timelineX(1856)}
         height={props.y(1) - props.y(0)}
         fill={getColorForParty('republican')}
         fillOpacity={0.2}
       />
 
       <rect
-        x={props.x(1824)}
+        x={DimensionsStore.timelineX(earliestYear)}
         y={props.y(0)}
-        width={props.x(1854) - props.x(1824)}
+        width={DimensionsStore.timelineX(1854) - DimensionsStore.timelineX(earliestYear)}
         height={props.y(1) - props.y(0)}
         fill={getColorForParty('whig')}
         fillOpacity={0.2}
       />
 
       <line
-        x1={props.x(1824)}
-        x2={props.x(2016)}
+        x1={DimensionsStore.timelineX(earliestYear)}
+        x2={DimensionsStore.timelineX(lastYear)}
         y1={props.y(-0.75)}
         y2={props.y(-0.75)}
         stroke='#233036'
@@ -71,8 +75,8 @@ const TimelineDistrict = (props) => {
       />
 
       <line
-        x1={props.x(1824)}
-        x2={props.x(2016)}
+        x1={DimensionsStore.timelineX(earliestYear)}
+        x2={DimensionsStore.timelineX(lastYear)}
         y1={props.y(0.5)}
         y2={props.y(0.5)}
         stroke='#233036'
@@ -80,8 +84,8 @@ const TimelineDistrict = (props) => {
       />
 
       <line
-        x1={props.x(1824)}
-        x2={props.x(2016)}
+        x1={DimensionsStore.timelineX(earliestYear)}
+        x2={DimensionsStore.timelineX(lastYear)}
         y1={props.y(0.75)}
         y2={props.y(0.75)}
         stroke='#233036'
@@ -99,7 +103,7 @@ const TimelineDistrict = (props) => {
         if (['democrat', 'republican', 'whig'].includes(props.districtData[year].regularized_party_of_victory)) {
           return (
             <circle
-              cx={props.x(year)}
+              cx={DimensionsStore.timelineX(year)}
               cy={getDistrictY(props.districtData[year])}
               r={5}
               fill={getColorForMargin(props.districtData[year].regularized_party_of_victory, 1)}
@@ -110,9 +114,9 @@ const TimelineDistrict = (props) => {
         } else if (props.districtData[year].regularized_party_of_victory === 'third') {
           return (
             <rect
-              x={props.x(year - 1)}
+              x={DimensionsStore.timelineX(year - 1)}
               y={props.y(-1)}
-              width={props.x(1863) - props.x(1861)}
+              width={DimensionsStore.timelineX(1863) - DimensionsStore.timelineX(1861)}
               height={props.y(1) - props.y(-1)}
               fill={getColorForParty('third')}
               fillOpacity={0.5}
@@ -129,8 +133,8 @@ const TimelineDistrict = (props) => {
 export default TimelineDistrict;
 
 TimelineDistrict.propTypes = {
+  electionYears: PropTypes.arrayOf(PropTypes.number).isRequired,
   districtData: PropTypes.objectOf(PropTypes.object).isRequired,
-  x: PropTypes.func.isRequired,
   y: PropTypes.func.isRequired,
   axisHeight: PropTypes.number.isRequired
 };

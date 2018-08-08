@@ -151,7 +151,7 @@ const DimensionsStore = {
 
   timelineX (year) {
     const x = d3.scaleLinear()
-      .domain([1824, 2016])
+      .domain([1836, 2010])
       .range([15, this.data.timelineWidth]);
     return x(year);
   },

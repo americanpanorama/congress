@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import * as topojson from 'topojson-client';
+import dissolve from 'geojson-dissolve';
 import * as d3 from 'd3';
 
 import AppDispatcher from '../utils/AppDispatcher';
@@ -10,7 +10,6 @@ import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong } from '.
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
 import SpatialIds from '../../data/spatialids.json';
-import StatesTopoJson from '../../data/states.json';
 import MetroNames from '../../data/metroNames.json';
 
 import DimensionsStore from './DimensionsStore';
@@ -20,7 +19,7 @@ const DistrictsStore = {
   data: {
     bubbleCoords: [],
     districts: [],
-    states:[],
+    states: [],
     elections: Elections,
     congressDistricts: {},
     theMap: null,
@@ -28,10 +27,12 @@ const DistrictsStore = {
     partyCounts: [],
     partyCountsKeys: [],
     congressYears: [],
-    slivers: []
+    slivers: [],
+    earliestYear: null,
+    lastYear: null
   },
 
-  loadDistrictsForCongress: function(year) {
+  loadDistrictsForCongress: function (year) {
     const congress = congressForYear(year);
     this.data.congressDistricts[year] = this.data.congressDistricts[year] || [];
 
@@ -44,7 +45,7 @@ const DistrictsStore = {
             return;
           }
           response.json().then((data) => {
-            const theGeoJson = data; //topojson.feature(data, data.objects);
+            const theGeoJson = data; 
             theGeoJson.features.forEach(d => {
               if (!this.data.districts[d.properties.id]) {
                 this.data.districts[d.properties.id] = {
@@ -66,11 +67,6 @@ const DistrictsStore = {
       .catch(function(err) {
         console.log('Fetch Error :-S', err);
       });    
-  },
-
-  parseStates: function() { 
-    this.data.states = topojson.feature(StatesTopoJson, StatesTopoJson.objects.states).features; 
-    this.emit(AppActionTypes.storeChanged);
   },
 
   parseBubbles: function () {
@@ -155,6 +151,28 @@ const DistrictsStore = {
     return d3.geoAlbersUsa()
       .scale(DimensionsStore.getMapScale())
       .translate([DimensionsStore.getDimensions().mapProjectionWidth/2, DimensionsStore.getDimensions().mapProjectionHeight/2]);
+  },
+
+  getEarliestYear: function () {
+    if (!this.data.earliestYear) {
+      this.data.earliestYear = Math.min(...Object.keys(this.data.elections)
+        .map(y => parseInt(y, 10)));
+    }
+    return this.data.earliestYear;
+  },
+
+  getLastYear: function () {
+    if (!this.data.lastYear) {
+      this.data.lastYear = Math.max(...Object.keys(this.data.elections)
+        .map(y => parseInt(y, 10)));
+    }
+    return this.data.lastYear;
+  },
+
+  getElectionYears: function () {
+    return Object.keys(this.data.elections)
+      .map(y => parseInt(y, 10))
+      .sort();
   },
 
   projectPoint(point) { return this.getProjection()(point); },
@@ -364,6 +382,10 @@ const DistrictsStore = {
     return districtId;
   },
 
+  getDistrictCentroid: function (id) {
+    return (this.data.districts[id]) ? this.getPathFunction().centroid(this.data.districts[id].the_geojson) : 0;
+  },
+
   getDistrictNum: function (year, spatialId) {
     if (!year || !spatialId) { return false; }
     let districtNum;
@@ -442,7 +464,24 @@ const DistrictsStore = {
 
   getPartyCountsKeys() { return this.data.partyCountsKeys; },
 
-  getStates(year) { return this.data.states.filter(state => state.properties.year <= year && !(year >= 1863 && state.properties.name == 'Virginia' && state.properties.year == 1864)); },
+  getStates(year) { 
+    const districts = this.getElectionDistricts(year);
+
+    const stateNames = districts.map(d => d.statename)
+      .filter((sn, i, self) => self.indexOf(sn) === i)
+      .sort();
+
+    const statesGeojson = stateNames.map(sn => {
+      const districtsGeojson = districts.filter(d => d.statename == sn)
+        .map(d => d.the_geojson);
+      //const stateGeojson = geojsonMerge.merge(districtsGeojson);
+      const stateGeojson = dissolve(districtsGeojson);
+      stateGeojson.properties = { statename: sn };
+      return stateGeojson;
+    });
+
+    return statesGeojson;
+  },
 
   getPartyCountForYearAndParty(year, party) {
     return Object.keys(Elections[year]).reduce((accumulator, state) => {
@@ -623,7 +662,7 @@ const DistrictsStore = {
 
   getSpatialIdData(spatialId) {
     let areaData = {};
-    for (let y = 1824; y <= 2010; y = y+2) {
+    for (let y = 1836; y <= 2010; y = y + 2) {
       let districtId = this.getDistrictId(y, spatialId),
         districtData = this.getElectionDataForDistrict(y, districtId);
       if (districtData) {
@@ -664,7 +703,6 @@ Object.assign(DistrictsStore, EventEmitter.prototype);
 // Register callback to handle all updates
 AppDispatcher.register((action) => {
   switch (action.type) {
-    
     case AppActionTypes.loadInitialData:
       const year = action.hashState.year || action.state.selectedYear || null;
 
@@ -672,7 +710,6 @@ AppDispatcher.register((action) => {
       DistrictsStore.loadDistrictsForCongress(year);
       DistrictsStore.parseRawPartyCounts();
       DistrictsStore.parsePartyCounts();
-      DistrictsStore.parseStates();
       break;
     case AppActionTypes.congressSelected:
       DistrictsStore.loadDistrictsForCongress(action.year);

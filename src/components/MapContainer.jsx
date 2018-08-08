@@ -23,31 +23,11 @@ export default class MapContainer extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['changeHash', 'toggleView', 'zoom', 'onDistrictInspected', 'geolocate', 'selectCurrentLocation'];
+    const handlers = ['changeHash', 'toggleView', 'geolocate', 'selectCurrentLocation'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
   componentDidUpdate () { this.changeHash(); }
-
-  onDistrictInspected (e) {
-    if (!this.state.isDragging) {
-      this.props.onDistrictInspected(e);
-    }
-  }
-
-  zoom (zMultipier, point) {
-    const z = Math.min(this.state.zoom * zMultipier, 20);
-    const newWidth = DimensionsStore.getDimensions().mapWidth * z;
-    const newOffsetX = (newWidth * this.state.x - point[0]) * -1;
-    const newHeight = DimensionsStore.getDimensions().mapHeight * z;
-    const newOffsetY = (newHeight * this.state.y - point[1]) * -1;
-
-    this.setState({
-      zoom: z,
-      offsetX: newOffsetX,
-      offsetY: newOffsetY,
-    });
-  }
 
   toggleView (e) {
     this.setState({ winnerView: !this.state.winnerView });
@@ -65,7 +45,7 @@ export default class MapContainer extends React.Component {
           geolocating: false
         }, this.selectCurrentLocation);
       }, (error) => {
-        console.warn('Geolocation error occurred. Error code: ' + error.code);
+        console.warn(`Geolocation error occurred. Error code: ${error.code}`);
       });
     }
   }
@@ -91,52 +71,72 @@ export default class MapContainer extends React.Component {
 
   render () {
     const dimensions = DimensionsStore.getDimensions();
+    const geolocation = (this.state.geolocation) ?
+      DistrictStore.projectPoint(this.state.geolocation) : null;
+    const {
+      selectedView,
+      selectedYear,
+      selectedParty,
+      onlyFlipped,
+      viewableDistrict,
+      onDistrictSelected,
+      onMapDrag,
+      onZoomIn,
+      zoomOut,
+      resetView,
+      onZoomInToPoint,
+      onViewSelected,
+      onPartySelected,
+      toggleFlipped,
+      hasThird,
+      x,
+      y,
+      zoom
+    } = this.props;
 
     return (
       <React.Fragment>
         <TheMap
-          selectedView={this.props.selectedView}
+          selectedView={selectedView}
           winnerView={this.state.winnerView}
-          selectedYear={this.props.selectedYear}
-          selectedParty={this.props.selectedParty}
-          geolocation={(this.state.geolocation) ? DistrictStore.projectPoint(this.state.geolocation) : null}
-          onlyFlipped={this.props.onlyFlipped}
-          viewableDistrict={this.props.viewableDistrict}
-          onDistrictInspected={this.props.onDistrictInspected}
-          onDistrictUninspected={this.props.onDistrictUninspected}
-          onDistrictSelected={this.props.onDistrictSelected}
-          onMapDrag={this.props.onMapDrag}
-          onZoomInToPoint={this.props.onZoomInToPoint}
-          x={this.props.x}
-          y={this.props.y}
-          zoom={this.props.zoom}
+          selectedYear={selectedYear}
+          selectedParty={selectedParty}
+          geolocation={geolocation}
+          onlyFlipped={onlyFlipped}
+          viewableDistrict={viewableDistrict}
+          onDistrictSelected={onDistrictSelected}
+          onMapDrag={onMapDrag}
+          onZoomInToPoint={onZoomInToPoint}
+          x={x}
+          y={y}
+          zoom={zoom}
         />
 
         <MapControls
-          selectedView={this.props.selectedView}
+          selectedView={selectedView}
           winnerView={this.state.winnerView}
-          onViewSelected={this.props.onViewSelected}
+          onViewSelected={onViewSelected}
           toggleView={this.toggleView}
         />
 
         <MapLegend
-          selectedView={this.props.selectedView}
-          selectedYear={this.props.selectedYear}
-          selectedParty={this.props.selectedParty}
-          onPartySelected={this.props.onPartySelected}
+          selectedView={selectedView}
+          selectedYear={selectedYear}
+          selectedParty={selectedParty}
+          onPartySelected={onPartySelected}
           winnerView={this.state.winnerView}
-          onlyFlipped={this.props.onlyFlipped}
-          toggleFlipped={this.props.toggleFlipped}
-          hasThird={this.props.hasThird}
+          onlyFlipped={onlyFlipped}
+          toggleFlipped={toggleFlipped}
+          hasThird={hasThird}
         />
 
         <ZoomControls
-          onZoomIn={this.props.onZoomIn}
-          onZoomOut={this.props.zoomOut}
-          resetView={this.props.resetView}
+          onZoomIn={onZoomIn}
+          onZoomOut={zoomOut}
+          resetView={resetView}
           selectCurrentLocation={this.selectCurrentLocation}
-          currentZoom={this.props.zoom}
-          resetable={this.props.zoom !== 1 || this.props.x !== 0.5 || this.props.y !== 0.5}
+          currentZoom={zoom}
+          resetable={zoom !== 1 || x !== 0.5 || y !== 0.5}
           geolocating={this.state.geolocating}
           dimensions={dimensions}
         />
@@ -155,8 +155,6 @@ MapContainer.propTypes = {
   zoom: PropTypes.number.isRequired,
   onlyFlipped: PropTypes.bool.isRequired,
   viewableDistrict: PropTypes.string,
-  onDistrictInspected: PropTypes.func.isRequired,
-  onDistrictUninspected: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,
   onZoomInToPoint: PropTypes.func.isRequired,

@@ -5,7 +5,7 @@ import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 
 const Steamgraph = (props) => {
   const x = d3.scaleLinear()
-    .domain([1824, 2016])
+    .domain([1836, 2010])
     .range([15, props.width]);
   const area = d3.area()
     .x(d => x(d.data.year))

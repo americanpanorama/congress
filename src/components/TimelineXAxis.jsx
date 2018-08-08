@@ -1,52 +1,58 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { yearForCongress, congressForYear } from '../utils/HelperFunctions';
+import DimensionsStore from '../stores/DimensionsStore';
 
-const TimelineXAxis = props => (
-  <React.Fragment>
-    <line
-      x1={props.x(1824)}
-      x2={props.x(2016)}
-      y1={props.longTickHeight}
-      y2={props.longTickHeight}
-      stroke='white'
-    />
+const TimelineXAxis = (props) => {
+  const dimensions = DimensionsStore.getDimensions();
+  const longTickHeight = dimensions.timelineAxisLongTickHeight;
+  const shortTickHeight = dimensions.timelineAxisShortTickHeight;
+  const height = dimensions.timelineAxisHeight - 2 * dimensions.timelineAxisGutter;
+  const fontSize = dimensions.timelineAxisFontSize;
 
-    { Array.from({ length: (2016 - 1824) / 2 }, (v, i) => 1824 + i * 2).map(year => (
+  const decades = props.electionYears.filter(y => y % 10 === 0);
+
+  return (
+    <React.Fragment>
       <line
-        x1={props.x(year)}
-        x2={props.x(year)}
-        y1={(year % 10 === 0) ? 0 : props.longTickHeight - props.shortTickHeight}
-        y2={props.longTickHeight}
+        x1={DimensionsStore.timelineX(Math.min(...props.electionYears))}
+        x2={DimensionsStore.timelineX(Math.max(...props.electionYears))}
+        y1={longTickHeight}
+        y2={longTickHeight}
         stroke='white'
-        strokeWidth={1}
-        key={`tickFor-${year}`}
       />
-    ))}
 
-    { Array.from({ length: (2020 - 1830) / 10 }, (v, i) => 1830 + i * 10).map(year => (
-      <text
-        x={props.x(year)}
-        y={props.height}
-        textAnchor='middle'
-        key={`yearFor-${year}`}
-        fill='white'
-        style={{
-          fontSize: props.fontSize
-        }}
-      >
-        {year}
-      </text>
-    ))}
-  </React.Fragment>
-);
+      { props.electionYears.map(year => (
+        <line
+          x1={DimensionsStore.timelineX(year)}
+          x2={DimensionsStore.timelineX(year)}
+          y1={(year % 10 === 0) ? 0 : longTickHeight - shortTickHeight}
+          y2={longTickHeight}
+          stroke='white'
+          strokeWidth={1}
+          key={`tickFor-${year}`}
+        />
+      ))}
+
+      { decades.map(year => (
+        <text
+          x={DimensionsStore.timelineX(year)}
+          y={height}
+          textAnchor='middle'
+          key={`yearFor-${year}`}
+          fill='white'
+          style={{
+            fontSize: fontSize
+          }}
+        >
+          {year}
+        </text>
+      ))}
+    </React.Fragment>
+  );
+};
 
 export default TimelineXAxis;
 
 TimelineXAxis.propTypes = {
-  x: PropTypes.func.isRequired,
-  longTickHeight: PropTypes.number.isRequired,
-  shortTickHeight: PropTypes.number.isRequired,
-  height: PropTypes.number.isRequired,
-  fontSize: PropTypes.number.isRequired
+  electionYears: PropTypes.arrayOf(PropTypes.number).isRequired
 };

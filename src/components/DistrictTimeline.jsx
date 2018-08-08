@@ -23,7 +23,7 @@ export default class DistrictTimeline extends React.Component {
 			axisTickHeight = axisHeight * 1/4 - axisGutter * 1.5;
   			
 		var x = d3.scaleLinear()
-			.domain([1824, 2016])
+			.domain([1836, 2010])
 			.range([15, DimensionsStore.getDimensions().timelineWidth]);
 		var y = d3.scaleLinear()
 			.domain([-1, 1])
