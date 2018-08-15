@@ -6,7 +6,7 @@ export default class Bubble extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      color: this.props.color,
+      fill: this.props.fill,
       stroke: this.props.stroke,
       cx: this.props.cx,
       cy: this.props.cy
@@ -16,69 +16,44 @@ export default class Bubble extends React.Component {
     this.circle = React.createRef();
   }
 
-  componentWillReceiveProps (nextProps) {
-    const { duration } = nextProps;
+  componentDidUpdate (prevProps, prevState) {
+    const {
+      duration,
+      fill,
+      cx,
+      cy,
+      stroke
+    } = this.props;
 
-    if (this.props.color !== nextProps.color || this.props.stroke !== nextProps.stroke ||
-      this.props.cx !== nextProps.cx || this.props.cy !== nextProps.cy) {
+    if (prevProps.fill !== fill || prevProps.stroke !== stroke ||
+      prevProps.cx !== cx || prevProps.cy !== cy) {
       if (duration > 0) {
         d3.select(this.bubble.current)
           .transition()
           .duration(duration)
-          .attr('transform', `translate(${nextProps.cx} ${nextProps.cy})`)
+          .attr('transform', `translate(${cx} ${cy})`)
           .on('end', () => {
             this.setState({
-              stroke: nextProps.stroke,
-              color: nextProps.color,
-              cx: nextProps.cx,
-              cy: nextProps.cy
+              cx: cx,
+              cy: cy
             });
           });
 
         d3.select(this.circle.current)
           .transition()
           .duration(duration)
-          .style('fill', nextProps.color)
-          .style('stroke', nextProps.stroke);
+          .style('fill', fill)
+          .style('stroke', stroke);
       } else {
         this.setState({
-          stroke: nextProps.stroke,
-          color: nextProps.color,
-          cx: nextProps.cx,
-          cy: nextProps.cy
+          stroke: stroke,
+          fill: fill,
+          cx: cx,
+          cy: cy
         });
       }
     }
   }
-
-  // componentDidUpdate (nextProps) {
-  //   const { 
-  //     cx,
-  //     cy,
-  //     color,
-  //     stroke,
-  //     duration
-  //   } = nextProps;
-
-  //   d3.select(this.bubble.current)
-  //     .transition()
-  //     .duration(duration)
-  //     .attr('transform', `translate(${cx} ${cy})`)
-  //     .on('end', () => {
-  //       this.setState({
-  //         stroke: stroke,
-  //         color: color,
-  //         cx: cx,
-  //         cy: cy
-  //       });
-  //     });
-
-  //   d3.select(this.circle.current)
-  //     .transition()
-  //     .duration(duration)
-  //     .style('fill', color)
-  //     .style('stroke', stroke);
-  // }
 
   render () {
     return (
@@ -86,17 +61,17 @@ export default class Bubble extends React.Component {
         transform={`translate(${this.state.cx} ${this.state.cy})`}
         onClick={this.props.onDistrictSelected}
         id={this.props.id}
-        style={{ 
+        style={{
           pointerEvents: this.props.pointerEvents,
-          cursor: (this.props.pointerEvents == 'auto') ? 'pointer' : 'none'
+          cursor: (this.props.pointerEvents === 'auto') ? 'pointer' : 'none'
         }}
         ref={this.bubble}
       >
         <circle
           className='dorling'
           r={this.props.r}
-          fill={this.state.color}
           style={{
+            fill: this.state.fill,
             stroke: this.state.stroke,
             strokeWidth: 0.33,
             fillOpacity: this.props.fillOpacity,
@@ -132,7 +107,7 @@ Bubble.propTypes = {
   r: PropTypes.number.isRequired,
   cx: PropTypes.number.isRequired,
   cy: PropTypes.number.isRequired,
-  color: PropTypes.string.isRequired,
+  fill: PropTypes.string.isRequired,
   stroke: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number,
   label: PropTypes.string,

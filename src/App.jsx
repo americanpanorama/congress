@@ -3,16 +3,17 @@ import * as React from 'react';
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
 import { getColorForParty, formatPersonName } from './utils/HelperFunctions';
 
+import Masthead from './components/Masthead';
 import TheMap from './components/MapContainer';
 import Context from './components/Context';
 import Timeline from './components/Timeline';
 import TimelineHandle from './components/TimelineHandle';
+import Text from './components/Text';
 import ElectionLabel from './components/ElectionLabel';
 import DistrictData from './components/DistrictData';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
-import TextStore from './stores/Text';
 import HashManager from './stores/HashManager';
 
 // main app container
@@ -33,7 +34,8 @@ class App extends React.Component {
       dorling: theHash.view !== 'map',
       zoom: z,
       x: x,
-      y: y
+      y: y,
+      textSubject: null
     };
 
     // bind handlers
@@ -48,7 +50,6 @@ class App extends React.Component {
   componentDidMount () {
     window.addEventListener('resize', this.onWindowResize);
     DistrictsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
-    TextStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
     DimensionsStore.addListener(AppActionTypes.storeChanged, this.dimensionsChanged);
   }
 
@@ -191,7 +192,9 @@ class App extends React.Component {
 
   onModalClick (event) {
     const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
-    AppActions.onModalClick(subject);
+    this.setState({
+      textSubject: subject
+    });
   }
 
   toggleDorling () {
@@ -214,56 +217,21 @@ class App extends React.Component {
 
   render () {
     const dimensions = DimensionsStore.getDimensions();
-    const viewableDistrict = this.state.inspectedDistrict || this.state.selectedDistrict;
     let districtData;
-    if (viewableDistrict) {
-      districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict);
+    if (this.state.selectedDistrict) {
+      districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict);
     }
     
     return (
       <div>
-        {/* masthead */}
-        <header
-          style={{
-            height: dimensions.headerHeight,
-            width: dimensions.mapWidth,
-            margin: dimensions.gutterPadding
-          }}
-        >
-          <h1
-            style={{
-              fontSize: dimensions.headerTitleFontSize,
-              marginTop: dimensions.headerGutter
-            }}
-          >
-            American Democracy's Landscape
-          </h1>
-          <h2
-            style={{
-              fontSize: dimensions.headerSubtitleFontSize,
-              marginTop: dimensions.headerGutter
-            }}
-          >
-            Electing the House of Representatives
-          </h2>
-          <nav>
-            <h4 onClick={this.onModalClick} id={'intro'}>Introduction</h4>
-            <h4 onClick={this.onModalClick} id={'sources'}>Sources & Method</h4>
-            <h4 onClick={this.onModalClick} id={'citing'}>Citing</h4>
-            <h4 onClick={this.onModalClick} id={'about'}>About</h4>
-            <h4 onClick={this.onContactUsToggle}>Contact Us</h4>
-          </nav>
-        </header>
+        <Masthead
+          dimensions={dimensions}
+          onModalClick={this.onModalClick}
+          onContactUsToggle={() => false}
+        />
 
         <TheMap
-          selectedView={this.state.selectedView}
-          selectedYear={this.state.selectedYear}
-          onlyFlipped={this.state.onlyFlipped}
-          selectedParty={this.state.selectedParty}
-          viewableDistrict={this.state.inspectedDistrict || this.state.selectedDistrict}
-          x={this.state.x}
-          y={this.state.y}
-          zoom={this.state.zoom}
+          uiState={this.state}
           onViewSelected={this.onViewSelected}
           onDistrictSelected={this.onDistrictSelected}
           onPartySelected={this.onPartySelected}
@@ -284,16 +252,16 @@ class App extends React.Component {
           maxRepublicans={DistrictsStore.getMaxBottomOffset()}
           congressYears={DistrictsStore.getCongressYears()}
           onYearSelected={this.onYearSelected}
-          districtData={(viewableDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).id) : false}
+          districtData={(this.state.selectedDistrict) ? DistrictsStore.getSpatialIdData(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : false}
         />
 
         <TimelineHandle
           selectedYear={this.state.selectedYear}
           onYearSelected={this.onYearSelected}
           partyCounts={DistrictsStore.getRawPartyCounts()}
-          showPartyCounts={!viewableDistrict}
-          districtCircleY={(viewableDistrict && districtData.regularized_party_of_victory !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent_vote, districtData.regularized_party_of_victory, DistrictsStore.getMaxBottomOffset()) : false}
-          districtCircleFill={(viewableDistrict) ? getColorForParty(districtData.regularized_party_of_victory) : 'transparent'}
+          showPartyCounts={!this.state.selectedDistrict}
+          districtCircleY={(this.state.selectedDistrict && districtData.regularized_party_of_victory !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent_vote, districtData.regularized_party_of_victory, DistrictsStore.getMaxBottomOffset()) : false}
+          districtCircleFill={(this.state.selectedDistrict) ? getColorForParty(districtData.regularized_party_of_victory) : 'transparent'}
           nationalDomain={[DistrictsStore.getMaxTopOffset() * -1,
             DistrictsStore.getMaxBottomOffset()]}
           dimensions={dimensions}
@@ -309,16 +277,16 @@ class App extends React.Component {
           dimensions={dimensions}
         />
 
-        { (viewableDistrict) ?
+        { (this.state.selectedDistrict) ?
           <DistrictData
-            id={viewableDistrict}
-            label={DistrictsStore.getDistrictLabel(this.state.selectedYear, viewableDistrict)}
-            isSelected={viewableDistrict === this.state.selectedDistrict}
-            backgroundColor={(!viewableDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory)}
-            victor={formatPersonName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).victor)}
-            party={(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).regularized_party_of_victory === 'third') ? DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, viewableDistrict).party_of_victory : ''}
-            previousDistrict={DistrictsStore.getStatePreviousDistrictId(this.state.selectedYear, viewableDistrict)}
-            nextDistrict={DistrictsStore.getStateNextDistrictId(this.state.selectedYear, viewableDistrict)}
+            id={this.state.selectedDistrict}
+            label={DistrictsStore.getDistrictLabel(this.state.selectedYear, this.state.selectedDistrict)}
+            isSelected={this.state.selectedDistrict === this.state.selectedDistrict}
+            backgroundColor={(!this.state.selectedDistrict) ? '#38444a' : getColorForParty(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).regularized_party_of_victory)}
+            victor={formatPersonName(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).victor)}
+            party={(DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).regularized_party_of_victory === 'third') ? DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).party_of_victory : ''}
+            previousDistrict={DistrictsStore.getStatePreviousDistrictId(this.state.selectedYear, this.state.selectedDistrict)}
+            nextDistrict={DistrictsStore.getStateNextDistrictId(this.state.selectedYear, this.state.selectedDistrict)}
             onDistrictSelected={this.onDistrictSelected}
             onZoomToDistrict={this.onZoomToDistrict}
             dimensions={dimensions}
@@ -335,29 +303,12 @@ class App extends React.Component {
           />
         }
 
-        { (TextStore.mainModalIsOpen()) ?
-          <div
-            className='longishform'
-            style={{
-              top: dimensions.textTop,
-              bottom: dimensions.textBottom,
-              left: dimensions.textLeft,
-              width: dimensions.textWidth
-            }}
-          >
-            <button
-              className='close'
-              onClick={this.onModalClick}
-              style={{
-                top: dimensions.textCloseTop,
-                right: dimensions.textCloseRight,
-              }}
-            >
-              <span>close</span>
-            </button>
-            <div className='content' dangerouslySetInnerHTML={TextStore.getModalContent()} />
-          </div> :
-          null
+        { (this.state.textSubject) &&
+          <Text
+            subject={this.state.textSubject}
+            dimensions={dimensions}
+            onModalClick={this.onModalClick}
+          />
         }
 
       </div>

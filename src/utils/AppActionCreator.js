@@ -4,7 +4,6 @@ export const AppActionTypes = {
 
   loadInitialData: 'loadInitialData',
   congressSelected: 'congressSelected',
-  onModalClick: 'onModalClick',
   storeChanged: 'storeChanged',
   windowResized: 'windowResized'
 
@@ -24,13 +23,6 @@ export const AppActions = {
     AppDispatcher.dispatch({
       type: AppActionTypes.congressSelected,
       year: year
-    });
-  },
-
-  onModalClick: (subject) => {
-    AppDispatcher.dispatch({
-      type: AppActionTypes.onModalClick,
-      subject: subject
     });
   },
 

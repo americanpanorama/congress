@@ -1,5 +1,7 @@
-import * as d3 from "d3";
+import * as d3 from 'd3';
 import { parseFullName } from 'parse-full-name';
+
+import DistrictsStore from '../stores/Districts';
 
 const repColor = '#FB6765';
 const repColorLight = '#FACFCF';
@@ -65,46 +67,209 @@ const stateAbbrs = [
   { state: 'Wyoming', abbreviation: 'Wyo.', postalCode: 'WY' }
 ];
 
-export const getColorForParty = function(party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };
+export const getDistrictStyleFromUi = function (district, ui) {
+  const style = {};
 
-export const getColorForMargin = function(party, percent) {
+  // set base color depending on winner/strength of victory view
+  if (ui.winnerView
+    || (ui.selectedView === 'cartogram' && ui.selectedDistrict !== district.id)) {
+    style.fill = getColorForParty(district.regularized_party_of_victory);
+  } else {
+    const percentVote = (district.gtCount)
+      ? district.percent_vote * district.gtCount
+      : district.percent_vote;
+    style.fill = getColorForMargin(district.regularized_party_of_victory, percentVote);
+  }
+
+  // set base opacity depending on map/cartogram view
+  style.fillOpacity = (ui.selectedView === 'map') ? 1 : 0.1;
+  style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
+
+  // hide if not among selected party or selected flipped
+  if ((ui.selectedParty
+    && ui.selectedParty !== district.regularized_party_of_victory)
+    || (ui.onlyFlipped && !district.flipped)) {
+    style.fillOpacity = 0.01;
+    style.strokeOpacity = 0;
+  }
+
+  // obscure if not selected district
+  if (ui.selectedDistrict) {
+    if (ui.selectedDistrict === district.id) {
+      style.fillOpacity = 1;
+      style.strokeOpacity = 1;
+    } else {
+      style.fillOpacity = 0.1;
+      style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
+    }
+  }
+
+  const hasNarrowStrokeWidth = !ui.selectedDistrict || ui.selectedDistrict !== district.id;
+  style.strokeWidth = (hasNarrowStrokeWidth) ? 0.5 / ui.zoom : 2 / ui.zoom;
+
+  style.pointerEvents = (ui.selectedView === 'map') ? 'auto' : 'none';
+
+  style.stroke = '#eee';
+
+  return style;
+};
+
+export const getBubbleStyle = function (district, ui) {
+  const style = {};
+
+  const {
+    regularized_party_of_victory,
+    percent_vote,
+    districtId,
+    flipped
+  } = district;
+
+  const {
+    selectedView,
+    winnerView,
+    selectedParty,
+    onlyFlipped,
+    selectedDistrict
+  } = ui;
+
+  style.fillOpacity = (selectedView === 'cartogram') ? 1 : 0;
+
+  if (selectedView === 'map') {
+    style.fill = 'transparent';
+    style.stroke = 'transparent';
+  } else if (winnerView) {
+    style.fill = getColorForParty(regularized_party_of_victory);
+    style.stroke = getColorForParty(regularized_party_of_victory);
+  } else {
+    style.fill = getColorForMargin(regularized_party_of_victory, percent_vote);
+    style.stroke = getColorForMargin(regularized_party_of_victory, percent_vote);
+  }
+
+  // change stroke of selected district to white
+  if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === districtId) {
+    style.stroke = 'white';
+  }
+
+  // hide if not among selected party or selected flipped
+  if ((selectedParty && selectedParty !== regularized_party_of_victory) ||
+   (onlyFlipped && !flipped)) {
+    style.fillOpacity = 0.1;
+  }
+  // obscure if not selected district
+  if (selectedDistrict && selectedDistrict !== districtId) {
+    style.fillOpacity = 0.1;
+  }
+
+  style.pointerEvents = (selectedView === 'map') ? 'none' : 'auto';
+
+  return style;
+};
+
+export const getCityBubbleStyle = function (city, ui) {
+  const style = {};
+
+  style.fillOpacity = 0.5;
+
+  if (ui.selectedView === 'cartogram') {
+    if (ui.selectedParty) {
+      const percentOfParty = DistrictsStore.cityPercentForParty(city.id, ui.selectedYear, ui.selectedParty);
+      if (percentOfParty === 0) {
+        style.fillOpacity = 0.2;
+      }
+    }
+
+    if (ui.onlyFlipped) {
+      const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
+      if (flippedPercent === 0) {
+        style.fillOpacity = 0.2;
+      }
+    }
+
+    if (ui.selectedDistrict && !DistrictsStore.districtInCity(DistrictsStore.getBubbleForDistrict(ui.selectedDistrict, ui.selectedYear), city)) {
+      style.fillOpacity = 0.2;
+    }
+  }
+
+  return style;
+};
+
+export const getCityBubbleLabelOpacity = function (city, ui) {
+  let opacity = 1;
+
+  if (ui.selectedView === 'map') {
+    opacity = 0;
+  } else {
+    if (ui.selectedParty) {
+      const percentOfParty = DistrictsStore.cityPercentForParty(city.id, ui.selectedYear, ui.selectedParty);
+      opacity = percentOfParty;
+    }
+
+    if (ui.onlyFlipped) {
+      const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
+      if (flippedPercent === 0) {
+        opacity = 0.2;
+      }
+    }
+
+    if (ui.selectedDistrict && !DistrictsStore.districtInCity(DistrictsStore.getBubbleForDistrict(ui.selectedDistrict, ui.selectedYear), city)) {
+      opacity = 0.2;
+    }
+  }
+
+  return opacity;
+};
+
+export const getStateStyle = function (state, ui) {
+  const style = {
+    fill: 'transparent',
+    stroke: '#eee',
+    strokeOpacity: (ui.selectedView === 'cartogram') ? 0.2 : 1,
+    strokeWidth: (!ui.selectedDistrict || state.properties.abbr_name === DistrictsStore.getElectionDataForDistrict(ui.selectedYear, ui.selectedDistrict).state) ? 1.5 / ui.zoom : 0.3 / ui.zoom,
+    pointerEvents: 'none'
+  };
+
+  return style;
+};
+
+export const getColorForParty = function (party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };
+
+export const getColorForMargin = function (party, percent) {
   party = party || '';
   if (percent < 0) {
     return "transparent";
   }
 
-  var repColorAdjustment = d3.scaleLinear()
+  const repColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range([equalColor, repColor]);
 
-  var demColorAdjustment = d3.scaleLinear()
+  const demColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range([equalColor, demColor]);
 
-  var whigColorAdjustment = d3.scaleLinear()
+  const whigColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range([equalColor, whigColor]);
 
-  var thirdColorAdjustment = d3.scaleLinear()
+  const thirdColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range([equalColor, thirdColor]);
 
-  var getRepColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.55, 1])
-      .range([equalColor, equalColor, repColorAdjustment(-0.2), repColor]);
+  const getRepColor = d3.scaleLinear()
+    .domain([-1, 0.5, 0.55, 1])
+    .range([equalColor, equalColor, repColorAdjustment(-0.2), repColor]);
 
-  var getDemColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.55, 1])
-      .range([equalColor, equalColor, demColorAdjustment(-0.2), demColor]);
+  const getDemColor = d3.scaleLinear()
+    .domain([-1, 0.5, 0.55, 1])
+    .range([equalColor, equalColor, demColorAdjustment(-0.2), demColor]);
 
-  var getWhigColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.55, 1])
-      .range([equalColor, equalColor, whigColorAdjustment(-0.2), whigColor]);
+  const getWhigColor = d3.scaleLinear()
+    .domain([-1, 0.5, 0.55, 1])
+    .range([equalColor, equalColor, whigColorAdjustment(-0.2), whigColor]);
 
-  var getThirdColor = d3.scaleLinear()
-      .domain([-1, 0.5, 0.55, 1])
-      .range([equalColor, equalColor, thirdColorAdjustment(-0.2), thirdColor]);
-
+  const getThirdColor = d3.scaleLinear()
+    .domain([-1, 0.5, 0.55, 1])
+    .range([equalColor, equalColor, thirdColorAdjustment(-0.2), thirdColor]);
 
   if (party.toLowerCase().includes('republican')) {
     return getRepColor(percent);
@@ -165,8 +330,8 @@ export const formatPersonName = function (name) {
       last,
       suffix
     } = parseFullName(name);
-    if (middle == middle.toLowerCase()) {
-      middle = `${middle.charAt(0).toUpperCase()}${middle.slice(1)}`; 
+    if (middle === middle.toLowerCase()) {
+      middle = `${middle.charAt(0).toUpperCase()}${middle.slice(1)}`;
     }
     formattedName = [first, middle, last, suffix].join(' ');
   }

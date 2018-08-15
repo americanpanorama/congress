@@ -16,7 +16,7 @@ const DimensionsStore = {
     timelineWidth: 350,
   },
 
-  computeComponentDimensions () {
+  computeComponentDimensions: function () {
     this.data.windowHeight = window.innerHeight;
     this.data.windowWidth = window.innerWidth;
 
@@ -125,6 +125,12 @@ const DimensionsStore = {
     this.data.textCloseTop = this.data.textTop + 10;
     this.data.textCloseRight = this.data.electionLabelLeft + 10;
 
+    this.data.textAreaStyle = {
+      top: this.data.textTop,
+      bottom: this.data.textBottom,
+      left: this.data.textLeft,
+      width: this.data.textWidth
+    };
 
     this.emit(AppActionTypes.storeChanged);
   },
@@ -136,7 +142,13 @@ const DimensionsStore = {
     };
   },
 
-  getMapScale: function() { return Math.min(this.data.mapWidth/960* 1075, this.data.mapHeight/500 * 1075); },
+  getMapScale: function () {
+    // albers default scale is 960 x 500
+    // the 0.9 gives some padding along the top and bottom of the map
+    const horizontalScale = this.data.mapWidth / 960 * 1075;
+    const verticalScale = this.data.mapHeight * 0.9 / 500 * 1075;
+    return Math.min(horizontalScale, verticalScale);
+  },
 
   getDimensions: function() { return this.data; },
 

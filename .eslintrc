@@ -27,7 +27,9 @@
     "operator-linebreak": "off",
     "click-events-have-key-events": "off",
     "no-static-element-interactions": "off",
-    "func-names": ["error", "as-needed"]
+    "func-names": ["error", "as-needed"],
+    "no-console": ["error", { allow: ["warn", "error"] }],
+    "react/no-did-update-set-state": 0
   },
   "extends": ["airbnb-standard"]
 }

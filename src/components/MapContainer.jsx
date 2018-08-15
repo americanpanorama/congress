@@ -74,11 +74,7 @@ export default class MapContainer extends React.Component {
     const geolocation = (this.state.geolocation) ?
       DistrictStore.projectPoint(this.state.geolocation) : null;
     const {
-      selectedView,
-      selectedYear,
-      selectedParty,
-      onlyFlipped,
-      viewableDistrict,
+      uiState,
       onDistrictSelected,
       onMapDrag,
       onZoomIn,
@@ -88,28 +84,29 @@ export default class MapContainer extends React.Component {
       onViewSelected,
       onPartySelected,
       toggleFlipped,
-      hasThird,
+      hasThird
+    } = this.props;
+
+    const {
+      selectedView,
+      selectedYear,
+      selectedParty,
+      onlyFlipped,
       x,
       y,
       zoom
-    } = this.props;
+    } = uiState;
+
+    const mapUiState = Object.assign({ winnerView: this.state.winnerView }, uiState);
 
     return (
       <React.Fragment>
         <TheMap
-          selectedView={selectedView}
-          winnerView={this.state.winnerView}
-          selectedYear={selectedYear}
-          selectedParty={selectedParty}
+          uiState={mapUiState}
           geolocation={geolocation}
-          onlyFlipped={onlyFlipped}
-          viewableDistrict={viewableDistrict}
           onDistrictSelected={onDistrictSelected}
           onMapDrag={onMapDrag}
           onZoomInToPoint={onZoomInToPoint}
-          x={x}
-          y={y}
-          zoom={zoom}
         />
 
         <MapControls
@@ -147,14 +144,16 @@ export default class MapContainer extends React.Component {
 }
 
 MapContainer.propTypes = {
-  selectedView: PropTypes.string.isRequired,
-  selectedYear: PropTypes.number.isRequired,
-  selectedParty: PropTypes.string,
-  x: PropTypes.number.isRequired,
-  y: PropTypes.number.isRequired,
-  zoom: PropTypes.number.isRequired,
-  onlyFlipped: PropTypes.bool.isRequired,
-  viewableDistrict: PropTypes.string,
+  uiState: PropTypes.shape({
+    selectedView: PropTypes.string.isRequired,
+    selectedYear: PropTypes.number.isRequired,
+    selectedParty: PropTypes.string,
+    selectedDistrict: PropTypes.string,
+    onlyFlipped: PropTypes.bool,
+    zoom: PropTypes.number,
+    x: PropTypes.number,
+    y: PropTypes.number
+  }).isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,
   onZoomInToPoint: PropTypes.func.isRequired,
@@ -165,9 +164,4 @@ MapContainer.propTypes = {
   onMapDrag: PropTypes.func.isRequired,
   resetView: PropTypes.func.isRequired,
   hasThird: PropTypes.bool.isRequired
-};
-
-MapContainer.defaultProps = {
-  viewableDistrict: '',
-  selectedParty: ''
 };

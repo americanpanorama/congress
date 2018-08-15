@@ -22,56 +22,60 @@ export default class BubbleCity extends React.Component {
     this.cityLabelText = React.createRef();
   }
 
-  componentWillReceiveProps (nextProps) {
-    const { duration } = nextProps;
+  componentDidUpdate (prevProps, prevState) {
+    const {
+      duration,
+      r,
+      cy,
+      cx,
+      cityLabelOpacity
+    } = this.props;
 
-    if (this.props.r !== nextProps.r || this.props.cx !== nextProps.cx ||
-      this.props.cy !== nextProps.cy ||
-      this.props.cityLabelOpacity !== nextProps.cityLabelOpacity) {
+    if (prevProps.r !== r || prevProps.cx !== cx ||
+      prevProps.cy !== cy ||
+      prevProps.cityLabelOpacity !== cityLabelOpacity) {
       if (duration > 0) {
         d3.select(this.bubble.current)
           .transition()
           .duration(duration)
-          .attr('transform', `translate(${nextProps.cx} ${nextProps.cy})`)
+          .attr('transform', `translate(${cx} ${cy})`)
           .on('end', () => {
             this.setState({
-              r: nextProps.r,
-              cx: nextProps.cx,
-              cy: nextProps.cy,
-              cityLabelOpacity: (nextProps.cityLabelOpacity),
-              cityLabelSize: (nextProps.r > 0.01) ? 12 : 0
+              r: r,
+              cx: cx,
+              cy: cy,
+              cityLabelOpacity: (cityLabelOpacity),
+              cityLabelSize: (r > 0.01) ? 12 : 0
             });
           });
 
         d3.select(this.circle.current)
           .transition()
           .duration(duration)
-          .attr('r', nextProps.r)
-          .style('fill', nextProps.color)
-          .style('stroke', nextProps.stroke);
+          .attr('r', r);
 
         d3.select(this.cityLabel.current)
           .transition()
           .duration(duration)
-          .attr('transform', `translate(${(-1 * nextProps.r)}  ${(-1 * nextProps.r)}) rotate(-45, ${nextProps.r}, ${nextProps.r})`);
+          .attr('transform', `translate(${(-1 * r)}  ${(-1 * r)}) rotate(-45, ${r}, ${r})`);
 
         d3.select(this.cityLabelArc.current)
           .transition()
           .duration(duration)
-          .attr('d', DimensionsStore.getTitleLabelArc(nextProps.r));
+          .attr('d', DimensionsStore.getTitleLabelArc(r));
 
         d3.select(this.cityLabelText.current)
           .transition()
           .duration(duration)
-          .style('fill-opacity', nextProps.cityLabelOpacity)
-          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * nextProps.r / Math.max(this.props.r, nextProps.r));
+          .style('fill-opacity', cityLabelOpacity)
+          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * r / Math.max(prevProps.r, r));
       } else {
         this.setState({
-          r: nextProps.r,
-          cx: nextProps.cx,
-          cy: nextProps.cy,
-          cityLabelOpacity: nextProps.cityLabelOpacity,
-          cityLabelSize: (nextProps.r > 0.01) ? 12 : 0
+          r: r,
+          cx: cx,
+          cy: cy,
+          cityLabelOpacity: cityLabelOpacity,
+          cityLabelSize: (r > 0.01) ? 12 : 0
         });
       }
     }
@@ -92,7 +96,6 @@ export default class BubbleCity extends React.Component {
             fillOpacity: this.props.fillOpacity,
             pointerEvents: 'none'
           }}
-          id={this.props.id}
           ref={this.circle}
         />
 

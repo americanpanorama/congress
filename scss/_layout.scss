@@ -201,9 +201,11 @@ aside#info, aside#handle{
 	background: #eee;
 	color: #111;
 	overflow: scroll;
+	padding: 20px;
 
 	.content {
 		margin: 20px auto;
+
 		max-width: 600px;
 		font-size: 1.5em;
 		line-height: 1.5;
