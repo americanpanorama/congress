@@ -39,7 +39,7 @@ class App extends React.Component {
     };
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -49,6 +49,7 @@ class App extends React.Component {
 
   componentDidMount () {
     window.addEventListener('resize', this.onWindowResize);
+    window.addEventListener('keydown', this.onHandleKeyPress);
     DistrictsStore.addListener(AppActionTypes.storeChanged, this.storeChanged);
     DimensionsStore.addListener(AppActionTypes.storeChanged, this.dimensionsChanged);
   }
@@ -74,18 +75,25 @@ class App extends React.Component {
   }
 
   onYearSelected (e) {
-    const year = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
-    AppActions.congressSelected(year);
+    let selectedYear;
+    if (e && e.currentTarget) {
+      selectedYear = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
+    } else {
+      selectedYear = e;
+    }
+    AppActions.congressSelected(selectedYear);
     this.setState({
       inspectedDistrict: null
     });
     // don't set state until the districts have been loaded
     const loading = setInterval(() => {
-      if (DistrictsStore.hasYearLoaded(year)) {
+      if (DistrictsStore.hasYearLoaded(selectedYear)) {
         clearInterval(loading);
-        const selectedDistrict = (this.state.selectedDistrict) ? DistrictsStore.getDistrictId(year, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id) : null;
+        const selectedDistrict = (this.state.selectedDistrict)
+          ? DistrictsStore.getDistrictId(selectedYear, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id)
+          : null;
         this.setState({
-          selectedYear: year,
+          selectedYear: selectedYear,
           selectedDistrict: selectedDistrict
         });
       }
@@ -108,6 +116,40 @@ class App extends React.Component {
 
   onDistrictInspected (e) {
     //this.setState({ inspectedDistrict: e.target.id });
+  }
+
+  onHandleKeyPress (e) {
+    const commands = {
+      ArrowRight: () => {
+        this.onYearSelected(DistrictsStore.getNextElectionYear(this.state.selectedYear));
+      },
+      ArrowLeft: () => {
+        this.onYearSelected(DistrictsStore.getPreviousElectionYear(this.state.selectedYear));
+      },
+      f: this.toggleFlipped,
+      d: () => {
+        const party = (this.state.selectedParty !== 'democrat') ? 'democrat' : null;
+        this.onPartySelected(party);
+      },
+      r: () => {
+        if (this.state.selectedYear >= 1956) {
+          const party = (this.state.selectedParty !== 'republican') ? 'republican' : null;
+          this.onPartySelected(party);
+        }
+      },
+      w: () => {
+        if (this.state.selectedYear <= 1954) {
+          const party = (this.state.selectedParty !== 'whig') ? 'whig' : null;
+          this.onPartySelected(party);
+        }
+      },
+      a: this.onPartySelected,
+      c: this.onViewSelected
+    };
+
+    if (commands[e.key]) {
+      commands[e.key]();
+    }
   }
 
   onDistrictUninspected () {

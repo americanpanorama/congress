@@ -60,7 +60,7 @@ export default class MapContainer extends React.Component {
       this.geolocate();
     }
   }
-
+  
   changeHash () {
     const vizState = {
       show: (this.state.winnerView) ? 'winner' : 'strength'

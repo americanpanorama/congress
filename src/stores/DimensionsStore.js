@@ -111,7 +111,10 @@ const DimensionsStore = {
     this.data.timelineCongressFontSize = this.data.timelineHorizontalGutter * 5/12;
     this.data.timelineAxisOffsetForDistrict = this.data.timelineAxisLongTickHeight + this.data.timelineSteamgraphGutter * 2;
 
-    this.data.districtR = Math.min(this.data.mapWidth/960* 1000, this.data.mapHeight/500 * 1000) / 960 * 5;
+    this.data.districtR = Math.min(
+      this.data.mapWidth / 960 * 1000,
+      this.data.mapHeight / 500 * 1000
+    ) / 960 * 5;
 
     this.data.cityLabelFontSize = this.data.districtR * 1.5;
 

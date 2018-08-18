@@ -20,7 +20,7 @@ export default class Map extends React.Component {
     this.state = {
       draggableX: 0,
       draggableY: 0,
-      transitionDuration: 500
+      transitionDuration: 1000
     };
 
     // bind handlers
@@ -198,7 +198,7 @@ export default class Map extends React.Component {
                   <BubbleCity
                     cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
                     cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                    r={(selectedView === 'cartogram') ? d.r : 0.01}
+                    r={(selectedView === 'cartogram') ? d.r : dimensions.districtR}
                     cityLabel={d.id}
                     cityLabelOpacity={getCityBubbleLabelOpacity(d, uiState)}
                     duration={this.state.transitionDuration}

@@ -9,7 +9,7 @@ const toDos = require("./data/toDos.json");
 
 const baseUrlGeojson = "https://digitalscholarshiplab.carto.com/api/v2/sql?format=GeoJSON&q=",
   baseUrlJson = "https://digitalscholarshiplab.carto.com/api/v2/sql?format=JSON&q=",
-  queryTodo = "select distinct (statename, endcong), endcong as congress, statename from districts_1 order by congress, statename",
+  queryTodo = "select distinct (statename, endcong), endcong as congress, statename from districts order by congress, statename",
   queryAllDistricts = "SELECT distinct on (id) id, statename, district, startcong, endcong FROM districts";
 
 const yearForCongress = function (congress) { return 1786 + congress * 2; },
@@ -25,7 +25,7 @@ Object.keys(toDos).forEach((congress, i) => {
     const statesArray = toDos[congress].map(state => "'" + state + "'").join(',');
 
     // get the percentage overlaps for each district that does intersect
-    var queryOverlap = "select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts_1 where endcong =  " + congress + " and statename in (" + statesArray + ") and district != 0) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts_1 where startcong =  " + (congress + 1) + " and statename in (" + statesArray + ")) next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and  st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.05 order by overlap desc";
+    var queryOverlap = "select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts where endcong =  " + congress + " and statename in (" + statesArray + ") and district != 0) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts where startcong =  " + (congress + 1) + " and statename in (" + statesArray + ")) next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and  st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.05 order by overlap desc";
 
     d3.json(baseUrlJson + queryOverlap, (err, cd) => {
       if (!cd) { 

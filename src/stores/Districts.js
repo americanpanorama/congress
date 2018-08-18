@@ -7,7 +7,7 @@ import GeojsonArea from '@mapbox/geojson-area';
 import AppDispatcher from '../utils/AppDispatcher';
 import { AppActionTypes } from '../utils/AppActionCreator';
 
-import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong } from '../utils/HelperFunctions';
+import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong, getFIPSToStateName } from '../utils/HelperFunctions';
 
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
@@ -40,7 +40,7 @@ const DistrictsStore = {
     fetch(`static/districts-geojson/${congress}.json`)
       .then((response) => {
         if (response.status !== 200) {
-          console.log(`Looks like there was a problem. Status Code: $response.status}`);
+          console.log(`Error status Code: $response.status}`);
           return;
         }
         response.json().then((data) => {
@@ -49,7 +49,7 @@ const DistrictsStore = {
             if (!this.data.districts[d.properties.id]) {
               this.data.districts[d.properties.id] = {
                 id: d.properties.id,
-                statename: d.properties.statename,
+                statename: d.properties.statename || getFIPSToStateName(d.properties.fips),
                 district: d.properties.district,
                 startcong: d.properties.startcong,
                 endcong: d.properties.endcong,
@@ -142,7 +142,7 @@ const DistrictsStore = {
             .sort((a, b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
           cities: yearData.cities.map(d => (
             {
-              id: MetroNames[d.id],
+              id: MetroNames[d.id] || d.id,
               x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
               y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight / 2,
               xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
@@ -306,7 +306,13 @@ const DistrictsStore = {
         districts.push(district);
       }
     });
-    return districts;
+
+    return districts.sort((a, b) => {
+      if (['GT', 'AL', 0, '0'].includes(b.district)) {
+        return 1;
+      }
+      return -1;
+    });
   },
 
   getGeneralTicketElections: function (year) {
@@ -354,7 +360,7 @@ const DistrictsStore = {
     if (district) {
       const stateAbbr = getStateAbbr(district.statename);
       const elections = this.data.elections[year];
-      return (elections && elections[stateAbbr][district.district]) ?
+      return (elections && elections[stateAbbr] && elections[stateAbbr][district.district]) ?
         elections[stateAbbr][district.district].regularized_party_of_victory : null;
     }
     return null;
@@ -539,15 +545,15 @@ const DistrictsStore = {
 
   getPartyCountsKeys() { return this.data.partyCountsKeys; },
 
-  getStates(year) { 
+  getStates: function (year) {
     const districts = this.getElectionDistricts(year);
 
     const stateNames = districts.map(d => d.statename)
       .filter((sn, i, self) => self.indexOf(sn) === i)
       .sort();
 
-    const statesGeojson = stateNames.map(sn => {
-      const districtsGeojson = districts.filter(d => d.statename === sn)
+    const statesGeojson = stateNames.map((sn) => {
+      const districtsGeojson = districts.filter(d => d.statename === sn && d.the_geojson)
         .map(d => d.the_geojson);
       //const stateGeojson = geojsonMerge.merge(districtsGeojson);
       const stateGeojson = dissolve(districtsGeojson);

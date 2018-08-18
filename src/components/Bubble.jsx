@@ -28,22 +28,27 @@ export default class Bubble extends React.Component {
     if (prevProps.fill !== fill || prevProps.stroke !== stroke ||
       prevProps.cx !== cx || prevProps.cy !== cy) {
       if (duration > 0) {
-        d3.select(this.bubble.current)
-          .transition()
-          .duration(duration)
-          .attr('transform', `translate(${cx} ${cy})`)
-          .on('end', () => {
-            this.setState({
-              cx: cx,
-              cy: cy
-            });
-          });
+        // only transition if the position has changed
+        if (prevProps.cx !== cx || prevProps.cy !== cy) {
+          d3.select(this.bubble.current)
+            .transition()
+            .duration(duration)
+            .attr('transform', `translate(${cx} ${cy})`);
+        }
 
         d3.select(this.circle.current)
           .transition()
           .duration(duration)
           .style('fill', fill)
-          .style('stroke', stroke);
+          .style('stroke', stroke)
+          .on('end', () => {
+            this.setState({
+              cx: cx,
+              cy: cy,
+              stroke: stroke,
+              fill: fill
+            });
+          });
       } else {
         this.setState({
           stroke: stroke,
@@ -115,7 +120,7 @@ Bubble.propTypes = {
   onDistrictSelected: PropTypes.func.isRequired,
   pointerEvents: PropTypes.string,
   id: PropTypes.string,
-  duration: PropTypes.number.isRequired
+  duration: PropTypes.number
 };
 
 Bubble.defaultProps = {
@@ -123,5 +128,6 @@ Bubble.defaultProps = {
   pointerEvents: 'none',
   id: ' ',
   label: '',
-  labelColor: ''
+  labelColor: '',
+  duration: 1000
 };

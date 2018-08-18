@@ -4,13 +4,15 @@
 // outputs ./data/mapping.json
 
 const fs = require('fs');
+const preliminaryMapping = require('./makePreliminaryMapping.js');
 
 // the todos are an object where the key is the congress number and the value an array of states that have one or more districts requiring mapping. Code to produce it is commented at the bottom.
-const candidates = require("./data/candidates.json"),
-  mapping = require("./data/preliminaryMapping.json");
+const candidates = require("./data/candidates.json");
 
 const yearForCongress = function (congress) { return 1786 + congress * 2; },
   congressForYear = function (year) { return d3.scaleLinear().domain([1788, 2030]).range([1, 122])(year); };
+
+const mapping = preliminaryMapping.preliminaryMapping();
 
 // iterate through each of these congresses and states producing the mappings
 Object.keys(candidates).forEach((year, i) => {

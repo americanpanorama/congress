@@ -40,3 +40,10 @@ node_modules
 dist
 build
 *.sublime-*
+data/*
+data-processing/*.json
+data-processing/**/*.json
+package-lock.json
+data-processing/raw-data
+raw_data
+data-processing/elections/data/

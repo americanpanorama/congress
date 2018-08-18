@@ -81,5 +81,5 @@ District.propTypes = {
 
 District.defaultProps = {
   pointerEvents: 'none',
-  duration: 2000
+  duration: 1000
 };

@@ -29,7 +29,8 @@
     "no-static-element-interactions": "off",
     "func-names": ["error", "as-needed"],
     "no-console": ["error", { allow: ["warn", "error"] }],
-    "react/no-did-update-set-state": 0
+    "react/no-did-update-set-state": 0,
+    "radix": "off"
   },
   "extends": ["airbnb-standard"]
 }

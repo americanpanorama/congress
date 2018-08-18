@@ -80,5 +80,5 @@ Bubble.propTypes = {
 Bubble.defaultProps = {
   fillOpacity: 1,
   id: ' ',
-  duration: 500
+  duration: 1000
 };

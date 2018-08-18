@@ -11,7 +11,7 @@ export default class BubbleCity extends React.Component {
       cx: this.props.cx,
       cy: this.props.cy,
       cityLabelOpacity: this.props.cityLabelOpacity,
-      cityLabelSize: (this.props.r > 0.01) ? DimensionsStore.getDimensions().cityLabelFontSize : 0,
+      cityLabelSize: DimensionsStore.getDimensions().cityLabelFontSize,
       dCityLabel: DimensionsStore.getTitleLabelArc(this.props.r)
     };
 
@@ -44,8 +44,7 @@ export default class BubbleCity extends React.Component {
               r: r,
               cx: cx,
               cy: cy,
-              cityLabelOpacity: (cityLabelOpacity),
-              cityLabelSize: (r > 0.01) ? 12 : 0
+              cityLabelOpacity: (cityLabelOpacity)
             });
           });
 
@@ -64,18 +63,16 @@ export default class BubbleCity extends React.Component {
           .duration(duration)
           .attr('d', DimensionsStore.getTitleLabelArc(r));
 
-        d3.select(this.cityLabelText.current)
-          .transition()
-          .duration(duration)
-          .style('fill-opacity', cityLabelOpacity)
-          .style('font-size', DimensionsStore.getDimensions().cityLabelFontSize * r / Math.max(prevProps.r, r));
+        // d3.select(this.cityLabelText.current)
+        //   .transition()
+        //   .duration(duration)
+        //   .style('fill-opacity', cityLabelOpacity);
       } else {
         this.setState({
           r: r,
           cx: cx,
           cy: cy,
-          cityLabelOpacity: cityLabelOpacity,
-          cityLabelSize: (r > 0.01) ? 12 : 0
+          cityLabelOpacity: cityLabelOpacity
         });
       }
     }
@@ -89,7 +86,6 @@ export default class BubbleCity extends React.Component {
         ref={this.bubble}
       >
         <circle
-          className='dorling'
           r={this.state.r}
           fill='#11181b'
           style={{
@@ -117,7 +113,7 @@ export default class BubbleCity extends React.Component {
             textAnchor='middle'
             style={{
               pointerEvents: 'none',
-              fillOpacity: this.state.cityLabelOpacity,
+              fillOpacity: this.props.cityLabelOpacity,
               fontSize: this.state.cityLabelSize
             }}
           >
@@ -141,9 +137,10 @@ BubbleCity.propTypes = {
   fillOpacity: PropTypes.number,
   cityLabel: PropTypes.string.isRequired,
   cityLabelOpacity: PropTypes.number.isRequired,
-  duration: PropTypes.number.isRequired
+  duration: PropTypes.number
 };
 
 BubbleCity.defaultProps = {
-  fillOpacity: 1
+  fillOpacity: 1,
+  duration: 1000
 };

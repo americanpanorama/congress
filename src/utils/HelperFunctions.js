@@ -11,60 +11,60 @@ const whigColor = '#FF7F50'; //'#D4C685';
 const thirdColor = '#D4C685'; // '#98B9AB';
 const equalColor = '#BEBEBE';
 const stateAbbrs = [
-  { state: 'Alabama', abbreviation: 'Ala.', postalCode: 'AL' },
-  { state: 'Alaska', abbreviation: 'Alaska', postalCode: 'AK' },
-  { state: 'Arizona', abbreviation: 'Ariz.', postalCode: 'AZ' },
-  { state: 'Arkansas', abbreviation: 'Ark.', postalCode: 'AR' },
-  { state: 'California', abbreviation: 'Calif.', postalCode: 'CA' },
-  { state: 'Colorado', abbreviation: 'Colo.', postalCode: 'CO' },
-  { state: 'Connecticut', abbreviation: 'Conn.', postalCode: 'CT' },
-  { state: 'Delaware', abbreviation: 'Del.', postalCode: 'DE' },
-  { state: 'District of Columbia', abbreviation: 'D.C.', postalCode: 'DC' },
-  { state: 'Florida', abbreviation: 'Fla.', postalCode: 'FL' },
-  { state: 'Georgia', abbreviation: 'Ga.', postalCode: 'GA' },
-  { state: 'Guam', abbreviation: 'Guam', postalCode: 'GU' },
-  { state: 'Hawaii', abbreviation: 'Hawaii', postalCode: 'HI' },
-  { state: 'Idaho', abbreviation: 'Idaho', postalCode: 'ID' },
-  { state: 'Illinois', abbreviation: 'Ill.', postalCode: 'IL' },
-  { state: 'Indiana', abbreviation: 'Ind.', postalCode: 'IN' },
-  { state: 'Iowa', abbreviation: 'Iowa', postalCode: 'IA' },
-  { state: 'Kansas', abbreviation: 'Kans.', postalCode: 'KS' },
-  { state: 'Kentucky', abbreviation: 'Ky.', postalCode: 'KY' },
-  { state: 'Louisiana', abbreviation: 'La.', postalCode: 'LA' },
-  { state: 'Maine', abbreviation: 'Maine', postalCode: 'ME' },
-  { state: 'Maryland', abbreviation: 'Md.', postalCode: 'MD' },
-  { state: 'Massachusetts', abbreviation: 'Mass.', postalCode: 'MA' },
-  { state: 'Michigan', abbreviation: 'Mich.', postalCode: 'MI' },
-  { state: 'Minnesota', abbreviation: 'Minn.', postalCode: 'MN' },
-  { state: 'Mississippi', abbreviation: 'Miss.', postalCode: 'MS' },
-  { state: 'Missouri', abbreviation: 'Mo.', postalCode: 'MO' },
-  { state: 'Montana', abbreviation: 'Mont.', postalCode: 'MT' },
-  { state: 'Nebraska', abbreviation: 'Nebr.', postalCode: 'NE' },
-  { state: 'Nevada', abbreviation: 'Nev.', postalCode: 'NV' },
-  { state: 'New Hampshire', abbreviation: 'N.H.', postalCode: 'NH' },
-  { state: 'New Jersey', abbreviation: 'N.J.', postalCode: 'NJ' },
-  { state: 'New Mexico', abbreviation: 'N.M.', postalCode: 'NM' },
-  { state: 'New York', abbreviation: 'N.Y.', postalCode: 'NY' },
-  { state: 'North Carolina', abbreviation: 'N.C.', postalCode: 'NC' },
-  { state: 'North Dakota', abbreviation: 'N.D.', postalCode: 'ND' },
-  { state: 'Ohio', abbreviation: 'Ohio', postalCode: 'OH' },
-  { state: 'Oklahoma', abbreviation: 'Okla.', postalCode: 'OK' },
-  { state: 'Oregon', abbreviation: 'Ore.', postalCode: 'OR' },
-  { state: 'Pennsylvania', abbreviation: 'Pa.', postalCode: 'PA' },
-  { state: 'Puerto Rico', abbreviation: 'P.R.', postalCode: 'PR' },
-  { state: 'Rhode Island', abbreviation: 'R.I.', postalCode: 'RI' },
-  { state: 'South Carolina', abbreviation: 'S.C.', postalCode: 'SC' },
-  { state: 'South Dakota', abbreviation: 'S.D.', postalCode: 'SD' },
-  { state: 'Tennessee', abbreviation: 'Tenn.', postalCode: 'TN' },
-  { state: 'Texas', abbreviation: 'Tex.', postalCode: 'TX' },
-  { state: 'Utah', abbreviation: 'Utah', postalCode: 'UT' },
-  { state: 'Vermont', abbreviation: 'Vt.', postalCode: 'VT' },
-  { state: 'Virginia', abbreviation: 'Va.', postalCode: 'VA' },
-  { state: 'Virgin Islands', abbreviation: 'V.I.', postalCode: 'VI' },
-  { state: 'Washington', abbreviation: 'Wash.', postalCode: 'WA' },
-  { state: 'West Virginia', abbreviation: 'W.Va.', postalCode: 'WV' },
-  { state: 'Wisconsin', abbreviation: 'Wis.', postalCode: 'WI' },
-  { state: 'Wyoming', abbreviation: 'Wyo.', postalCode: 'WY' }
+  { state: 'Alabama', abbreviation: 'Ala.', postalCode: 'AL', fips: '001' },
+  { state: 'Alaska', abbreviation: 'Alaska', postalCode: 'AK', fips: '002' },
+  { state: 'Arizona', abbreviation: 'Ariz.', postalCode: 'AZ', fips: '004' },
+  { state: 'Arkansas', abbreviation: 'Ark.', postalCode: 'AR', fips: '005' },
+  { state: 'California', abbreviation: 'Calif.', postalCode: 'CA', fips: '006' },
+  { state: 'Colorado', abbreviation: 'Colo.', postalCode: 'CO', fips: '008' },
+  { state: 'Connecticut', abbreviation: 'Conn.', postalCode: 'CT', fips: '009' },
+  { state: 'Delaware', abbreviation: 'Del.', postalCode: 'DE', fips: '010' },
+  { state: 'District of Columbia', abbreviation: 'D.C.', postalCode: 'DC', fips: '011' },
+  { state: 'Florida', abbreviation: 'Fla.', postalCode: 'FL', fips: '012' },
+  { state: 'Georgia', abbreviation: 'Ga.', postalCode: 'GA', fips: '013' },
+  { state: 'Guam', abbreviation: 'Guam', postalCode: 'GU', fips: '014' },
+  { state: 'Hawaii', abbreviation: 'Hawaii', postalCode: 'HI', fips: '015' },
+  { state: 'Idaho', abbreviation: 'Idaho', postalCode: 'ID', fips: '016' },
+  { state: 'Illinois', abbreviation: 'Ill.', postalCode: 'IL', fips: '017' },
+  { state: 'Indiana', abbreviation: 'Ind.', postalCode: 'IN', fips: '018' },
+  { state: 'Iowa', abbreviation: 'Iowa', postalCode: 'IA', fips: '019' },
+  { state: 'Kansas', abbreviation: 'Kans.', postalCode: 'KS', fips: '020' },
+  { state: 'Kentucky', abbreviation: 'Ky.', postalCode: 'KY', fips: '021' },
+  { state: 'Louisiana', abbreviation: 'La.', postalCode: 'LA', fips: '022' },
+  { state: 'Maine', abbreviation: 'Maine', postalCode: 'ME', fips: '023' },
+  { state: 'Maryland', abbreviation: 'Md.', postalCode: 'MD', fips: '024' },
+  { state: 'Massachusetts', abbreviation: 'Mass.', postalCode: 'MA', fips: '025' },
+  { state: 'Michigan', abbreviation: 'Mich.', postalCode: 'MI', fips: '026' },
+  { state: 'Minnesota', abbreviation: 'Minn.', postalCode: 'MN', fips: '027' },
+  { state: 'Mississippi', abbreviation: 'Miss.', postalCode: 'MS', fips: '028' },
+  { state: 'Missouri', abbreviation: 'Mo.', postalCode: 'MO', fips: '029' },
+  { state: 'Montana', abbreviation: 'Mont.', postalCode: 'MT', fips: '030' },
+  { state: 'Nebraska', abbreviation: 'Nebr.', postalCode: 'NE', fips: '031' },
+  { state: 'Nevada', abbreviation: 'Nev.', postalCode: 'NV', fips: '032' },
+  { state: 'New Hampshire', abbreviation: 'N.H.', postalCode: 'NH', fips: '033' },
+  { state: 'New Jersey', abbreviation: 'N.J.', postalCode: 'NJ', fips: '034' },
+  { state: 'New Mexico', abbreviation: 'N.M.', postalCode: 'NM', fips: '035' },
+  { state: 'New York', abbreviation: 'N.Y.', postalCode: 'NY', fips: '036' },
+  { state: 'North Carolina', abbreviation: 'N.C.', postalCode: 'NC', fips: '037' },
+  { state: 'North Dakota', abbreviation: 'N.D.', postalCode: 'ND', fips: '038' },
+  { state: 'Ohio', abbreviation: 'Ohio', postalCode: 'OH', fips: '039' },
+  { state: 'Oklahoma', abbreviation: 'Okla.', postalCode: 'OK', fips: '040' },
+  { state: 'Oregon', abbreviation: 'Ore.', postalCode: 'OR', fips: '041' },
+  { state: 'Pennsylvania', abbreviation: 'Pa.', postalCode: 'PA', fips: '042' },
+  { state: 'Puerto Rico', abbreviation: 'P.R.', postalCode: 'PR', fips: '043' },
+  { state: 'Rhode Island', abbreviation: 'R.I.', postalCode: 'RI', fips: '044' },
+  { state: 'South Carolina', abbreviation: 'S.C.', postalCode: 'SC', fips: '045' },
+  { state: 'South Dakota', abbreviation: 'S.D.', postalCode: 'SD', fips: '046' },
+  { state: 'Tennessee', abbreviation: 'Tenn.', postalCode: 'TN', fips: '047' },
+  { state: 'Texas', abbreviation: 'Tex.', postalCode: 'TX', fips: '048' },
+  { state: 'Utah', abbreviation: 'Utah', postalCode: 'UT', fips: '049' },
+  { state: 'Vermont', abbreviation: 'Vt.', postalCode: 'VT', fips: '050' },
+  { state: 'Virginia', abbreviation: 'Va.', postalCode: 'VA', fips: '051' },
+  { state: 'Virgin Islands', abbreviation: 'V.I.', postalCode: 'VI', fips: '052' },
+  { state: 'Washington', abbreviation: 'Wash.', postalCode: 'WA', fips: '053' },
+  { state: 'West Virginia', abbreviation: 'W.Va.', postalCode: 'WV', fips: '054' },
+  { state: 'Wisconsin', abbreviation: 'Wis.', postalCode: 'WI', fips: '055' },
+  { state: 'Wyoming', abbreviation: 'Wyo.', postalCode: 'WY', fips: '056' }
 ];
 
 export const getDistrictStyleFromUi = function (district, ui) {
@@ -168,7 +168,7 @@ export const getBubbleStyle = function (district, ui) {
 export const getCityBubbleStyle = function (city, ui) {
   const style = {};
 
-  style.fillOpacity = 0.5;
+  style.fillOpacity = (ui.selectedView === 'map') ? 0 : 0.5;
 
   if (ui.selectedView === 'cartogram') {
     if (ui.selectedParty) {
@@ -315,6 +315,10 @@ export const getStateAbbr = function (state) {
 
 export const getStateName = function (abbr) {
   return stateAbbrs.find(s => s.postalCode === abbr).state;
+};
+
+export const getFIPSToStateName = function (fips) {
+  return (fips) ? stateAbbrs.find(s => s.fips === fips).state : null;
 };
 
 export const getStateAbbrLong = function (postalCode) {
