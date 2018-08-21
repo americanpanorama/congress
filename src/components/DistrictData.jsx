@@ -97,47 +97,45 @@ const DistrictData = props => (
           </button>
         }
 
-        { (props.isSelected) &&
-          <button
-            onClick={props.onDistrictSelected}
-            style={{
-              right: props.dimensions.nextPreviousButtonHeight / 2 - 1,
-              top: props.dimensions.nextPreviousButtonHeight / 2 - 1
-            }}
+        <button
+          onClick={props.onDistrictSelected}
+          style={{
+            right: props.dimensions.nextPreviousButtonHeight / 2 - 1,
+            top: props.dimensions.nextPreviousButtonHeight / 2 - 1
+          }}
+        >
+          <svg
+            width={props.dimensions.nextPreviousButtonHeight + 2}
+            height={props.dimensions.nextPreviousButtonHeight + 2}
           >
-            <svg
-              width={props.dimensions.nextPreviousButtonHeight + 2}
-              height={props.dimensions.nextPreviousButtonHeight + 2}
-            >
-              <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2 + 1} ${props.dimensions.nextPreviousButtonHeight / 2 + 1}) rotate(135)`}>
-                <circle
-                  cx={0}
-                  cy={0}
-                  r={props.dimensions.nextPreviousButtonHeight / 2}
-                  fill='silver'
-                  stroke='#38444a'
-                  strokeWidth={1}
-                />
-                <line
-                  x1={0}
-                  x2={0}
-                  y1={props.dimensions.nextPreviousButtonHeight / 4}
-                  y2={props.dimensions.nextPreviousButtonHeight / -4}
-                  stroke='#233036'
-                  strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
-                />
-                <line
-                  x1={props.dimensions.nextPreviousButtonHeight / -4}
-                  x2={props.dimensions.nextPreviousButtonHeight / 4}
-                  y1={0}
-                  y2={0}
-                  stroke='#233036'
-                  strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
-                />
-              </g>
-            </svg>
-          </button>
-        }
+            <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2 + 1} ${props.dimensions.nextPreviousButtonHeight / 2 + 1}) rotate(135)`}>
+              <circle
+                cx={0}
+                cy={0}
+                r={props.dimensions.nextPreviousButtonHeight / 2}
+                fill='silver'
+                stroke='#38444a'
+                strokeWidth={1}
+              />
+              <line
+                x1={0}
+                x2={0}
+                y1={props.dimensions.nextPreviousButtonHeight / 4}
+                y2={props.dimensions.nextPreviousButtonHeight / -4}
+                stroke='#233036'
+                strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+              />
+              <line
+                x1={props.dimensions.nextPreviousButtonHeight / -4}
+                x2={props.dimensions.nextPreviousButtonHeight / 4}
+                y1={0}
+                y2={0}
+                stroke='#233036'
+                strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+              />
+            </g>
+          </svg>
+        </button>
       </div>
     }
 
@@ -171,7 +169,6 @@ DistrictData.propTypes = {
   label: PropTypes.string.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onZoomToDistrict: PropTypes.func.isRequired,
-  isSelected: PropTypes.bool.isRequired,
   backgroundColor: PropTypes.string,
   victor: PropTypes.string.isRequired,
   party: PropTypes.string.isRequired,

@@ -40,6 +40,27 @@ header {
 	}
 }
 
+#search {
+	position: fixed;
+	width: 300px;
+	z-index: 100;
+
+	input {
+		color: black;
+		border: none;
+		padding: 2px 10px;
+		width: 100%;
+	}
+
+	#searchResults {
+		padding-top: 20px;
+		overflow-y: scroll;
+		overflow-x: visible;
+		width: 100%;
+		background-color: rgba(38, 48, 53, 0.75);
+	}
+}
+
 button {
 	outline:none;
 }

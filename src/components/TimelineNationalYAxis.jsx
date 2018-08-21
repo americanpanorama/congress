@@ -29,6 +29,15 @@ const TimelineNationalYAxis = props => (
         </text>
       </g>
     ))}
+
+    <text
+      x={props.shortTickHeight * -2}
+      y={props.y(props.maxDemocrats * -1) - 5}
+      fill='white'
+      textAnchor='middle'
+    >
+      number of representatives
+    </text>
   </React.Fragment>
 );
 

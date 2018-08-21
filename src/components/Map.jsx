@@ -92,11 +92,12 @@ export default class Map extends React.Component {
   }
 
   handleMouseUp (e, ui) {
-    const vpWidth = DimensionsStore.getDimensions().mapWidth;
-    const currentWidth = DimensionsStore.getDimensions().mapProjectionWidth * this.props.uiState.zoom;
+    const dimensions = DimensionsStore.getDimensions();
+    const vpWidth = dimensions.mapWidth;
+    const currentWidth = dimensions.mapProjectionWidth * this.props.uiState.zoom;
     const propOffsetX = (vpWidth / 2 - this.state.offsetX - ui.x) / currentWidth;
-    const vpHeight = DimensionsStore.getDimensions().mapHeight;
-    const currentHeight = DimensionsStore.getDimensions().mapProjectionHeight * this.props.uiState.zoom;
+    const vpHeight = dimensions.mapHeight;
+    const currentHeight = dimensions.mapProjectionHeight * this.props.uiState.zoom;
     const propOffsetY = (vpHeight / 2 - this.state.offsetY - ui.y) / currentHeight;
 
     // calculate whether the map was moved
@@ -174,10 +175,10 @@ export default class Map extends React.Component {
                 {/* district polygons */}
                 { this.state.districts.map(d => (
                   <District
-                    d={DistrictsStore.getPath(d.the_geojson)}
+                    d={d.d}
                     id={d.id}
                     onDistrictSelected={this.onDistrictSelected}
-                    duration={this.state.transitionDuration}
+                    duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
                     {...getDistrictStyleFromUi(d, uiState)}
                     key={`polygon${d.id}`}
                   />
@@ -186,7 +187,7 @@ export default class Map extends React.Component {
                 {/* states */}
                 { this.state.states.map(s => (
                   <path
-                    d={DistrictsStore.getPath(s)}
+                    d={s.properties.d}
                     key={`stateBoundaries${s.properties.statename}`}
                     filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
                     style={getStateStyle(s, uiState)}
@@ -305,7 +306,8 @@ Map.propTypes = {
     selectedDistrict: PropTypes.string,
     zoom: PropTypes.number,
     x: PropTypes.number,
-    y: PropTypes.number
+    y: PropTypes.number,
+    searchOptions: PropTypes.array
   }).isRequired,
   geolocation: PropTypes.array,
   onDistrictSelected: PropTypes.func.isRequired,

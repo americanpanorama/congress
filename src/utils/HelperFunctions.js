@@ -93,8 +93,15 @@ export const getDistrictStyleFromUi = function (district, ui) {
     style.strokeOpacity = 0;
   }
 
-  // obscure if not selected district
-  if (ui.selectedDistrict) {
+  if (ui.searchOptions.length > 0) {
+    if (ui.selectedView === 'map' && ui.searchOptions.includes(district.id)) {
+      style.fillOpacity = 1;
+      style.strokeOpacity = 1;
+    } else {
+      style.fillOpacity = 0.1;
+      style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
+    }
+  } else if (ui.selectedDistrict) {
     if (ui.selectedDistrict === district.id) {
       style.fillOpacity = 1;
       style.strokeOpacity = 1;
@@ -129,7 +136,8 @@ export const getBubbleStyle = function (district, ui) {
     winnerView,
     selectedParty,
     onlyFlipped,
-    selectedDistrict
+    selectedDistrict,
+    searchOptions
   } = ui;
 
   style.fillOpacity = (selectedView === 'cartogram') ? 1 : 0;
@@ -146,17 +154,20 @@ export const getBubbleStyle = function (district, ui) {
   }
 
   // change stroke of selected district to white
-  if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === districtId) {
+  if (selectedView === 'cartogram' && searchOptions.includes(districtId)) {
+    style.stroke = 'white';
+  } else if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === districtId) {
     style.stroke = 'white';
   }
 
-  // hide if not among selected party or selected flipped
-  if ((selectedParty && selectedParty !== regularized_party_of_victory) ||
+  // obscure if not among search results
+  // hide if not among selected party or selected flipped // obscure if not selected district
+  if (selectedView === 'cartogram' && searchOptions.length > 0) {
+    style.fillOpacity = (searchOptions.includes(districtId)) ? 1 : 0.1;
+  } else if ((selectedParty && selectedParty !== regularized_party_of_victory) ||
    (onlyFlipped && !flipped)) {
     style.fillOpacity = 0.1;
-  }
-  // obscure if not selected district
-  if (selectedDistrict && selectedDistrict !== districtId) {
+  } else if (selectedDistrict && selectedDistrict !== districtId) {
     style.fillOpacity = 0.1;
   }
 

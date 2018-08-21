@@ -29,10 +29,22 @@ const DimensionsStore = {
 
     this.data.timelineHeight = this.data.windowHeight * 6 / 24 - this.data.gutterPadding;
 
+    this.data.searchTop = this.data.headerHeight / 2;
+    this.data.searchRight = this.data.gutterPadding;
+    this.data.searchWidth = this.data.timelineHeight;
+
     this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
 
     this.data.mapHeight = this.data.windowHeight * 15 / 24;
     this.data.mapWidth = this.data.windowWidth;
+
+    this.data.searchStyle = {
+      top: this.data.searchTop,
+      right: this.data.searchRight,
+      width: this.data.searchWidth
+    };
+
+    this.data.searchResultsHeight = this.data.mapHeight - 20;
 
     // calculate the amount of padding either top/bottom or left/right for the map when displayed at zoom 0
     // the ratio of width to height for albers is 960 / 500 or 1.92

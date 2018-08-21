@@ -27,26 +27,25 @@ const TimelineDistrictYAxis = props => (
         >
           {`${Math.round(Math.abs(percent * 100))}%${(percent === 0.5) ? ' or less' : ''}`}
         </text>
-
-        <text
-          x={props.shortTickHeight * 2}
-          y={props.y(-1) - 15}
-          fill='white'
-          textAnchor='middle'
-        >
-          strength of victory
-        </text>
-
-
-        <text
-          x={props.shortTickHeight * 2}
-          y={props.y(1) + props.axisHeight + 6}
-          fill='white'
-        >
-          no data
-        </text>
       </g>
     ))}
+
+    <text
+      x={props.shortTickHeight * 2}
+      y={props.y(-1) - 15}
+      fill='white'
+      textAnchor='middle'
+    >
+      strength of victory
+    </text>
+
+    <text
+      x={props.shortTickHeight * 2}
+      y={props.y(1) + props.axisHeight + 6}
+      fill='white'
+    >
+      no data
+    </text>
   </React.Fragment>
 );
 

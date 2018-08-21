@@ -52,7 +52,7 @@ export default class MapContainer extends React.Component {
 
   selectCurrentLocation () {
     if (this.state.geolocation) {
-      const districtId = DistrictStore.findDistrict(this.state.geolocation, this.props.selectedYear);
+      const districtId = DistrictStore.findDistrict(this.state.geolocation, this.props.uiState.selectedYear);
       if (districtId) {
         this.props.onDistrictSelected(districtId);
       }
@@ -114,6 +114,7 @@ export default class MapContainer extends React.Component {
           winnerView={this.state.winnerView}
           onViewSelected={onViewSelected}
           toggleView={this.toggleView}
+          dimensions={dimensions}
         />
 
         <MapLegend
@@ -152,7 +153,8 @@ MapContainer.propTypes = {
     onlyFlipped: PropTypes.bool,
     zoom: PropTypes.number,
     x: PropTypes.number,
-    y: PropTypes.number
+    y: PropTypes.number,
+    searchOptions: PropTypes.array
   }).isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onPartySelected: PropTypes.func.isRequired,

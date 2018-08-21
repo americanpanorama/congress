@@ -53,7 +53,8 @@ const DistrictsStore = {
                 district: d.properties.district,
                 startcong: d.properties.startcong,
                 endcong: d.properties.endcong,
-                the_geojson: d.geometry
+                the_geojson: d.geometry,
+                d: this.getPath(d.geometry)
               };
             }
             this.data.congressDistricts[year].push(d.properties.id);
@@ -293,7 +294,7 @@ const DistrictsStore = {
 
     Object.keys(this.data.districts).forEach((id) => {
       const district = this.data.districts[id];
-      const election = this.getElectionDataForDistrict(year, id);
+      const election = this.getElectionDataForDistrict(year, id); 
 
       if (this.data.congressDistricts[year] &&
         this.data.congressDistricts[year].includes(id) &&
@@ -313,6 +314,33 @@ const DistrictsStore = {
       }
       return -1;
     });
+  },
+
+  getSearchData: function (year) {
+    const searchOptions = [];
+    Object.keys(this.data.elections[year]).forEach((stateAbbr) => {
+      Object.keys(this.data.elections[year][stateAbbr]).forEach((district) => {
+        if (district !== 'GT' && district !== 'AL') {
+          const {
+            id,
+            victor,
+            regularized_party_of_victory,
+          } = this.data.elections[year][stateAbbr][district];
+          searchOptions.push({
+            searchText: `${stateAbbr} ${getStateName(stateAbbr)} 
+              ${district} ${victor} ${regularized_party_of_victory}`,
+            id: id,
+            state: getStateName(stateAbbr),
+            stateAbbr: getStateAbbrLong(stateAbbr),
+            district: district,
+            victor: victor,
+            regularized_party_of_victory: regularized_party_of_victory
+          });
+        }
+      });
+    });
+
+    return searchOptions;
   },
 
   getGeneralTicketElections: function (year) {
@@ -557,7 +585,10 @@ const DistrictsStore = {
         .map(d => d.the_geojson);
       //const stateGeojson = geojsonMerge.merge(districtsGeojson);
       const stateGeojson = dissolve(districtsGeojson);
-      stateGeojson.properties = { statename: sn };
+      stateGeojson.properties = {
+        statename: sn,
+        d: this.getPath(stateGeojson)
+      };
       return stateGeojson;
     });
 
