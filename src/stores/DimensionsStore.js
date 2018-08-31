@@ -13,12 +13,19 @@ const DimensionsStore = {
     sidebarHeight: 100, // placeholder
     infoWidth: 100,
     infoHeight: 300,
-    timelineWidth: 350,
+    timelineWidth: 350
   },
 
   computeComponentDimensions: function () {
     this.data.windowHeight = window.innerHeight;
     this.data.windowWidth = window.innerWidth;
+
+    this.data.mapHeight = this.data.windowHeight * 15 / 24;
+    this.data.mapWidth = this.data.windowWidth;
+
+    const horizontalScale = this.data.mapWidth / 960 * 1075;
+    const verticalScale = this.data.mapHeight * 0.9 / 500 * 1075;
+    this.data.mapScale = Math.min(horizontalScale, verticalScale);
 
     this.data.gutterPadding = this.data.windowHeight * 0.01;
 
@@ -34,9 +41,6 @@ const DimensionsStore = {
     this.data.searchWidth = this.data.timelineHeight;
 
     this.data.infoWidth = this.data.windowWidth - this.data.sidebarWidth;
-
-    this.data.mapHeight = this.data.windowHeight * 15 / 24;
-    this.data.mapWidth = this.data.windowWidth;
 
     this.data.searchStyle = {
       top: this.data.searchTop,
@@ -126,7 +130,7 @@ const DimensionsStore = {
     this.data.districtR = Math.min(
       this.data.mapWidth / 960 * 1000,
       this.data.mapHeight / 500 * 1000
-    ) / 960 * 5;
+    ) / 960 / this.data.mapScale * 5;
 
     this.data.cityLabelFontSize = this.data.districtR * 1.5;
 

@@ -165,7 +165,7 @@ const DistrictData = props => (
 export default DistrictData;
 
 DistrictData.propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
   label: PropTypes.string.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onZoomToDistrict: PropTypes.func.isRequired,
@@ -173,11 +173,11 @@ DistrictData.propTypes = {
   victor: PropTypes.string.isRequired,
   party: PropTypes.string.isRequired,
   previousDistrict: PropTypes.oneOfType([
-    PropTypes.string,
+    PropTypes.number,
     PropTypes.bool
   ]).isRequired,
   nextDistrict: PropTypes.oneOfType([
-    PropTypes.string,
+    PropTypes.number,
     PropTypes.bool
   ]).isRequired,
   dimensions: PropTypes.shape({

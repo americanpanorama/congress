@@ -64,13 +64,13 @@ export default class DistrictTimeline extends React.Component {
 
 					{ Object.keys(this.props.electionsData).map(year => {
 						if (this.props.electionsData[year]) {
-							console.log(this.props.electionsData[year].regularized_party_of_victory);
+							console.log(this.props.electionsData[year].partyReg);
 							return (
 								<circle
 									cx={x(year)}
-									cy={ (this.props.electionsData[year].regularized_party_of_victory == 'democrat') ? y(this.props.electionsData[year].percent_vote * -1) : (this.props.electionsData[year].regularized_party_of_victory == 'republican' || this.props.electionsData[year].regularized_party_of_victory == 'whig') ? y(this.props.electionsData[year].percent_vote) : 0 }
+									cy={ (this.props.electionsData[year].partyReg == 'democrat') ? y(this.props.electionsData[year].percent * -1) : (this.props.electionsData[year].partyReg == 'republican' || this.props.electionsData[year].partyReg == 'whig') ? y(this.props.electionsData[year].percent) : 0 }
 									r={ 5 }
-									fill={ getColorForParty(this.props.electionsData[year].regularized_party_of_victory) }
+									fill={ getColorForParty(this.props.electionsData[year].partyReg) }
 									key={ 'districtMOVFor' + year }
 								/>
 							);

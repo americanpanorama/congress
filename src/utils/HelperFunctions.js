@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import { parseFullName } from 'parse-full-name';
 
 import DistrictsStore from '../stores/Districts';
+import DimensionsStore from '../stores/DimensionsStore';
 
 const repColor = '#FB6765';
 const repColorLight = '#FACFCF';
@@ -69,16 +70,23 @@ const stateAbbrs = [
 
 export const getDistrictStyleFromUi = function (district, ui) {
   const style = {};
+  const mapScale = DimensionsStore.getMapScale();
+
+  const backgroundColorAdjustment = d3.scaleLinear()
+    .domain([0, 1])
+    .range(['#233036', '#eee']);
+
+  style.stroke = '#eee';
 
   // set base color depending on winner/strength of victory view
   if (ui.winnerView
-    || (ui.selectedView === 'cartogram' && ui.selectedDistrict !== district.id)) {
-    style.fill = getColorForParty(district.regularized_party_of_victory);
+    || (ui.selectedView === 'cartogram' && ui.selectedDistrict !== district.spatialId)) {
+    style.fill = getColorForParty(district.partyReg);
   } else {
     const percentVote = (district.gtCount)
-      ? district.percent_vote * district.gtCount
-      : district.percent_vote;
-    style.fill = getColorForMargin(district.regularized_party_of_victory, percentVote);
+      ? district.percent * district.gtCount
+      : district.percent;
+    style.fill = getColorForMargin(district.partyReg, percentVote);
   }
 
   // set base opacity depending on map/cartogram view
@@ -87,14 +95,14 @@ export const getDistrictStyleFromUi = function (district, ui) {
 
   // hide if not among selected party or selected flipped
   if ((ui.selectedParty
-    && ui.selectedParty !== district.regularized_party_of_victory)
+    && ui.selectedParty !== district.partyReg)
     || (ui.onlyFlipped && !district.flipped)) {
     style.fillOpacity = 0.01;
     style.strokeOpacity = 0;
   }
 
   if (ui.searchOptions.length > 0) {
-    if (ui.selectedView === 'map' && ui.searchOptions.includes(district.id)) {
+    if (ui.selectedView === 'map' && ui.searchOptions.includes(district.spatialId)) {
       style.fillOpacity = 1;
       style.strokeOpacity = 1;
     } else {
@@ -102,33 +110,36 @@ export const getDistrictStyleFromUi = function (district, ui) {
       style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
     }
   } else if (ui.selectedDistrict) {
-    if (ui.selectedDistrict === district.id) {
+    if (ui.selectedDistrict === district.spatialId) {
       style.fillOpacity = 1;
       style.strokeOpacity = 1;
     } else {
       style.fillOpacity = 0.1;
+      style.stroke = backgroundColorAdjustment(0.3);
       style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
     }
   }
 
-  const hasNarrowStrokeWidth = !ui.selectedDistrict || ui.selectedDistrict !== district.id;
-  style.strokeWidth = (hasNarrowStrokeWidth) ? 0.5 / ui.zoom : 2 / ui.zoom;
+  const hasNarrowStrokeWidth = !ui.selectedDistrict || ui.selectedDistrict !== district.spatialId;
+  style.strokeWidth = (hasNarrowStrokeWidth) ? 0.5 / mapScale / ui.zoom : 2 / mapScale / ui.zoom;
 
   style.pointerEvents = (ui.selectedView === 'map') ? 'auto' : 'none';
 
-  style.stroke = '#eee';
+
 
   return style;
 };
 
 export const getBubbleStyle = function (district, ui) {
   const style = {};
+  const mapScale = DimensionsStore.getMapScale();
 
   const {
-    regularized_party_of_victory,
-    percent_vote,
-    districtId,
-    flipped
+    partyReg,
+    percent,
+    id,
+    flipped,
+    spatialId
   } = district;
 
   const {
@@ -146,28 +157,29 @@ export const getBubbleStyle = function (district, ui) {
     style.fill = 'transparent';
     style.stroke = 'transparent';
   } else if (winnerView) {
-    style.fill = getColorForParty(regularized_party_of_victory);
-    style.stroke = getColorForParty(regularized_party_of_victory);
+    style.fill = getColorForParty(partyReg);
+    style.stroke = getColorForParty(partyReg);
   } else {
-    style.fill = getColorForMargin(regularized_party_of_victory, percent_vote);
-    style.stroke = getColorForMargin(regularized_party_of_victory, percent_vote);
+    style.fill = getColorForMargin(partyReg, percent);
+    style.stroke = getColorForMargin(partyReg, percent);
   }
 
   // change stroke of selected district to white
-  if (selectedView === 'cartogram' && searchOptions.includes(districtId)) {
+  if (selectedView === 'cartogram' && searchOptions.includes(id)) {
     style.stroke = 'white';
-  } else if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === districtId) {
+  } else if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === spatialId) {
     style.stroke = 'white';
+    style.strokeWidth = 1 / mapScale;
   }
 
   // obscure if not among search results
   // hide if not among selected party or selected flipped // obscure if not selected district
   if (selectedView === 'cartogram' && searchOptions.length > 0) {
-    style.fillOpacity = (searchOptions.includes(districtId)) ? 1 : 0.1;
-  } else if ((selectedParty && selectedParty !== regularized_party_of_victory) ||
+    style.fillOpacity = (searchOptions.includes(id)) ? 1 : 0.1;
+  } else if ((selectedParty && selectedParty !== partyReg) ||
    (onlyFlipped && !flipped)) {
     style.fillOpacity = 0.1;
-  } else if (selectedDistrict && selectedDistrict !== districtId) {
+  } else if (selectedDistrict && selectedDistrict !== spatialId) {
     style.fillOpacity = 0.1;
   }
 
@@ -183,21 +195,23 @@ export const getCityBubbleStyle = function (city, ui) {
 
   if (ui.selectedView === 'cartogram') {
     if (ui.selectedParty) {
-      const percentOfParty = DistrictsStore.cityPercentForParty(city.id, ui.selectedYear, ui.selectedParty);
+      const percentOfParty = city.parties[ui.selectedParty] / city.districts.length;
       if (percentOfParty === 0) {
         style.fillOpacity = 0.2;
       }
     }
 
-    if (ui.onlyFlipped) {
-      const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
-      if (flippedPercent === 0) {
+    // if (ui.onlyFlipped) {
+    //   const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
+    //   if (flippedPercent === 0) {
+    //     style.fillOpacity = 0.2;
+    //   }
+    // }
+
+    if (ui.selectedDistrict && city.districts) {
+      if (!city.districts.includes(ui.selectedDistrict)) {
         style.fillOpacity = 0.2;
       }
-    }
-
-    if (ui.selectedDistrict && !DistrictsStore.districtInCity(DistrictsStore.getBubbleForDistrict(ui.selectedDistrict, ui.selectedYear), city)) {
-      style.fillOpacity = 0.2;
     }
   }
 
@@ -211,18 +225,18 @@ export const getCityBubbleLabelOpacity = function (city, ui) {
     opacity = 0;
   } else {
     if (ui.selectedParty) {
-      const percentOfParty = DistrictsStore.cityPercentForParty(city.id, ui.selectedYear, ui.selectedParty);
+      const percentOfParty = city.parties[ui.selectedParty] / city.districts.length;
       opacity = percentOfParty;
     }
 
-    if (ui.onlyFlipped) {
-      const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
-      if (flippedPercent === 0) {
-        opacity = 0.2;
-      }
-    }
+    // if (ui.onlyFlipped) {
+    //   const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
+    //   if (flippedPercent === 0) {
+    //     opacity = 0.2;
+    //   }
+    // }
 
-    if (ui.selectedDistrict && !DistrictsStore.districtInCity(DistrictsStore.getBubbleForDistrict(ui.selectedDistrict, ui.selectedYear), city)) {
+    if (ui.selectedDistrict && city.districts && !city.districts.includes(ui.selectedDistrict)) {
       opacity = 0.2;
     }
   }
@@ -231,13 +245,25 @@ export const getCityBubbleLabelOpacity = function (city, ui) {
 };
 
 export const getStateStyle = function (state, ui) {
+  const backgroundColorAdjustment = d3.scaleLinear()
+    .domain([0, 1])
+    .range(['#233036', '#eee']);
+  const { mapScale } = DimensionsStore.getDimensions();
+  const districtData = DistrictsStore.getElectionDataForDistrict(ui.selectedDistrict);
   const style = {
     fill: 'transparent',
     stroke: '#eee',
-    strokeOpacity: (ui.selectedView === 'cartogram') ? 0.2 : 1,
-    strokeWidth: (!ui.selectedDistrict || state.properties.abbr_name === DistrictsStore.getElectionDataForDistrict(ui.selectedYear, ui.selectedDistrict).state) ? 1.5 / ui.zoom : 0.3 / ui.zoom,
     pointerEvents: 'none'
   };
+
+  style.strokeOpacity = (ui.selectedView === 'cartogram') ? 0.2 : 1;
+
+  style.strokeWidth = 1.5 / ui.zoom / mapScale;
+
+  if (districtData && state.state !== districtData.state) {
+    style.stroke = backgroundColorAdjustment(0.2);
+    style.strokeWidth = 1 / ui.zoom / mapScale;
+  }
 
   return style;
 };
@@ -298,14 +324,14 @@ export const getColorForMargin = function (party, percent) {
     return getThirdColor(percent);
   }
 
-  return 'orange'
+  return 'orange';
 };
 
 export const yearForCongress = function (congress) { return 1786 + congress * 2; };
 
 export const congressForYear = function (year) { return Math.round(d3.scaleLinear().domain([1788, 2030]).range([1, 122])(year)); };
 
-export const ordinalSuffixOf = function(i) {
+export const ordinalSuffixOf = function (i) {
     var j = i % 10,
         k = i % 100;
     if (j == 1 && k != 11) {
@@ -325,7 +351,7 @@ export const getStateAbbr = function (state) {
 };
 
 export const getStateName = function (abbr) {
-  return stateAbbrs.find(s => s.postalCode === abbr).state;
+  return stateAbbrs.find(s => s.postalCode.toLowerCase() === abbr.toLowerCase()).state;
 };
 
 export const getFIPSToStateName = function (fips) {
@@ -333,7 +359,7 @@ export const getFIPSToStateName = function (fips) {
 };
 
 export const getStateAbbrLong = function (postalCode) {
-  return stateAbbrs.find(s => s.postalCode === postalCode).abbreviation;
+  return stateAbbrs.find(s => s.postalCode.toLowerCase() === postalCode.toLowerCase()).abbreviation;
 };
 
 export const formatPersonName = function (name) {

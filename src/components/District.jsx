@@ -59,7 +59,8 @@ export default class District extends React.Component {
           fill: this.state.color,
           fillOpacity: this.state.fillOpacity,
           stroke: this.state.stroke,
-          strokeOpacity: this.state.strokeOpacity
+          strokeOpacity: this.state.strokeOpacity,
+          strokeWidth: this.props.strokeWidth
         }}
         ref={this.district}
       />
@@ -72,8 +73,9 @@ District.propTypes = {
   fill: PropTypes.string.isRequired,
   stroke: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number.isRequired,
-  id: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
   strokeOpacity: PropTypes.number.isRequired,
+  strokeWidth: PropTypes.number,
   pointerEvents: PropTypes.string,
   onDistrictSelected: PropTypes.func.isRequired,
   duration: PropTypes.number
@@ -81,5 +83,6 @@ District.propTypes = {
 
 District.defaultProps = {
   pointerEvents: 'none',
-  duration: 1000
+  duration: 1000,
+  strokeWidth: 0
 };

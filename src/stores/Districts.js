@@ -1,18 +1,17 @@
 import { EventEmitter } from 'events';
-import dissolve from 'geojson-dissolve';
 import * as d3 from 'd3';
 import Polylabel from 'polylabel';
 import GeojsonArea from '@mapbox/geojson-area';
 
 import AppDispatcher from '../utils/AppDispatcher';
-import { AppActionTypes } from '../utils/AppActionCreator';
+import { AppActions, AppActionTypes } from '../utils/AppActionCreator';
 
 import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong, getFIPSToStateName } from '../utils/HelperFunctions';
 
 import bubbleXYs from '../../data/bubbleXYs.json';
 import Elections from '../../data/elections.json';
+import SteamgraphPaths from '../../data/steamgraphPaths.json';
 import SpatialIds from '../../data/spatialids.json';
-import MetroNames from '../../data/metroNames.json';
 
 import DimensionsStore from './DimensionsStore';
 
@@ -22,7 +21,8 @@ const DistrictsStore = {
     bubbleCoords: [],
     districts: [],
     states: [],
-    elections: Elections,
+    elections: [],
+    cityBubbles: [],
     congressDistricts: {},
     theMap: null,
     rawPartyCounts: [],
@@ -30,131 +30,65 @@ const DistrictsStore = {
     partyCountsKeys: [],
     congressYears: [],
     earliestYear: null,
-    lastYear: null
+    lastYear: null,
+    spaceData: [],
+    bubbles: []
   },
 
-  loadDistrictsForCongress: function (year) {
-    const congress = congressForYear(year);
-    this.data.congressDistricts[year] = this.data.congressDistricts[year] || [];
-
-    fetch(`static/districts-geojson/${congress}.json`)
+  loadForYear: function (year, districtId) {
+    fetch(`static/elections/${year}.json`)
       .then((response) => {
-        if (response.status !== 200) {
-          console.log(`Error status Code: $response.status}`);
-          return;
-        }
         response.json().then((data) => {
-          const theGeoJson = data;
-          theGeoJson.features.forEach((d) => {
-            if (!this.data.districts[d.properties.id]) {
-              this.data.districts[d.properties.id] = {
-                id: d.properties.id,
-                statename: d.properties.statename || getFIPSToStateName(d.properties.fips),
-                district: d.properties.district,
-                startcong: d.properties.startcong,
-                endcong: d.properties.endcong,
-                the_geojson: d.geometry,
-                d: this.getPath(d.geometry)
-              };
-            }
-            this.data.congressDistricts[year].push(d.properties.id);
-          });
+          this.data.elections = data.elections;
+          this.data.states = data.states;
+          this.data.cityBubbles = data.cityBubbles;
+
+          if (districtId) {
+            this.loadSpaceData(districtId);
+          }
+
+          AppActions.congressLoaded(year);
+        });
+      });
+  },
+
+  loadSpaceData: function (spatialId) {
+    //const { spatialId } = this.getElectionDataForDistrict(id);
+    fetch(`static/space-data/${spatialId}.json`)
+      .then((response) => {
+        response.json().then((data) => {
+          this.data.spaceData = data;
 
           this.emit(AppActionTypes.storeChanged);
         });
-      })
-      .catch((err) => {
-        console.log('Fetch Error :-S', err);
       });
   },
 
-  parseBubbles: function () {
-    this.data.bubbleCoords = bubbleXYs
-      .map((yearData) => {
-        return {
-          year: yearData.year,
-          districts: yearData.districts
-            .filter(d => d.id)
-            .map((d, i) => {
-              const state = d.district.substring(0, 2);
-              const district = d.district.substring(2);
-              // deal with at large districts
-              if (district === 'GT' || district === 'AL') {
-                const [id, placeString] = d.id.split('-');
-                const place = parseInt(placeString);
-                if (Elections[yearData.year][state][district][place]) {
-                  const regularized_party_of_victory = Elections[yearData.year][state][district][place].regularized_party_of_victory;
-                  return {
-                    id: d.id,
-                    x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
-                    y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight / 2,
-                    xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
-                    yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight / 2,
-                    state: state,
-                    district: district,
-                    districtId: d.id,
-                    regularized_party_of_victory: regularized_party_of_victory,
-                    party_of_victory: Elections[yearData.year][state][district][place].party_of_victory,
-                    victor: Elections[yearData.year][state][district][place].victor,
-                    percent_vote: Elections[yearData.year][state][district][place].percent_vote,
-                    flipped: false,
-                    place: place,
-                    gtCount: (district === 'GT') ? Elections[yearData.year][state][district].length : null
-                  };
-                }
-              }
-
-              if (!Elections[yearData.year][state][district]) {
-                return {
-                  id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
-                  x: (0.09 + Math.random() * 0.02) * DimensionsStore.getMapScale(),
-                  y: (0.19 + Math.random() * 0.02) * DimensionsStore.getMapScale(),
-                  xOrigin: -1000,
-                  yOrigin: -1000,
-                  state: state,
-                  district: district,
-                  districtId: d.id,
-                  regularized_party_of_victory: regularized_party_of_victory,
-                  percent_vote: -1,
-                  flipped: false
-                };
-              }
-              const regularized_party_of_victory = Elections[yearData.year][state][district].regularized_party_of_victory,
-                previousDistrictId = this.getDistrictId(yearData.year - 2, SpatialIds[yearData.year][d.id]),
-                previousDistrictNum = this.getDistrictNum(yearData.year - 2, previousDistrictId),
-                flipped = !!(regularized_party_of_victory && previousDistrictId && Elections[yearData.year - 2] && Elections[yearData.year - 2][state] && Elections[yearData.year - 2][state][previousDistrictNum] && Elections[yearData.year - 2][state][previousDistrictNum].regularized_party_of_victory !== regularized_party_of_victory);
-
-              return {
-                id: SpatialIds[yearData.year][d.id] || 'missing' + yearData.year + i,
-                x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
-                y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
-                xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth/2,
-                yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
-                state: state,
-                district: parseInt(district, 10),
-                districtId: d.id,
-                regularized_party_of_victory: regularized_party_of_victory,
-                party_of_victory: Elections[yearData.year][state][district].party_of_victory,
-                victor: Elections[yearData.year][state][district].victor,
-                percent_vote: Elections[yearData.year][state][district].percent_vote,
-                flipped: flipped,
-              };
-            })
-            .sort((a, b) => (a.id > b.id) ? 1 : (a.id < b.id) ? -1 : 0),
-          cities: yearData.cities.map(d => (
-            {
-              id: MetroNames[d.id] || d.id,
-              x: d.x * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
-              y: d.y * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight / 2,
-              xOrigin: d.xOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionWidth / 2,
-              yOrigin: d.yOrigin * DimensionsStore.getMapScale() + DimensionsStore.getDimensions().mapProjectionHeight/2,
-              r: d.r * DimensionsStore.getMapScale()
-            }
-          ))
-        };
+  getElectionDistricts: function (year) {
+    return this.data.elections
+      .filter(e => (!e.id.includes('-') || e.id.includes('-0')) && e.svg)
+      .sort((e) => {
+        if (['GT', 'AL', 0, '0'].includes(e.districtType)) {
+          return -1;
+        }
+        return 1;
       });
+  },
 
-    this.emit(AppActionTypes.storeChanged);
+  getElectionBubbles: function () { return this.data.elections; },
+
+  getCityBubbles: function () { return this.data.cityBubbles; },
+
+  getStates: function (year) { return this.data.states; },
+
+  getSpaceData: function () { return this.data.spaceData; },
+
+  getElectionDataForDistrict: function (spatialId) {
+    return this.data.elections.find(e => parseInt(e.spatialId) === parseInt(spatialId));
+  },
+
+  getSteamgraphPaths: function () {
+    return SteamgraphPaths;
   },
 
   hasYearLoaded: function (year) { return this.data.congressDistricts[year] && this.data.congressDistricts[year].length > 0; },
@@ -165,11 +99,7 @@ const DistrictsStore = {
 
   getPathFunction: function () { return d3.geoPath(this.getProjection()); },
 
-  getPath: function (g) { return this.getPathFunction()(g); },
-
-  getTheMap: function () { return this.data.theMap; },
-
-  getVisibleBounds: function () { return this.data.theMap.getBounds(); },
+  getPath: function (g) { return this.getPathFunction()(g); }, 
 
   getProjection: function () {
     return d3.geoAlbersUsa()
@@ -179,41 +109,37 @@ const DistrictsStore = {
   },
 
   getEarliestYear: function () {
-    if (!this.data.earliestYear) {
-      this.data.earliestYear = Math.min(...Object.keys(this.data.elections)
-        .map(y => parseInt(y, 10)));
-    }
-    return this.data.earliestYear;
+    return 1836;
+    // if (!this.data.earliestYear) {
+    //   this.data.earliestYear = Math.min(this.data.elections.map(e => e.year))
+    //     .map(y => parseInt(y, 10)));
+    // }
+    // return this.data.earliestYear;
   },
 
   getLastYear: function () {
-    if (!this.data.lastYear) {
-      this.data.lastYear = Math.max(...Object.keys(this.data.elections)
-        .map(y => parseInt(y, 10)));
-    }
-    return this.data.lastYear;
+    return 2010;
+    // if (!this.data.lastYear) {
+    //   this.data.lastYear = Math.max(this.data.elections.map(e.))
+    //     .map(y => parseInt(y, 10)));
+    // }
+    // return this.data.lastYear;
   },
 
   getElectionYears: function () {
-    return Object.keys(this.data.elections)
-      .map(y => parseInt(y, 10))
-      .sort();
+    return Array(this.getLastYear() -  this.getEarliestYear() + 1).fill().map((_, idx) => this.getEarliestYear() + idx);
+    // return Object.keys(this.data.elections)
+    //   .map(y => parseInt(y, 10))
+    //   .sort();
   },
 
   projectPoint: function (point) { return this.getProjection()(point); },
-
-  getBubbleForDistrict: function (id, year) {
-    const yearBubbles = this.data.bubbleCoords.find(bc => bc.year === year);
-    return (yearBubbles.districts) ? yearBubbles.districts.find(d => d.districtId === id) : null;
-  },
-
-  getBubbleCoords: function (year) { return this.data.bubbleCoords.find(bc => bc.year === year) || { districts: [], cities: [] }; },
 
   cityHasParty: function (cityId, year, party) {
     let hasParty = false;
     const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
     this.getBubbleCoords(year).districts.forEach((d) => {
-      if (this.districtInCity(d, cityBubble) && d.regularized_party_of_victory === party) {
+      if (this.districtInCity(d, cityBubble) && d.partyReg === party) {
         hasParty = true;
       }
     });
@@ -227,7 +153,7 @@ const DistrictsStore = {
     this.getBubbleCoords(year).districts.forEach((d) => {
       if (this.districtInCity(d, cityBubble)) {
         districtCount += 1;
-        if (d.regularized_party_of_victory === party) {
+        if (d.partyReg === party) {
           partyCount += 1;
         }
       }  
@@ -250,25 +176,41 @@ const DistrictsStore = {
     return flippedCount / districtCount;
   },
 
-  getStatePreviousDistrictId: function (year, id) {
-    let previousId = false;
-    const districtData = this.getElectionDataForDistrict(year, id);
-    const { state, district } = districtData;
-    if (district !== 0) {
-      const nextAbbr = `${state}${district - 1}`;
-      previousId = this.getDistrictIdFromStateDistrict(year, nextAbbr);
-    }
-    return previousId;
+  getDistrictsForState: function (state) {
+    return this.data.elections
+      .filter(e => e.state === state)
+      .sort((a, b) => {
+        if (a.districtType === 'GT' && b.districtType !== 'GT') {
+          return -1;
+        }
+        if (a.districtType !== 'GT' && b.districtType === 'GT') {
+          return 1;
+        }
+        if (a.districtType === 'AL' && b.districtType !== 'AL') {
+          return -1;
+        }
+        if (a.districtType !== 'AL' && b.districtType === 'AL') {
+          return 1;
+        }
+        return parseInt(a.districtType) - parseInt(b.districtType);
+      });
   },
 
-  getStateNextDistrictId: function (year, id) {
-    const districtData = this.getElectionDataForDistrict(year, id);
-    const { state, district } = districtData;
-    const nextAbbr = `${state}${district + 1}`;
-    return this.getDistrictIdFromStateDistrict(year, nextAbbr);
+  getStatePreviousDistrictId: function (id) {
+    const { state } = this.getElectionDataForDistrict(id);
+    const stateDistricts = this.getDistrictsForState(state);
+    const i = stateDistricts.findIndex(e => e.spatialId === id);
+    return (i > 0) ? stateDistricts[i - 1].spatialId : false;
   },
 
-  getDistrictIdFromStateDistrict: function (year, abbr) {
+  getStateNextDistrictId: function (id) {
+    const { state } = this.getElectionDataForDistrict(id);
+    const stateDistricts = this.getDistrictsForState(state);
+    const i = stateDistricts.findIndex(e => e.spatialId === id);
+    return (i + 1 < stateDistricts.length) ? stateDistricts[i + 1].spatialId : false;
+  },
+
+  getDistrictIdFromStateDistrict: function (abbr) {
     let nextId = false;
     const yearData = bubbleXYs.find(yd => yd.year === year);
     if (yearData && yearData.districts) {
@@ -286,72 +228,47 @@ const DistrictsStore = {
     return cityBubble.r >= Math.sqrt(xDiff * xDiff + yDiff * yDiff);
   },
 
-  getElectionDistrictIds: function (year) { return this.data.bubbleCoords.find(bc => bc.year === year).districts.map(d => d.id); },
-
-  getElectionDistricts: function (year) {
-    const districts = [];
-    const opacity = d3.scaleLinear().domain([0, 10000, 600000]).range([1, 0.2, 0.2]);
-
-    Object.keys(this.data.districts).forEach((id) => {
-      const district = this.data.districts[id];
-      const election = this.getElectionDataForDistrict(year, id); 
-
-      if (this.data.congressDistricts[year] &&
-        this.data.congressDistricts[year].includes(id) &&
-        election) {
-        district.regularized_party_of_victory = this.getRegPOVForDistrict(year, id);
-        district.percent_vote = election.percent_vote;
-        district.opacity = opacity(district.area);
-        district.flipped = this.districtFlipped(year, id);
-
-        districts.push(district);
-      }
-    });
-
-    return districts.sort((a, b) => {
-      if (['GT', 'AL', 0, '0'].includes(b.district)) {
-        return 1;
-      }
-      return -1;
-    });
-  },
-
   getSearchData: function (year) {
     const searchOptions = [];
-    Object.keys(this.data.elections[year]).forEach((stateAbbr) => {
-      Object.keys(this.data.elections[year][stateAbbr]).forEach((district) => {
-        if (district !== 'GT' && district !== 'AL') {
-          const {
-            id,
-            victor,
-            regularized_party_of_victory,
-          } = this.data.elections[year][stateAbbr][district];
-          searchOptions.push({
-            searchText: `${stateAbbr} ${getStateName(stateAbbr)} 
-              ${district} ${victor} ${regularized_party_of_victory}`,
-            id: id,
-            state: getStateName(stateAbbr),
-            stateAbbr: getStateAbbrLong(stateAbbr),
-            district: district,
-            victor: victor,
-            regularized_party_of_victory: regularized_party_of_victory
-          });
-        }
-      });
+    this.data.elections.forEach((election) => {
+      const {
+        districtType,
+        state,
+        victor,
+        partyReg,
+        id
+      } = election;
+      if (districtType !== 'GT') {
+        searchOptions.push({
+          searchText: `${state} ${getStateName(state)} 
+            ${districtType} ${victor} ${partyReg}`,
+          id: id,
+          state: getStateName(state),
+          stateAbbr: getStateAbbrLong(state),
+          district: districtType,
+          victor: victor,
+          partyReg: partyReg
+        });
+      }
     });
 
     return searchOptions;
   },
 
   getGeneralTicketElections: function (year) {
+    return [];
     const generalTicket = [];
-    const elections = this.data.elections[year];
-    Object.keys(elections).forEach((state) => {
-      if (elections[state].GT) {
-        const { id } = elections[state].GT[0];
+    elections.forEach((election) => {
+      const {
+        districtType,
+        id,
+        xOrigin,
+        yOrigin
+      } = election;
+      if (districtType === 'GT') {
         const theBubble = this.getBubbleForDistrict(`${id}-0`, year);
-        const centroid = (theBubble) ? [theBubble.xOrigin, theBubble.yOrigin] : [0, 0];
-        const theGeoJson = (this.data.districts[id]) ? this.data.districts[id].the_geojson : null;
+        const centroid = [xOrigin, yOrigin];
+        //const theGeoJson = (this.data.districts[id]) ? this.data.districts[id].the_geojson : null;
         let labelXY;
         let iOfLargest = 0;
         if (theGeoJson) {
@@ -369,7 +286,7 @@ const DistrictsStore = {
           const labelCoords = Polylabel(theCoords, 0.1);
           labelXY = this.projectPoint([labelCoords[0], labelCoords[1]]);
         }
-        // add the number of seats to the each election record--needed to adjust percent_vote viz
+        // add the number of seats to the each election record--needed to adjust percent viz
         elections[state].GT = elections[state].GT.map(e => Object.assign({ gtCount: elections[state].GT.length }, e));
         generalTicket.push({
           state: state,
@@ -389,7 +306,7 @@ const DistrictsStore = {
       const stateAbbr = getStateAbbr(district.statename);
       const elections = this.data.elections[year];
       return (elections && elections[stateAbbr] && elections[stateAbbr][district.district]) ?
-        elections[stateAbbr][district.district].regularized_party_of_victory : null;
+        elections[stateAbbr][district.district].partyReg : null;
     }
     return null;
   },
@@ -406,57 +323,49 @@ const DistrictsStore = {
     console.log(this.getElectionDataForDistrict(year, id).district);
   },
 
-  getElectionDataForDistrict: function (year, id) {
-    const yearData = this.data.bubbleCoords.find(d => parseInt(d.year, 10) === parseInt(year, 10));
-    return (yearData) ? yearData.districts.find(d => d.districtId === id) : false;
-  },
-
   getXYZForDistrict: function (id) {
-    const centroid = this.getPathFunction().centroid(this.data.districts[id].the_geojson);
-    const x = centroid[0] / DimensionsStore.getDimensions().mapProjectionWidth;
-    const y = centroid[1] / DimensionsStore.getDimensions().mapProjectionHeight;
-    const bounds = this.getPathFunction().bounds(this.data.districts[id].the_geojson);
-    // calculate the highest zoom level that doesn't expand beyond the bounding box
-    const maxHorizontal = Math.max(centroid[0] - bounds[0][0], bounds[1][0] - centroid[0]);
-    let zHorizontal = 1;
-    while (maxHorizontal * zHorizontal < DimensionsStore.getDimensions().mapWidth / 2) {
-      zHorizontal *= 1.62;
-    }
-    const maxVertical = Math.max(centroid[1] - bounds[0][1], bounds[1][1] - centroid[1]);
-    let zVertical = 1;
-    while (maxVertical * zVertical < DimensionsStore.getDimensions().mapHeight / 2) {
-      zVertical *= 1.62;
-    }
-    const z = Math.round(Math.min(zHorizontal, zVertical) / 1.62 * 100) / 100;
-    return {
-      x: x,
-      y: y,
-      z: z
-    };
+    const { bounds } = this.getElectionDataForDistrict(id);
+    return this.getXYZFromBounds(bounds);
   },
 
-  getXYXForDistrictAndBubble: function (id, year) {
-    const bounds = this.getPathFunction().bounds(this.data.districts[id].the_geojson);
-    const theBubble = this.getBubbleForDistrict(id, year);
-    const radius = 5;
-    const minX = Math.min(bounds[0][0], theBubble.x - radius);
-    const maxX = Math.max(bounds[1][0], theBubble.x + radius);
-    const minY = Math.min(bounds[0][1], theBubble.y - radius);
-    const maxY = Math.max(bounds[1][1], theBubble.y + radius);
+  getXYXForDistrictAndBubble: function (id) {
+    const {
+      x,
+      y,
+      bounds
+    } = this.getElectionDataForDistrict(id);
+    const { districtR } = DimensionsStore.getDimensions();
+    const minX = Math.min(bounds[0][0], x - districtR);
+    const maxX = Math.max(bounds[1][0], x + districtR);
+    const minY = Math.min(bounds[0][1], y - districtR);
+    const maxY = Math.max(bounds[1][1], y + districtR);
+    return this.getXYZFromBounds([[minX, minY], [maxX, maxY]]);
+  },
 
+  getXYZFromBounds: function (bounds) {
+    const {
+      mapScale,
+      mapProjectionWidth,
+      mapProjectionHeight,
+      mapWidth,
+      mapHeight
+    } = DimensionsStore.getDimensions();
+    const center = [(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2];
+    const x = (center[0] * mapScale + mapProjectionWidth / 2) / mapProjectionWidth;
+    const y = (center[1] * mapScale + mapProjectionHeight / 2) / mapProjectionHeight;
+
+    // calculate the highest zoom level that doesn't expand beyond the bounding box
+    const maxHorizontal = (bounds[1][0] - bounds[0][0]) * mapScale;
     let zHorizontal = 1;
-    while ((maxX - minX) * zHorizontal < DimensionsStore.getDimensions().mapWidth / 2) {
+    while (maxHorizontal * zHorizontal < mapWidth / 2) {
       zHorizontal *= 1.62;
     }
+    const maxVertical = (bounds[1][1] - bounds[0][1]) * mapScale;
     let zVertical = 1;
-    while ((maxY - minY) * zVertical < DimensionsStore.getDimensions().mapHeight / 2) {
+    while (maxVertical * zVertical < mapHeight / 2) {
       zVertical *= 1.62;
     }
-
-    const x = (minX + maxX) / 2 / DimensionsStore.getDimensions().mapProjectionWidth;
-    const y = (minY + maxY) / 2 / DimensionsStore.getDimensions().mapProjectionHeight;
     const z = Math.round(Math.min(zHorizontal, zVertical) / 1.62 * 100) / 100;
-
     return {
       x: x,
       y: y,
@@ -492,113 +401,14 @@ const DistrictsStore = {
     return districtId;
   },
 
-  getDistrictCentroid: function (id) {
-    return (this.data.districts[id]) ? this.getPathFunction().centroid(this.data.districts[id].the_geojson) : 0;
-  },
-
-  getDistrictNum: function (year, spatialId) {
-    if (!year || !spatialId) { return false; }
-    let districtNum;
-    const yearData = bubbleXYs.find(yd => yd.year === year);
-    if (yearData && yearData.districts) {
-      yearData.districts.every((d) => {
-        if (d.id === spatialId) {
-          districtNum = d.district.substring(2);
-          return false;
-        }
-        return true;
-      });
-    }
-    return districtNum;
-  },
-
-  getPartyDistributionByState(year) {
-    if (Elections[year]) {
-      let dist = {};
-      Object.keys(Elections[year]).forEach(state => {
-        Object.keys(Elections[year][state]).forEach(district => {
-          const party = (Elections[year][state][district].regularized_party_of_victory === 'Republican' || Elections[year][state][district].regularized_party_of_victory === 'Democrat') ? Elections[year][state][district].regularized_party_of_victory : 'Third';
-          dist[state] = dist[state] || {};
-          dist[state][party] = dist[state][party] = dist[state][party] + 1 || 1;
-        })
-      });
-      return dist;
-    }
-  },
-
-  getPartyDistributionByStateOrganized: function (year) {
-    let dist = this.getPartyDistributionByState(year),
-      organized = [];
-    if (dist) {
-      let theMax = Math.max(...Object.keys(dist).map((state) => Math.max(...Object.keys(dist[state]).map(party => dist[state][party]))));
-      theMax = 35;
-      organized = Object.keys(dist).map(state => {
-        return {
-          state: state,
-          dist: dist[state],
-          demStrength: (dist[state].Democrat || 0) - (dist[state].Republican || 0)
-        };
-      });
-
-      // sort
-      organized = organized.sort((a,b) => {
-        if (a.demStrength > b.demStrength) {
-          return -1;
-        } else if (a.demStrength < b.demStrength) {
-          return 1;
-        } else if ((a.dist.Democrat || 0) /((a.dist.Republican || 0) + (a.dist.Democrat || 0)) > (b.dist.Democrat || 0) /((b.dist.Republican || 0) + (b.dist.Democrat || 0))) {
-          return -1;
-        } else if ((a.dist.Democrat || 0) /((a.dist.Republican || 0) + (a.dist.Democrat || 0)) < (b.dist.Democrat || 0) /((b.dist.Republican || 0) + (b.dist.Democrat || 0))) {
-          return 1;
-        }
-        return 0;
-      });
-
-      // calculate x offset and bar heights
-      organized = organized.map((stateData, i) => {
-        stateData.x = 20 * i;
-        stateData.heightThird = (DimensionsStore.getDimensions().infoHeight / 2) * (stateData.dist.Third || 0) / theMax;
-        stateData.heightDem = (DimensionsStore.getDimensions().infoHeight / 2) * (stateData.dist.Democrat || 0) / theMax;
-        stateData.heightRep = (DimensionsStore.getDimensions().infoHeight / 2) * (stateData.dist.Republican || 0) / theMax;
-        stateData.yThird = (DimensionsStore.getDimensions().infoHeight / 2) - stateData.heightThird / 2;
-        stateData.yDem = stateData.yThird - stateData.heightDem;
-        stateData.yRep = stateData.yThird + stateData.heightThird;
-        return stateData;
-      });
-      return organized;
-    }
-  },
-
   getRawPartyCounts: function (year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year === year) : this.data.rawPartyCounts; },
 
   getPartyCountsKeys() { return this.data.partyCountsKeys; },
 
-  getStates: function (year) {
-    const districts = this.getElectionDistricts(year);
-
-    const stateNames = districts.map(d => d.statename)
-      .filter((sn, i, self) => self.indexOf(sn) === i)
-      .sort();
-
-    const statesGeojson = stateNames.map((sn) => {
-      const districtsGeojson = districts.filter(d => d.statename === sn && d.the_geojson)
-        .map(d => d.the_geojson);
-      //const stateGeojson = geojsonMerge.merge(districtsGeojson);
-      const stateGeojson = dissolve(districtsGeojson);
-      stateGeojson.properties = {
-        statename: sn,
-        d: this.getPath(stateGeojson)
-      };
-      return stateGeojson;
-    });
-
-    return statesGeojson;
-  },
-
   getPartyCountForYearAndParty: function (year, party) {
     return Object.keys(Elections[year]).reduce((accumulator, state) => {
         return accumulator + Object.keys(Elections[year][state]).reduce((accumulator2, districtNum) => {
-          return accumulator2 + ((Elections[year][state][districtNum].regularized_party_of_victory === party) ? 1 : 0) 
+          return accumulator2 + ((Elections[year][state][districtNum].partyReg === party) ? 1 : 0) 
         }, 0);
       }, 0);
   },
@@ -752,9 +562,14 @@ const DistrictsStore = {
     return areaData;
   },
 
-  getDistrictLabel: function (year, id) {
-    const state = getStateAbbrLong(this.getElectionDataForDistrict(year, id).state);
-    return (this.getElectionDataForDistrict(year, id).district === 0) ? `${state} At Large` : `${state} ${this.getElectionDataForDistrict(year, id).district}`;
+  getDistrictLabel: function (id) {
+    const districtData = this.getElectionDataForDistrict(id);
+    if (districtData) {
+      const { state, districtType } = districtData;
+      const stateAbbr = getStateAbbrLong(state);
+      return (['GT', 'AL', '0', 0].includes(districtType)) ? `${stateAbbr} At Large` : `${stateAbbr} ${districtType}`;
+    }
+    return null;
   },
 
   findDistrict: function (point, year) {
@@ -781,23 +596,35 @@ Object.assign(DistrictsStore, EventEmitter.prototype);
 
 // Register callback to handle all updates
 AppDispatcher.register((action) => {
-  switch (action.type) {
-    case AppActionTypes.loadInitialData:
-      const year = action.hashState.year || action.state.selectedYear || null;
+  const updates = {};
 
-      DistrictsStore.parseBubbles();
-      DistrictsStore.loadDistrictsForCongress(year);
-      DistrictsStore.parseRawPartyCounts();
-      DistrictsStore.parsePartyCounts();
-      break;
-    case AppActionTypes.congressSelected:
-      DistrictsStore.loadDistrictsForCongress(action.year);
-      break;
+  updates[AppActionTypes.loadInitialData] = () => {
+    const year = action.hashState.year || action.state.selectedYear || null;
+    const districtId = action.hashState.district || action.state.selectedDistrict || null;
 
-    case AppActionTypes.windowResized:
-      DistrictsStore.parseBubbles();
-      break;
+    DistrictsStore.loadForYear(parseInt(year), districtId);
+    //DistrictsStore.loadDistrictsForCongress(year);
+    //DistrictsStore.parseBubbles();
+    DistrictsStore.parseRawPartyCounts();
+    DistrictsStore.parsePartyCounts();
+  };
+
+  updates[AppActionTypes.congressSelected] = () => {
+    DistrictsStore.loadForYear(parseInt(action.year));
+  };
+
+  updates[AppActionTypes.districtSelected] = () => {
+    DistrictsStore.loadSpaceData(action.id);
+  };
+
+  // updates[AppActionTypes.windowResized] = () => {
+  //   DistrictsStore.parseBubbles();
+  // };
+
+  if (updates[action.type]) {
+    updates[action.type]();
   }
+
   return true;
 });
 

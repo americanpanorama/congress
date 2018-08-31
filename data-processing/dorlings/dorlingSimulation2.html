@@ -12,8 +12,8 @@
 <script src="https://d3js.org/topojson.v2.min.js"></script>
 <script>
 
-var projection = d3.geoAlbersUsa(),
-  path = d3.geoPath().projection(projection);
+const projection = d3.geoAlbersUsa();
+const path = d3.geoPath().projection(projection);
 
 var year, 
   congress = 83,
@@ -24,7 +24,7 @@ var year,
   results = [],
   width = 960,
   height = 500,
-  firstYear=1836,
+  firstYear = 1836,
   lastYear = 2010;
 
 // initialize svg and the blur filter

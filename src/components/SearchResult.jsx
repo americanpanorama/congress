@@ -16,7 +16,7 @@ export default class SearchResult extends React.Component {
       >
         {this.props.options.map(result => (
           <svg
-            width={300}
+            width={400}
             height={20}
             style={{ display: 'inline-block' }}
             onClick={this.props.onOptionSelected}
@@ -24,7 +24,7 @@ export default class SearchResult extends React.Component {
             key={`resultFor${result.id}`}
           >
             <text
-              x={175 - 25 - 6 - 12}
+              x={100 + 175 - 25 - 6 - 12}
               y={12}
               textAnchor='end'
               fill='white'
@@ -32,13 +32,13 @@ export default class SearchResult extends React.Component {
               {result.victor}
             </text>
             <circle
-              cx={175 - 25 - 6}
+              cx={100 + 175 - 25 - 6}
               cy={6}
               r={6}
-              fill={getColorForParty(result.regularized_party_of_victory)}
+              fill={getColorForParty(result.partyReg)}
             />
             <text
-              x={175}
+              x={100 + 175}
               y={12}
               textAnchor='start'
               fill='white'

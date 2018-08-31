@@ -78,7 +78,7 @@ export default class Bubble extends React.Component {
           style={{
             fill: this.state.fill,
             stroke: this.state.stroke,
-            strokeWidth: 0.33,
+            strokeWidth: this.props.strokeWidth,
             fillOpacity: this.props.fillOpacity,
             pointerEvents: this.props.pointerEvents
           }}
@@ -114,17 +114,19 @@ Bubble.propTypes = {
   cy: PropTypes.number.isRequired,
   fill: PropTypes.string.isRequired,
   stroke: PropTypes.string.isRequired,
+  strokeWidth: PropTypes.number,
   fillOpacity: PropTypes.number,
   label: PropTypes.string,
   labelColor: PropTypes.string,
   onDistrictSelected: PropTypes.func.isRequired,
   pointerEvents: PropTypes.string,
-  id: PropTypes.string,
+  id: PropTypes.number,
   duration: PropTypes.number
 };
 
 Bubble.defaultProps = {
   fillOpacity: 1,
+  strokeWidth: 0,
   pointerEvents: 'none',
   id: ' ',
   label: '',

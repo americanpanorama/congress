@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Typeahead } from 'react-typeahead';
 
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
+import AppDispatcher from './utils/AppDispatcher';
 import { getColorForParty, formatPersonName } from './utils/HelperFunctions';
 
 import Masthead from './components/Masthead';
@@ -29,7 +30,7 @@ class App extends React.Component {
     this.state = {
       selectedView: theHash.view || 'cartogram',
       selectedYear: parseInt(theHash.year, 10) || 1952,
-      selectedDistrict: theHash.district || null,
+      selectedDistrict: parseInt(theHash.district) || null,
       selectedParty: theHash.party || null,
       onlyFlipped: false,
       inspectedDistrict: null,
@@ -45,12 +46,23 @@ class App extends React.Component {
     this.search = React.createRef();
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
   componentWillMount () {
     AppActions.loadInitialData(this.state, HashManager.getState());
+
+    AppDispatcher.register((action) => {
+      const updates = {};
+      updates[AppActionTypes.congressLoaded] = () => {
+        this.onCongressLoaded(action.year);
+      };
+
+      if (updates[action.type]) {
+        updates[action.type]();
+      }
+    });
   }
 
   componentDidMount () {
@@ -76,23 +88,22 @@ class App extends React.Component {
   onYearSelected (e) {
     const selectedYear = (e && e.currentTarget) ?
       parseInt((e.currentTarget) ? e.currentTarget.id : e, 10) : e;
-    AppActions.congressSelected(selectedYear);
-    this.setState({
-      inspectedDistrict: null
-    });
-    // don't set state until the districts have been loaded
-    const loading = setInterval(() => {
-      if (DistrictsStore.hasYearLoaded(selectedYear)) {
-        clearInterval(loading);
-        const selectedDistrict = (this.state.selectedDistrict)
-          ? DistrictsStore.getDistrictId(selectedYear, DistrictsStore.getElectionDataForDistrict(this.state.selectedYear, this.state.selectedDistrict).id)
-          : null;
-        this.setState({
-          selectedYear: selectedYear,
-          selectedDistrict: selectedDistrict
-        });
+    AppActions.congressSelected(selectedYear, this.state.selectedDistrict);
+  }
+
+  onCongressLoaded (year) {
+    // deselect selectedDistrict if it doesn't exist in the new year
+    let { selectedDistrict } = this.state;
+    if (this.state.selectedDistrict) {
+      const districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedDistrict);
+      if (!districtData) {
+        selectedDistrict = null;
       }
-    }, 50);
+    }
+    this.setState({
+      selectedYear: year,
+      selectedDistrict: (selectedDistrict) ? parseInt(selectedDistrict) : null
+    });
   }
 
   onPartySelected (e) {
@@ -155,14 +166,17 @@ class App extends React.Component {
     let id = null;
     if (typeof e === 'string') {
       id = e;
-    } else if (e.currentTarget && e.currentTarget.id !== this.state.selectedDistrict) {
+    } else if (e.currentTarget && parseInt(e.currentTarget.id) !== this.state.selectedDistrict) {
       id = e.currentTarget.id;
     } else if (e.id) {
       id = e.id;
     }
+    if (id) {
+      id = parseInt(id);
+      AppActions.districtSelected(id);
+    }
 
     this.search.current.setEntryText('');
-    console.log(this.search.current);
 
     this.setState({
       selectedDistrict: id,
@@ -302,7 +316,8 @@ class App extends React.Component {
     } = this.state;
     const dimensions = DimensionsStore.getDimensions();
     const districtData = (selectedDistrict) ?
-      DistrictsStore.getElectionDataForDistrict(selectedYear, selectedDistrict) : null;
+      DistrictsStore.getElectionDataForDistrict(selectedDistrict) : null;
+    const spaceData = (selectedDistrict) ? DistrictsStore.getSpaceData() : null;
 
     return (
       <div>
@@ -347,6 +362,7 @@ class App extends React.Component {
         />
 
         <Timeline
+          steamgraphPaths={DistrictsStore.getSteamgraphPaths()}
           electionYears={DistrictsStore.getElectionYears()}
           partyCount={DistrictsStore.getPartyCounts()}
           partyCountKeys={DistrictsStore.getPartyCountsKeys()}
@@ -354,7 +370,7 @@ class App extends React.Component {
           maxRepublicans={DistrictsStore.getMaxBottomOffset()}
           congressYears={DistrictsStore.getCongressYears()}
           onYearSelected={this.onYearSelected}
-          districtData={(selectedDistrict) ? DistrictsStore.getSpatialIdData(districtData.id) : false}
+          districtData={(spaceData && spaceData.length > 0) ? spaceData : false}
         />
 
         <TimelineHandle
@@ -362,8 +378,8 @@ class App extends React.Component {
           onYearSelected={this.onYearSelected}
           partyCounts={DistrictsStore.getRawPartyCounts()}
           showPartyCounts={!selectedDistrict}
-          districtCircleY={(selectedDistrict && districtData.regularized_party_of_victory !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent_vote, districtData.regularized_party_of_victory, DistrictsStore.getMaxBottomOffset()) : false}
-          districtCircleFill={(selectedDistrict) ? getColorForParty(districtData.regularized_party_of_victory) : 'transparent'}
+          districtCircleY={(districtData && districtData.partyReg !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent, districtData.partyReg, DistrictsStore.getMaxBottomOffset()) : false}
+          districtCircleFill={(districtData) ? getColorForParty(districtData.partyReg) : 'transparent'}
           nationalDomain={[DistrictsStore.getMaxTopOffset() * -1,
             DistrictsStore.getMaxBottomOffset()]}
           dimensions={dimensions}
@@ -379,15 +395,15 @@ class App extends React.Component {
           dimensions={dimensions}
         />
 
-        { (selectedDistrict) ?
+        { (selectedDistrict && districtData) ?
           <DistrictData
             id={selectedDistrict}
-            label={DistrictsStore.getDistrictLabel(selectedYear, selectedDistrict)}
-            backgroundColor={(!selectedDistrict) ? '#38444a' : getColorForParty(districtData.regularized_party_of_victory)}
+            label={DistrictsStore.getDistrictLabel(selectedDistrict)}
+            backgroundColor={getColorForParty(districtData.partyReg)}
             victor={formatPersonName(districtData.victor)}
-            party={(districtData.regularized_party_of_victory === 'third') ? districtData.party_of_victory : ''}
-            previousDistrict={DistrictsStore.getStatePreviousDistrictId(selectedYear, selectedDistrict)}
-            nextDistrict={DistrictsStore.getStateNextDistrictId(selectedYear, selectedDistrict)}
+            party={(districtData.partyReg === 'third') ? districtData.party : ''}
+            previousDistrict={DistrictsStore.getStatePreviousDistrictId(selectedDistrict)}
+            nextDistrict={DistrictsStore.getStateNextDistrictId(selectedDistrict)}
             onDistrictSelected={this.onDistrictSelected}
             onZoomToDistrict={this.onZoomToDistrict}
             dimensions={dimensions}

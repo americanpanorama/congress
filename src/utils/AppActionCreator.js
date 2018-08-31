@@ -3,7 +3,9 @@ import AppDispatcher from './AppDispatcher';
 export const AppActionTypes = {
 
   loadInitialData: 'loadInitialData',
+  districtSelected: 'districtSelected',
   congressSelected: 'congressSelected',
+  congressLoaded: 'congressLoaded',
   storeChanged: 'storeChanged',
   windowResized: 'windowResized'
 
@@ -19,10 +21,25 @@ export const AppActions = {
     });
   },
 
-  congressSelected: (year) => {
+  congressSelected: (year, selectedDistrict) => {
     AppDispatcher.dispatch({
       type: AppActionTypes.congressSelected,
+      year: year,
+      selectedDistrict: selectedDistrict
+    });
+  },
+
+  congressLoaded: (year) => {
+    AppDispatcher.dispatch({
+      type: AppActionTypes.congressLoaded,
       year: year
+    });
+  },
+
+  districtSelected: (id) => {
+    AppDispatcher.dispatch({
+      type: AppActionTypes.districtSelected,
+      id: id
     });
   },
 

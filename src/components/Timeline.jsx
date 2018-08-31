@@ -70,13 +70,14 @@ const Timeline = (props) => {
                 (y(props.maxRepublicans) - y(props.maxDemocrats * -1))}
             />
           </g> :
-          <g transform={`translate(0 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter})`}>
+          <g transform={`translate(15 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter}) scale(${dimensions.timelineWidth - 15} ${dimensions.timelineSteamgraphHeight - dimensions.timelineSteamgraphGutter * 2})`}>
             <Steamgraph
               partyCount={props.partyCount}
               partyCountKeys={props.partyCountKeys}
               y={y}
               width={dimensions.timelineWidth}
               height={dimensions.timelineHeight}
+              steamgraphPaths={props.steamgraphPaths}
             />
           </g>
         }
@@ -105,6 +106,7 @@ const Timeline = (props) => {
 export default Timeline;
 
 Timeline.propTypes = {
+  steamgraphPaths: PropTypes.arrayOf(PropTypes.object).isRequired,
   electionYears: PropTypes.arrayOf(PropTypes.number).isRequired,
   partyCount: PropTypes.arrayOf(PropTypes.array).isRequired,
   partyCountKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -114,6 +116,6 @@ Timeline.propTypes = {
   onYearSelected: PropTypes.func.isRequired,
   districtData: PropTypes.oneOfType([
     PropTypes.bool,
-    PropTypes.object
+    PropTypes.array
   ]).isRequired
 };

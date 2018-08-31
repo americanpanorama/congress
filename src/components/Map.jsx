@@ -40,13 +40,13 @@ export default class Map extends React.Component {
 
     // obviously update state if new year or if districts haven't yet loaded
     if (!state.lastUiState || state.districts.length === 0
+      || state.districtBubbles.length === 0
       || selectedYear !== state.lastUiState.selectedYear) {
-      const bubbleCoords = DistrictsStore.getBubbleCoords(selectedYear);
-      newState.districts = DistrictsStore.getElectionDistricts(selectedYear);
+      newState.districts = DistrictsStore.getElectionDistricts();
       newState.gtElections = DistrictsStore.getGeneralTicketElections(selectedYear);
-      newState.states = DistrictsStore.getStates(selectedYear);
-      newState.cityBubbles = bubbleCoords.cities;
-      newState.districtBubbles = bubbleCoords.districts;
+      newState.states = DistrictsStore.getStates();
+      newState.cityBubbles = DistrictsStore.getCityBubbles();
+      newState.districtBubbles = DistrictsStore.getElectionBubbles();
     }
 
     // update if xyz view is different, e.g. zoomed to district
@@ -112,6 +112,7 @@ export default class Map extends React.Component {
 
   render () {
     const dimensions = DimensionsStore.getDimensions();
+    const mapScale = DimensionsStore.getMapScale();
     const {
       uiState,
       onZoomInToPoint,
@@ -125,6 +126,12 @@ export default class Map extends React.Component {
       selectedDistrict,
       zoom
     } = uiState;
+
+    const transformation = `translate(${dimensions.mapProjectionWidth / 2} ${dimensions.mapProjectionHeight / 2}) scale(${mapScale})`;
+
+    const dataForDistrict = (selectedDistrict) ? DistrictsStore.getElectionDataForDistrict(selectedDistrict) : undefined;
+
+    const selectedState = (dataForDistrict) ? this.state.states.find(s => s.state === dataForDistrict.state) : undefined;
 
     return (
       <div
@@ -161,68 +168,90 @@ export default class Map extends React.Component {
                 transform={`scale(${zoom})`}
               >
 
-                {/* line connecting district and bubble if district is selected on cartogram */}
-                { (selectedDistrict && selectedView === 'cartogram') &&
-                  <line
-                    x1={DistrictsStore.getBubbleForDistrict(selectedDistrict, selectedYear).x}
-                    y1={DistrictsStore.getBubbleForDistrict(selectedDistrict, selectedYear).y}
-                    x2={DistrictsStore.getDistrictCentroid(selectedDistrict)[0]}
-                    y2={DistrictsStore.getDistrictCentroid(selectedDistrict)[1]}
-                    stroke='white'
-                  />
-                }
-
                 {/* district polygons */}
-                { this.state.districts.map(d => (
-                  <District
-                    d={d.d}
-                    id={d.id}
-                    onDistrictSelected={this.onDistrictSelected}
-                    duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
-                    {...getDistrictStyleFromUi(d, uiState)}
-                    key={`polygon${d.id}`}
-                  />
-                ))}
+                <g transform={transformation}>
+                  {/* line connecting district and bubble if district is selected on cartogram */}
+                  { (dataForDistrict && selectedView === 'cartogram') &&
+                    <line
+                      x1={dataForDistrict.x}
+                      y1={dataForDistrict.y}
+                      x2={dataForDistrict.xOrigin}
+                      y2={dataForDistrict.yOrigin}
+                      stroke='white'
+                      strokeWidth={1 / mapScale}
+                    />
+                  }
 
-                {/* states */}
-                { this.state.states.map(s => (
-                  <path
-                    d={s.properties.d}
-                    key={`stateBoundaries${s.properties.statename}`}
-                    filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
-                    style={getStateStyle(s, uiState)}
-                  />
-                ))}
+                  { this.state.districts.map(d => (
+                    <District
+                      d={d.svg}
+                      id={d.spatialId}
+                      onDistrictSelected={this.onDistrictSelected}
+                      duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
+                      {...getDistrictStyleFromUi(d, uiState)}
+                      key={`polygon${d.id}`}
+                    />
+                  ))}
 
-                {/* city bubbles */}
-                { this.state.cityBubbles.map((d, i) => (
-                  <BubbleCity
-                    cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                    cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                    r={(selectedView === 'cartogram') ? d.r : dimensions.districtR}
-                    cityLabel={d.id}
-                    cityLabelOpacity={getCityBubbleLabelOpacity(d, uiState)}
-                    duration={this.state.transitionDuration}
-                    {...getCityBubbleStyle(d, uiState)}
-                    key={d.id}
-                  />
-                ))}
+                  {/* states */}
+                  { this.state.states.map(s => (
+                    <path
+                      d={s.svg}
+                      key={`stateBoundaries${s.state}`}
+                      filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
+                      style={getStateStyle(s, uiState)}
+                    />
+                  ))}
 
-                {/* district bubbles */}
-                { this.state.districtBubbles.map(d => (
-                  <Bubble
-                    cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                    cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                    r={dimensions.districtR}
-                    label={(d.flipped && ((!selectedParty || selectedParty === d.regularized_party_of_victory) && (!selectedDistrict || d.districtId === selectedDistrict))) ? 'F' : ''}
-                    labelColor={getColorForParty(d.regularized_party_of_victory)}
-                    duration={this.state.transitionDuration}
-                    id={d.districtId}
-                    onDistrictSelected={this.onDistrictSelected}
-                    {...getBubbleStyle(d, uiState)}
-                    key={d.id}
-                  />
-                ))}
+                  {/* selected district && state on top */}
+                  { (dataForDistrict) &&
+                    <District
+                      d={dataForDistrict.svg}
+                      id={dataForDistrict.spatialId}
+                      onDistrictSelected={this.onDistrictSelected}
+                      duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
+                      {...getDistrictStyleFromUi(dataForDistrict, uiState)}
+                    />
+                  }
+
+                  { (selectedState) &&
+                    <path
+                      d={selectedState.svg}
+                      filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
+                      style={getStateStyle(selectedState, uiState)}
+                    />
+                  }
+
+                  {/* city bubbles */}
+                  { this.state.cityBubbles.map((d, i) => (
+                    <BubbleCity
+                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                      r={(selectedView === 'cartogram') ? d.r : dimensions.districtR}
+                      cityLabel={d.id}
+                      cityLabelOpacity={getCityBubbleLabelOpacity(d, uiState)}
+                      duration={this.state.transitionDuration}
+                      {...getCityBubbleStyle(d, uiState)}
+                      key={d.id}
+                    />
+                  ))}
+
+                  {/* district bubbles */}
+                  { this.state.districtBubbles.map(d => (
+                    <Bubble
+                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                      r={dimensions.districtR}
+                      label={(d.flipped && ((!selectedParty || selectedParty === d.partyReg) && (!selectedDistrict || d.districtId === selectedDistrict))) ? 'F' : ''}
+                      labelColor={getColorForParty(d.partyReg)}
+                      duration={this.state.transitionDuration}
+                      id={d.spatialId}
+                      onDistrictSelected={this.onDistrictSelected}
+                      {...getBubbleStyle(d, uiState)}
+                      key={`bubble-${d.spatialId}`}
+                    />
+                  ))}
+                </g>
 
                 { (selectedView === 'map') &&
                   <React.Fragment>
@@ -303,7 +332,7 @@ Map.propTypes = {
     selectedYear: PropTypes.number.isRequired,
     selectedParty: PropTypes.string,
     onlyFlipped: PropTypes.bool,
-    selectedDistrict: PropTypes.string,
+    selectedDistrict: PropTypes.number,
     zoom: PropTypes.number,
     x: PropTypes.number,
     y: PropTypes.number,

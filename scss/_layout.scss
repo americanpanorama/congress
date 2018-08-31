@@ -44,6 +44,7 @@ header {
 	position: fixed;
 	width: 300px;
 	z-index: 100;
+	overflow-x: visible;
 
 	input {
 		color: black;
@@ -56,8 +57,13 @@ header {
 		padding-top: 20px;
 		overflow-y: scroll;
 		overflow-x: visible;
-		width: 100%;
+		transform: translate(-100px);
+		width: 400px;
 		background-color: rgba(38, 48, 53, 0.75);
+
+		* {
+			overflow-x: visible;
+		}
 	}
 }
 

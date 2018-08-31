@@ -4,15 +4,15 @@ const parseFullName = require('parse-full-name').parseFullName;
 
 const csvFilePath = './data/congressional_data.csv';
 
-const raw_parties = require('./data/party_codebook.json');
+const rawParties = require('./data/party_codebook.json');
 const parties = {};
-raw_parties.forEach(p => { 
+rawParties.forEach(p => { 
   parties[p.party_id] = p.party;
 });
 
 const yearForCongress = function (congress) { return 1786 + congress * 2; };
 
-const getRegularizedParty = function(party) { 
+const getRegularizedParty = function (party) { 
   party = (party) ? party.toLowerCase() : '';
   if (party.includes('whig')) {
     return 'whig';
@@ -30,7 +30,6 @@ const getRegularizedParty = function(party) {
     return 'democrat';
   }
   return 'third';
-  //return (party.toLowerCase().includes('republican')) ? 'republican' : (party.toLowerCase().includes('democrat')) ? 'democrat' : 'third'; 
 };
 
 const formatPersonName = function (name) {
@@ -62,21 +61,23 @@ csv()
       elections[year] = elections[year] || {};
       elections[year][e.STATE] = elections[year][e.STATE] || {};
       const electionData = {
-        party_of_victory: parties[e.PARTY_OF_1],
-        regularized_party_of_victory: getRegularizedParty(parties[e.PARTY_OF_1]),
-        percent_vote: (e.TOTAL_VOTE && e.VICTOR_VOT) ? Math.round(parseInt(e.VICTOR_VOT) / parseInt(e.TOTAL_VOTE) * 10000) / 10000 : -1,
-        victor: formatPersonName(e.VICTOR),
+        party: parties[e.PARTY_OF_1],
+        partyReg: getRegularizedParty(parties[e.PARTY_OF_1]),
+        percent: (e.TOTAL_VOTE && e.VICTOR_VOT) ? Math.round(parseInt(e.VICTOR_VOT) / parseInt(e.TOTAL_VOTE) * 1000) / 1000 : -1,
+        victor: formatPersonName(e.VICTOR).trim(),
         id: (`000000${e.ID}`).slice(-12)
       };
-      if (e.DISTRICT !== 'GT' && e.DISTRICT !== 'AL') {
+      if (e.DISTRICT !== 'GT' && e.DISTRICT !== 'AL' && e.DISTRICT !== '0') {
         elections[year][e.STATE][e.DISTRICT] = electionData;
       } else {
-        elections[year][e.STATE][e.DISTRICT] = elections[year][e.STATE][e.DISTRICT] || [];
-        elections[year][e.STATE][e.DISTRICT].push(electionData);
+        const districtType = (e.DISTRICT === '0') ? 'AL' : e.DISTRICT;
+        elections[year][e.STATE][districtType] = elections[year][e.STATE][districtType] || [];
+        elections[year][e.STATE][districtType].push(electionData);
       }
     }
   })
   .on('done', (err) => {
+    if (err) { console.warn(err); }
     fs.writeFile('./data/elections.json', JSON.stringify(elections), (err) => {
       if (err) throw err;
       console.log('COMPLETE--copy ./data-processing/elections/data.elections.json to ./data/elections.json');

@@ -135,7 +135,7 @@ Object.keys(elections).forEach((year) => {
             alElection.districtNum = district;
             alElection.district = state + district;
             alElection.centroid = centroid;
-            alElection.party = alDistrict.party_of_victory;
+            alElection.party = alDistrict.partyReg;
             alElection.metro = false;
 
             electionData.push(alElection);
@@ -181,7 +181,7 @@ electionData.forEach((election) => {
     x: point[0],
     y: point[1],
     r: 5,
-    color: getColor(election.party, election.percent_vote),
+    color: getColor(election.partyReg, election.percent),
     id: election.id,
     district: election.district,
     xOrigin: point[0],

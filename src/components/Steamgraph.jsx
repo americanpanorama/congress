@@ -24,14 +24,14 @@ const Steamgraph = (props) => {
 
   return (
     <React.Fragment>
-      {props.partyCount.map((partyCount, i) => (
+      {props.steamgraphPaths.map((steamgraphPath, i) => (
         <path
-          d={area(partyCount)}
-          fill={stackColor[props.partyCountKeys[i]]}
-          key={`timelineParty-${props.partyCountKeys[i]}-${partyCount[0].data.year}`}
+          d={steamgraphPath.d}
+          fill={stackColor[steamgraphPath.party]}
+          key={`timelineParty-${steamgraphPath.party}-${steamgraphPath.firstYear}`}
           stroke={getColorForMargin('democrat', 0.5)}
           strokeWidth={1}
-          strokeOpacity={0.5}
+          strokeOpacity={0}
         />
       ))}
     </React.Fragment>
@@ -41,6 +41,7 @@ const Steamgraph = (props) => {
 export default Steamgraph;
 
 Steamgraph.propTypes = {
+  steamgraphPaths: PropTypes.arrayOf(PropTypes.object).isRequired,
   partyCount: PropTypes.arrayOf(PropTypes.array).isRequired,
   partyCountKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
   y: PropTypes.func.isRequired,

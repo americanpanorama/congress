@@ -43,6 +43,7 @@ build
 data/*
 data-processing/*.json
 data-processing/**/*.json
+data-processing/full-geojson
 package-lock.json
 data-processing/raw-data
 raw_data

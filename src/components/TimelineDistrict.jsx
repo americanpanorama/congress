@@ -13,24 +13,25 @@ const TimelineDistrict = (props) => {
     .y(d => props.y(d.percent))
     .curve(d3.curveCatmullRom);
   const lineData = [];
-  Object.keys(props.districtData).forEach((year) => {
-    if (props.districtData[year].regularized_party_of_victory !== 'third' && props.districtData[year].percent_vote > 0) {
+  props.districtData.forEach((yearData) => {
+    const { partyReg, percent, year } = yearData;
+    if (partyReg !== 'third' && percent > 0) {
       lineData.push({
         year: year,
-        percent: (props.districtData[year].regularized_party_of_victory === 'democrat') ? props.districtData[year].percent_vote * -1 : props.districtData[year].percent_vote
+        percent: (partyReg === 'democrat') ? percent * -1 : percent
       });
     }
   });
-  const getDistrictY = (districtData) => {
-    if (!districtData) {
+  const getDistrictY = (percent, partyReg) => {
+    if (!percent) {
       return;
     }
     let y = props.y(1) + props.axisHeight;
-    if (districtData.percent_vote > 0) {
-      if (districtData.regularized_party_of_victory === 'democrat') {
-        y = props.y(districtData.percent_vote * -1);
-      } else if (districtData.regularized_party_of_victory === 'republican' || districtData.regularized_party_of_victory === 'whig') {
-        y = props.y(districtData.percent_vote);
+    if (percent > 0) {
+      if (partyReg === 'democrat') {
+        y = props.y(percent * -1);
+      } else if (partyReg === 'republican' || partyReg === 'whig') {
+        y = props.y(percent);
       }
     }
     return y;
@@ -99,19 +100,20 @@ const TimelineDistrict = (props) => {
         fill='transparent'
       />
 
-      { Object.keys(props.districtData).map((year) => {
-        if (['democrat', 'republican', 'whig'].includes(props.districtData[year].regularized_party_of_victory)) {
+      { props.districtData.map((yearData) => {
+        const { partyReg, percent, year } = yearData;
+        if (['democrat', 'republican', 'whig'].includes(partyReg)) {
           return (
             <circle
               cx={DimensionsStore.timelineX(year)}
-              cy={getDistrictY(props.districtData[year])}
+              cy={getDistrictY(percent, partyReg)}
               r={5}
-              fill={getColorForMargin(props.districtData[year].regularized_party_of_victory, 1)}
+              fill={getColorForMargin(partyReg, 1)}
               stroke='transparent'
               key={`districtMOVFor-${year}`}
             />
           );
-        } else if (props.districtData[year].regularized_party_of_victory === 'third') {
+        } else if (partyReg === 'third') {
           return (
             <rect
               x={DimensionsStore.timelineX(year - 1)}
@@ -134,7 +136,7 @@ export default TimelineDistrict;
 
 TimelineDistrict.propTypes = {
   electionYears: PropTypes.arrayOf(PropTypes.number).isRequired,
-  districtData: PropTypes.objectOf(PropTypes.object).isRequired,
+  districtData: PropTypes.arrayOf(PropTypes.object).isRequired,
   y: PropTypes.func.isRequired,
   axisHeight: PropTypes.number.isRequired
 };
