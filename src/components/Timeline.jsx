@@ -72,18 +72,13 @@ const Timeline = (props) => {
           </g> :
           <g transform={`translate(15 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter}) scale(${dimensions.timelineWidth - 15} ${dimensions.timelineSteamgraphHeight - dimensions.timelineSteamgraphGutter * 2})`}>
             <Steamgraph
-              partyCount={props.partyCount}
-              partyCountKeys={props.partyCountKeys}
-              y={y}
-              width={dimensions.timelineWidth}
-              height={dimensions.timelineHeight}
               steamgraphPaths={props.steamgraphPaths}
             />
           </g>
         }
 
         {/* clickable areas to select year */}
-        { props.congressYears.map(year => (
+        { props.electionYears.map(year => (
           <rect
             x={DimensionsStore.timelineX(year - 1)}
             y={0}
@@ -108,11 +103,8 @@ export default Timeline;
 Timeline.propTypes = {
   steamgraphPaths: PropTypes.arrayOf(PropTypes.object).isRequired,
   electionYears: PropTypes.arrayOf(PropTypes.number).isRequired,
-  partyCount: PropTypes.arrayOf(PropTypes.array).isRequired,
-  partyCountKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
   maxDemocrats: PropTypes.number.isRequired,
   maxRepublicans: PropTypes.number.isRequired,
-  congressYears: PropTypes.arrayOf(PropTypes.number).isRequired,
   onYearSelected: PropTypes.func.isRequired,
   districtData: PropTypes.oneOfType([
     PropTypes.bool,

@@ -184,3 +184,20 @@ fs.writeFile('../data/steamgraphPaths.json', JSON.stringify(paths, null, ' '), (
   if (err) throw err;
   console.log('created steamgraph file');
 });
+
+// calculate and store party counts
+const partyCountsProcessed = [];
+counts.forEach((yearCount) => {
+  partyCountsProcessed.push({
+    year: yearCount.year,
+    democrat: yearCount.demAboveMargin + yearCount.demBelowMargin,
+    republican: yearCount.repAboveMargin + yearCount.repBelowMargin,
+    whig: yearCount.whigAboveMargin + yearCount.whigBelowMargin,
+    third: yearCount.thirdCount
+  });
+});
+
+fs.writeFile('../data/partyCounts.json', JSON.stringify(partyCountsProcessed, null, ' '), (err) => {
+  if (err) throw err;
+  console.log('created partyCount file');
+});

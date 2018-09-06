@@ -7,6 +7,7 @@ export default class Bubble extends React.Component {
     super(props);
     this.state = {
       fill: this.props.fill,
+      fillOpacity: this.props.fillOpacity,
       stroke: this.props.stroke,
       cx: this.props.cx,
       cy: this.props.cy
@@ -20,13 +21,15 @@ export default class Bubble extends React.Component {
     const {
       duration,
       fill,
+      fillOpacity,
       cx,
       cy,
       stroke
     } = this.props;
 
     if (prevProps.fill !== fill || prevProps.stroke !== stroke ||
-      prevProps.cx !== cx || prevProps.cy !== cy) {
+      prevProps.cx !== cx || prevProps.cy !== cy || 
+      prevProps.fillOpacity !== fillOpacity) {
       if (duration > 0) {
         // only transition if the position has changed
         if (prevProps.cx !== cx || prevProps.cy !== cy) {
@@ -41,18 +44,21 @@ export default class Bubble extends React.Component {
           .duration(duration)
           .style('fill', fill)
           .style('stroke', stroke)
+          .style('opacity', fillOpacity)
           .on('end', () => {
             this.setState({
               cx: cx,
               cy: cy,
               stroke: stroke,
-              fill: fill
+              fill: fill,
+              fillOpacity: fillOpacity
             });
           });
       } else {
         this.setState({
           stroke: stroke,
           fill: fill,
+          fillOpacity: fillOpacity,
           cx: cx,
           cy: cy
         });
@@ -79,29 +85,30 @@ export default class Bubble extends React.Component {
             fill: this.state.fill,
             stroke: this.state.stroke,
             strokeWidth: this.props.strokeWidth,
-            fillOpacity: this.props.fillOpacity,
+            opacity: this.state.fillOpacity,
             pointerEvents: this.props.pointerEvents
           }}
           id={this.props.id}
           ref={this.circle}
         />
 
-        { (this.props.label) ?
+        { (this.props.label) &&
           <text
             x={0}
-            y={this.props.r * 0.5}
+            y={this.props.r * 750}
             fill='white'
             stroke='transparent'
             textAnchor='middle'
             style={{
-              fontSize: this.props.r * 1.5,
+              fontSize: this.props.r * 2 * 1000,
               weight: 400,
               textShadow: `-1px 0 1px ${this.props.labelColor}, 0 1px 1px ${this.props.labelColor} , 1px 0 1px ${this.props.labelColor}, 0 -1px 1px ${this.props.labelColor}`,
               pointerEvents: this.props.pointerEvents
             }}
+            transform='scale(0.001)'
           >
             { this.props.label }
-          </text> : ''
+          </text>
         }
       </g>
     );

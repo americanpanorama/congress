@@ -1,38 +1,24 @@
 import { EventEmitter } from 'events';
 import * as d3 from 'd3';
-import Polylabel from 'polylabel';
-import GeojsonArea from '@mapbox/geojson-area';
+import PointInSvgPolygon from 'point-in-svg-polygon';
 
 import AppDispatcher from '../utils/AppDispatcher';
 import { AppActions, AppActionTypes } from '../utils/AppActionCreator';
 
-import { congressForYear, getStateAbbr, getStateName, getStateAbbrLong, getFIPSToStateName } from '../utils/HelperFunctions';
+import { getStateName, getStateAbbrLong } from '../utils/HelperFunctions';
 
-import bubbleXYs from '../../data/bubbleXYs.json';
-import Elections from '../../data/elections.json';
 import SteamgraphPaths from '../../data/steamgraphPaths.json';
-import SpatialIds from '../../data/spatialids.json';
+import PartyCounts from '../../data/partyCounts.json';
 
 import DimensionsStore from './DimensionsStore';
 
 const DistrictsStore = {
 
   data: {
-    bubbleCoords: [],
-    districts: [],
-    states: [],
     elections: [],
+    states: [],
     cityBubbles: [],
-    congressDistricts: {},
-    theMap: null,
-    rawPartyCounts: [],
-    partyCounts: [],
-    partyCountsKeys: [],
-    congressYears: [],
-    earliestYear: null,
-    lastYear: null,
-    spaceData: [],
-    bubbles: []
+    spaceData: []
   },
 
   loadForYear: function (year, districtId) {
@@ -53,7 +39,6 @@ const DistrictsStore = {
   },
 
   loadSpaceData: function (spatialId) {
-    //const { spatialId } = this.getElectionDataForDistrict(id);
     fetch(`static/space-data/${spatialId}.json`)
       .then((response) => {
         response.json().then((data) => {
@@ -66,9 +51,9 @@ const DistrictsStore = {
 
   getElectionDistricts: function (year) {
     return this.data.elections
-      .filter(e => (!e.id.includes('-') || e.id.includes('-0')) && e.svg)
+      .filter(e => (e.districtType !== 'GT' && (!e.id.includes('-') || e.id.includes('-0'))) && e.svg)
       .sort((e) => {
-        if (['GT', 'AL', 0, '0'].includes(e.districtType)) {
+        if (['AL', 0, '0'].includes(e.districtType)) {
           return -1;
         }
         return 1;
@@ -81,99 +66,41 @@ const DistrictsStore = {
 
   getStates: function (year) { return this.data.states; },
 
+  getGeneralTicketElections: function () {
+    const gtElections = this.data.elections.filter(e => e.districtType === 'GT');
+    const states = gtElections.map(e => e.state).filter((e, i, self) => self.indexOf(e) === i);
+    return states.map(state => ({
+      state: state,
+      elections: gtElections.filter(e => e.state === state)
+    }));
+  },
+
   getSpaceData: function () { return this.data.spaceData; },
 
   getElectionDataForDistrict: function (spatialId) {
     return this.data.elections.find(e => parseInt(e.spatialId) === parseInt(spatialId));
   },
 
-  getSteamgraphPaths: function () {
-    return SteamgraphPaths;
+  getSteamgraphPaths: function () { return SteamgraphPaths; },
+
+  getPartyCounts: function () { return PartyCounts; },
+
+  getElectionYears: function () { return PartyCounts.map(yd => yd.year).sort(); },
+
+  getEarliestYear: function () { return Math.min(...this.getElectionYears()); },
+
+  getLastYear: function () { return Math.max(...this.getElectionYears()); },
+
+  getPreviousElectionYear: function (year) {
+    const electionYears = this.getElectionYears();
+    const iCurrent = electionYears.indexOf(parseInt(year));
+    return (iCurrent === 0) ? false : electionYears[iCurrent - 1];
   },
 
-  hasYearLoaded: function (year) { return this.data.congressDistricts[year] && this.data.congressDistricts[year].length > 0; },
-
-  getPartyCounts: function () { return this.data.partyCounts; },
-
-  getCongressYears: function () { return this.data.congressYears; },
-
-  getPathFunction: function () { return d3.geoPath(this.getProjection()); },
-
-  getPath: function (g) { return this.getPathFunction()(g); }, 
-
-  getProjection: function () {
-    return d3.geoAlbersUsa()
-      .scale(DimensionsStore.getMapScale())
-      .translate([DimensionsStore.getDimensions().mapProjectionWidth / 2,
-        DimensionsStore.getDimensions().mapProjectionHeight / 2]);
-  },
-
-  getEarliestYear: function () {
-    return 1836;
-    // if (!this.data.earliestYear) {
-    //   this.data.earliestYear = Math.min(this.data.elections.map(e => e.year))
-    //     .map(y => parseInt(y, 10)));
-    // }
-    // return this.data.earliestYear;
-  },
-
-  getLastYear: function () {
-    return 2010;
-    // if (!this.data.lastYear) {
-    //   this.data.lastYear = Math.max(this.data.elections.map(e.))
-    //     .map(y => parseInt(y, 10)));
-    // }
-    // return this.data.lastYear;
-  },
-
-  getElectionYears: function () {
-    return Array(this.getLastYear() -  this.getEarliestYear() + 1).fill().map((_, idx) => this.getEarliestYear() + idx);
-    // return Object.keys(this.data.elections)
-    //   .map(y => parseInt(y, 10))
-    //   .sort();
-  },
-
-  projectPoint: function (point) { return this.getProjection()(point); },
-
-  cityHasParty: function (cityId, year, party) {
-    let hasParty = false;
-    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
-    this.getBubbleCoords(year).districts.forEach((d) => {
-      if (this.districtInCity(d, cityBubble) && d.partyReg === party) {
-        hasParty = true;
-      }
-    });
-    return hasParty;
-  },
-
-  cityPercentForParty: function (cityId, year, party) {
-    let districtCount = 0;
-    let partyCount = 0;
-    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
-    this.getBubbleCoords(year).districts.forEach((d) => {
-      if (this.districtInCity(d, cityBubble)) {
-        districtCount += 1;
-        if (d.partyReg === party) {
-          partyCount += 1;
-        }
-      }  
-    });
-    return partyCount / districtCount;
-  },
-
-  cityFlippedPercent: function (cityId, year) {
-    let districtCount = 0;
-    let flippedCount = 0;
-    const cityBubble = this.getBubbleCoords(year).cities.find(c => c.id === cityId);
-    this.getBubbleCoords(year).districts.forEach((d, i) => {
-      if (this.districtInCity(d, cityBubble)) {
-        districtCount += 1;
-        if (d.flipped) {
-          flippedCount += 1;
-        }
-      }  
-    });
-    return flippedCount / districtCount;
+  getNextElectionYear: function (year) {
+    const electionYears = this.getElectionYears();
+    const iCurrent = electionYears.indexOf(parseInt(year));
+    return (iCurrent + 1 === electionYears.length) ? false : electionYears[iCurrent + 1];
   },
 
   getDistrictsForState: function (state) {
@@ -210,25 +137,7 @@ const DistrictsStore = {
     return (i + 1 < stateDistricts.length) ? stateDistricts[i + 1].spatialId : false;
   },
 
-  getDistrictIdFromStateDistrict: function (abbr) {
-    let nextId = false;
-    const yearData = bubbleXYs.find(yd => yd.year === year);
-    if (yearData && yearData.districts) {
-      const nextDistrict = yearData.districts.find(d => d.district === abbr);
-      if (nextDistrict) {
-        nextId = nextDistrict.id;
-      }
-    }
-    return nextId;
-  },
-
-  districtInCity: function (districtBubble, cityBubble) {
-    const xDiff = cityBubble.x - districtBubble.x;
-    const yDiff = cityBubble.y - districtBubble.y;
-    return cityBubble.r >= Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-  },
-
-  getSearchData: function (year) {
+  getSearchData: function () {
     const searchOptions = [];
     this.data.elections.forEach((election) => {
       const {
@@ -236,6 +145,7 @@ const DistrictsStore = {
         state,
         victor,
         partyReg,
+        spatialId,
         id
       } = election;
       if (districtType !== 'GT') {
@@ -243,6 +153,7 @@ const DistrictsStore = {
           searchText: `${state} ${getStateName(state)} 
             ${districtType} ${victor} ${partyReg}`,
           id: id,
+          spatialId: spatialId,
           state: getStateName(state),
           stateAbbr: getStateAbbrLong(state),
           district: districtType,
@@ -255,80 +166,12 @@ const DistrictsStore = {
     return searchOptions;
   },
 
-  getGeneralTicketElections: function (year) {
-    return [];
-    const generalTicket = [];
-    elections.forEach((election) => {
-      const {
-        districtType,
-        id,
-        xOrigin,
-        yOrigin
-      } = election;
-      if (districtType === 'GT') {
-        const theBubble = this.getBubbleForDistrict(`${id}-0`, year);
-        const centroid = [xOrigin, yOrigin];
-        //const theGeoJson = (this.data.districts[id]) ? this.data.districts[id].the_geojson : null;
-        let labelXY;
-        let iOfLargest = 0;
-        if (theGeoJson) {
-          if (theGeoJson.type === 'MultiPolygon') {
-            let largest = 0;
-            theGeoJson.coordinates.forEach((coordinates, i) => {
-              const area = GeojsonArea.geometry({ type: 'Polygon', coordinates: coordinates });
-              if (area > largest) {
-                iOfLargest = i;
-                largest = area;
-              }
-            });
-          }
-          const theCoords = (theGeoJson.type === 'MultiPolygon') ? theGeoJson.coordinates[iOfLargest] : theGeoJson.coordinates;
-          const labelCoords = Polylabel(theCoords, 0.1);
-          labelXY = this.projectPoint([labelCoords[0], labelCoords[1]]);
-        }
-        // add the number of seats to the each election record--needed to adjust percent viz
-        elections[state].GT = elections[state].GT.map(e => Object.assign({ gtCount: elections[state].GT.length }, e));
-        generalTicket.push({
-          state: state,
-          id: id,
-          centroid: labelXY || centroid,
-          the_geojson: theGeoJson,
-          elections: elections[state].GT
-        });
-      }
-    });
-    return generalTicket;
-  },
-
-  getRegPOVForDistrict: function (year, id) {
-    const district = this.data.districts[id];
-    if (district) {
-      const stateAbbr = getStateAbbr(district.statename);
-      const elections = this.data.elections[year];
-      return (elections && elections[stateAbbr] && elections[stateAbbr][district.district]) ?
-        elections[stateAbbr][district.district].partyReg : null;
-    }
-    return null;
-  },
-
-  districtFlipped: function (year, id) {
-    const previousDistrictId = this.getDistrictId(year - 2, SpatialIds[year][id]);
-    const currentParty = this.getRegPOVForDistrict(year, id);
-    const previousParty = this.getRegPOVForDistrict(year - 2, previousDistrictId);
-    return (!!currentParty && !!previousParty && currentParty !== previousParty);
-  },
-
-  isGeneralTicketElection: function (year, id) {
-    const district = this.data.districts[id];
-    console.log(this.getElectionDataForDistrict(year, id).district);
-  },
-
   getXYZForDistrict: function (id) {
     const { bounds } = this.getElectionDataForDistrict(id);
     return this.getXYZFromBounds(bounds);
   },
 
-  getXYXForDistrictAndBubble: function (id) {
+  getBoundsForDistrictAndBubble: function (id) {
     const {
       x,
       y,
@@ -339,7 +182,11 @@ const DistrictsStore = {
     const maxX = Math.max(bounds[1][0], x + districtR);
     const minY = Math.min(bounds[0][1], y - districtR);
     const maxY = Math.max(bounds[1][1], y + districtR);
-    return this.getXYZFromBounds([[minX, minY], [maxX, maxY]]);
+    return [[minX, minY], [maxX, maxY]];
+  },
+
+  getXYXForDistrictAndBubble: function (id) {
+    return this.getXYZFromBounds(this.getBoundsForDistrictAndBubble(id));
   },
 
   getXYZFromBounds: function (bounds) {
@@ -373,193 +220,12 @@ const DistrictsStore = {
     };
   },
 
-  getYears: function() { return Object.keys(Elections).map(y => parseInt(y)); },
-
-  getPreviousElectionYear: function(year) { 
-    const electionYears = this.getYears(),
-      iCurrent = electionYears.indexOf(parseInt(year));
-    return (iCurrent === 0) ? false : electionYears[iCurrent-1];
+  getMaxTopOffset: function () {
+    return Math.max(...PartyCounts.map(yd => yd.third / 2 + yd.democrat));
   },
 
-  getNextElectionYear: function(year) { 
-    const electionYears = this.getYears(),
-      iCurrent = electionYears.indexOf(parseInt(year));
-    return (iCurrent + 1 === electionYears.length) ? false : electionYears[iCurrent+1];
-  },
-
-  getDistrictId(year, spatialId)  {
-    let districtId = null;
-    if (SpatialIds[year]) {
-      Object.keys(SpatialIds[year]).every(aDistrictId => {
-        if (SpatialIds[year][aDistrictId] === spatialId) {
-          districtId = aDistrictId;
-          return false;
-        }
-        return true;
-      });
-    }
-    return districtId;
-  },
-
-  getRawPartyCounts: function (year) { return (year) ? this.data.rawPartyCounts.find(pc => pc.year === year) : this.data.rawPartyCounts; },
-
-  getPartyCountsKeys() { return this.data.partyCountsKeys; },
-
-  getPartyCountForYearAndParty: function (year, party) {
-    return Object.keys(Elections[year]).reduce((accumulator, state) => {
-        return accumulator + Object.keys(Elections[year][state]).reduce((accumulator2, districtNum) => {
-          return accumulator2 + ((Elections[year][state][districtNum].partyReg === party) ? 1 : 0) 
-        }, 0);
-      }, 0);
-  },
-
-  getMaxTopOffset() { return Math.max(...this.data.rawPartyCounts.map(yd => yd.thirdCount/2 + yd.demBelowMargin + yd.demAboveMargin)); },
-
-  getMaxBottomOffset() { return Math.max(...this.data.rawPartyCounts.map(yd => yd.thirdCount/2 + yd.repBelowMargin + yd.repAboveMargin)); },
-
-  parseRawPartyCounts: function () {
-    const counts = [];
-    Object.keys(Elections).forEach((year) => {
-      if (year !== 'NaN') {
-        this.data.congressYears.push(parseInt(year));
-
-        const repCount = this.getPartyCountForYearAndParty(year, 'republican');
-        const whigCount = this.getPartyCountForYearAndParty(year, 'whig');
-        const demCount = this.getPartyCountForYearAndParty(year, 'democrat');
-
-        const demAboveMargin = (year < 1856) ? Math.max(demCount - whigCount, 0) :
-          Math.max(demCount - repCount, 0);
-        const demBelowMargin = (demAboveMargin <= 0) ? demCount : demCount - demAboveMargin;
-
-        const repAboveMargin = Math.max(repCount - demCount, 0);
-        const repBelowMargin = (repAboveMargin > 0) ? repCount - repAboveMargin : repCount;
-
-        const whigAboveMargin = (whigCount > demCount) ? whigCount - demCount : 0;
-        const whigBelowMargin = (whigAboveMargin > 0) ? whigCount - whigAboveMargin : whigCount;
-
-        const thirdCount = this.getPartyCountForYearAndParty(year, 'third');
-
-        counts.push({
-          year: parseInt(year),
-          demAboveMargin: demAboveMargin,
-          demBelowMargin: demBelowMargin,
-          thirdCount: thirdCount,
-          whigBelowMargin: whigBelowMargin,
-          repBelowMargin: repBelowMargin,
-          whigAboveMargin: whigAboveMargin,
-          repAboveMargin: repAboveMargin
-        });
-      }
-    });
-
-    this.data.rawPartyCounts = counts;
-  },
-
-  parsePartyCounts: function () {
-    const stack = d3.stack()
-      .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'whigBelowMargin', 'repBelowMargin', 'whigAboveMargin', 'repAboveMargin']);
-
-    // calculate preliminary steamgraph values
-    let stackedData = stack(this.data.rawPartyCounts);
-
-    // recalculate to offset democrats up and republicans and whigs down
-    stackedData.forEach((partyCounts, i) => {
-      partyCounts.forEach((stackData, j) => {
-        const formulas0 = {
-          demAboveMargin: () => -1 * (stackData.data.demAboveMargin + stackData.data.demBelowMargin + stackData.data.thirdCount / 2),
-          demBelowMargin: () => -1 * (stackData.data.demBelowMargin + stackData.data.thirdCount / 2),
-          thirdCount: () => -1 * (stackData.data.thirdCount / 2),
-          repBelowMargin: () => stackData.data.thirdCount / 2,
-          whigBelowMargin: () => stackData.data.thirdCount / 2,
-          repAboveMargin: () => 0,
-          whigAboveMargin: () => 0
-        };
-        const formulas1 = {
-          demAboveMargin: () => 0,
-          demBelowMargin: () => -1 * (stackData.data.thirdCount / 2),
-          thirdCount: () => stackData.data.thirdCount / 2,
-          repBelowMargin: () => stackData.data.thirdCount / 2 + stackData.data.repBelowMargin,
-          whigBelowMargin: () => stackData.data.thirdCount / 2 + stackData.data.whigBelowMargin,
-          repAboveMargin: () => stackData.data.thirdCount / 2 + stackData.data.repBelowMargin + stackData.data.repAboveMargin,
-          whigAboveMargin: () => stackData.data.thirdCount / 2 + stackData.data.whigBelowMargin + stackData.data.whigAboveMargin
-        };
-        const coords = [formulas0[partyCounts.key](), formulas1[partyCounts.key]()];
-        coords.data = stackData.data;
-        stackedData[i][j] = coords;
-      });
-    });
-
-    // split the margins into separate series
-    const demMajorityYears = stackedData[0]
-      .filter(yd => yd.data.demAboveMargin > 0)
-      .map(yd => yd.data.year);
-    const demStartYears = demMajorityYears
-      .filter((year, i) => i === 0 || !demMajorityYears.includes(year - 2));
-    const demEndYears = demMajorityYears
-      .filter((year, i) => i === demMajorityYears.length - 1 || !demMajorityYears.includes(year + 2));
-    const demSpans = demStartYears.map((sy, i) => [sy, demEndYears[i]]);
-    const demSeries = [];
-    demSpans.forEach((span) => {
-      const startIndex = stackedData[0].findIndex(yd => yd.data.year === span[0]);
-      const endIndex = stackedData[0].findIndex(yd => yd.data.year === span[1]);
-      const aDemSeries = stackedData[0].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
-      demSeries.push(aDemSeries);
-    });
-
-    const repMajorityYears = stackedData[6]
-      .filter(yd => yd.data.repAboveMargin > 0)
-      .map(yd => yd.data.year);
-    const repStartYears = repMajorityYears
-      .filter((year, i) => i === 0 || !repMajorityYears.includes(year - 2));
-    const repEndYears = repMajorityYears
-      .filter((year, i) => i === repMajorityYears.length -1 || !repMajorityYears.includes(year + 2));
-    const repSpans = repStartYears.map((sy, i) => [sy, repEndYears[i]]);
-    const repSeries = [];
-    repSpans.forEach((span) => {
-      const startIndex = stackedData[6].findIndex(yd => yd.data.year === span[0]);
-      const endIndex = stackedData[6].findIndex(yd => yd.data.year === span[1]);
-      const aRepSeries = stackedData[6].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
-      repSeries.push(aRepSeries);
-    });
-
-    const whigMajorityYears = stackedData[5].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year);
-    const whigStartYears = whigMajorityYears.filter((year, i) => i === 0 || !whigMajorityYears.includes(year - 2));
-    const whigEndYears = whigMajorityYears.filter((year, i) => i === whigMajorityYears.length -1 || !whigMajorityYears.includes(year + 2));
-    const whigSpans = whigStartYears.map((sy, i) => [sy, whigEndYears[i]]);
-    const whigSeries = [];
-    whigSpans.forEach((span) => {
-      const startIndex = stackedData[5].findIndex(yd => yd.data.year === span[0]);
-      const endIndex = stackedData[5].findIndex(yd => yd.data.year === span[1]);
-      const aWhigSeries = stackedData[5].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
-      whigSeries.push(aWhigSeries);
-    });
-
-    stackedData.splice(5, 2);
-    stackedData.splice(0, 1);
-    stackedData = repSeries.concat(stackedData);
-    stackedData = whigSeries.concat(stackedData);
-    stackedData = demSeries.concat(stackedData);
-    this.data.partyCounts = stackedData;
-
-    demSeries.forEach(ds => this.data.partyCountsKeys.push('demAboveMargin'));
-    whigSeries.forEach(ds => this.data.partyCountsKeys.push('whigAboveMargin'));
-    repSeries.forEach(ds => this.data.partyCountsKeys.push('repAboveMargin'));
-    this.data.partyCountsKeys.push('demBelowMargin');
-    this.data.partyCountsKeys.push('thirdCount');
-    this.data.partyCountsKeys.push('whigBelowMargin');
-    this.data.partyCountsKeys.push('repBelowMargin');
-  },
-
-  getSpatialIdData: function (spatialId) {
-    const areaData = {};
-    for (let y = 1836; y <= 2010; y += 2) {
-      const districtId = this.getDistrictId(y, spatialId);
-      const districtData = this.getElectionDataForDistrict(y, districtId);
-      if (districtData) {
-        areaData[y] = districtData;
-      }
-    }
-    return areaData;
+  getMaxBottomOffset: function () {
+    return Math.max(...PartyCounts.map(yd => yd.third / 2 + yd.republican));
   },
 
   getDistrictLabel: function (id) {
@@ -572,23 +238,33 @@ const DistrictsStore = {
     return null;
   },
 
-  findDistrict: function (point, year) {
-    const theStateGeoJson = this.data.states
-      .filter(state => state.properties.abbr_name !== 'VA' || state.properties.year !== 1788)
-      .find(state => d3.geoContains(state, point));
-    if (theStateGeoJson) {
-      // some stuff for VA and WV
-      const stateAbbr = (theStateGeoJson.properties.abbr_name === 'WV' && year < 1864) ? 'VA' : theStateGeoJson.properties.abbr_name;
-      const theDistrict = DistrictsStore.getElectionDistricts(year)
-        .filter(dist => dist.statename === getStateName(stateAbbr))
-        .find(dist => d3.geoContains(dist.the_geojson, point));
-      if (theDistrict) {
-        return theDistrict.id;
-      }
-    }
-    return false;
-  }
+  hasThird: function () { return this.data.elections.map(e => e.partyReg).includes('third'); },
 
+  findDistrict: function (point, year) {
+    const project = d3.geoAlbersUsa().scale(1).translate([0, 0]);
+    const projectedPoint = project(point);
+    const candidates = this.data.elections.filter(e => (
+      e.bounds && projectedPoint[0] >= e.bounds[0][0] && projectedPoint[0] <= e.bounds[1][0]
+      && projectedPoint[1] >= e.bounds[0][1] && projectedPoint[1] <= e.bounds[1][1]
+    ));
+    const district = candidates.find(e => (
+      e.svg && PointInSvgPolygon.isInside(projectedPoint, e.svg)
+    ));
+    return (district && district.spatialId) ? district.spatialId : false;
+  },
+
+  getPathFunction: function () { return d3.geoPath(this.getProjection()); },
+
+  getPath: function (g) { return this.getPathFunction()(g); },
+
+  getProjection: function () {
+    return d3.geoAlbersUsa()
+      .scale(DimensionsStore.getMapScale())
+      .translate([DimensionsStore.getDimensions().mapProjectionWidth / 2,
+        DimensionsStore.getDimensions().mapProjectionHeight / 2]);
+  },
+
+  projectPoint: function (point) { return this.getProjection()(point); }
 };
 
 // Mixin EventEmitter functionality
@@ -603,10 +279,6 @@ AppDispatcher.register((action) => {
     const districtId = action.hashState.district || action.state.selectedDistrict || null;
 
     DistrictsStore.loadForYear(parseInt(year), districtId);
-    //DistrictsStore.loadDistrictsForCongress(year);
-    //DistrictsStore.parseBubbles();
-    DistrictsStore.parseRawPartyCounts();
-    DistrictsStore.parsePartyCounts();
   };
 
   updates[AppActionTypes.congressSelected] = () => {
@@ -616,10 +288,6 @@ AppDispatcher.register((action) => {
   updates[AppActionTypes.districtSelected] = () => {
     DistrictsStore.loadSpaceData(action.id);
   };
-
-  // updates[AppActionTypes.windowResized] = () => {
-  //   DistrictsStore.parseBubbles();
-  // };
 
   if (updates[action.type]) {
     updates[action.type]();

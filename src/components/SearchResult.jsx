@@ -20,7 +20,7 @@ export default class SearchResult extends React.Component {
             height={20}
             style={{ display: 'inline-block' }}
             onClick={this.props.onOptionSelected}
-            id={result.id}
+            id={result.spatialId}
             key={`resultFor${result.id}`}
           >
             <text

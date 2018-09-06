@@ -2,7 +2,7 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 
-export default class Bubble extends React.Component {
+export default class GeneralTicketElection extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
@@ -54,10 +54,10 @@ export default class Bubble extends React.Component {
         height={length}
         style={{
           fill: this.state.fill,
-          fillOpacity: this.state.fillOpacity
+          fillOpacity: this.state.fillOpacity,
+          strokeWidth: this.props.strokeWidth
         }}
         stroke='#eee'
-        strokeWidth={1}
         onClick={onDistrictSelected}
         id={id}
         ref={this.symbol}
@@ -66,18 +66,19 @@ export default class Bubble extends React.Component {
   }
 }
 
-Bubble.propTypes = {
+GeneralTicketElection.propTypes = {
   x: PropTypes.number.isRequired,
   y: PropTypes.number.isRequired,
   length: PropTypes.number.isRequired,
   fill: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number,
+  strokeWidth: PropTypes.number.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
-  id: PropTypes.string,
+  id: PropTypes.number,
   duration: PropTypes.number
 };
 
-Bubble.defaultProps = {
+GeneralTicketElection.defaultProps = {
   fillOpacity: 1,
   id: ' ',
   duration: 1000

@@ -125,8 +125,6 @@ export const getDistrictStyleFromUi = function (district, ui) {
 
   style.pointerEvents = (ui.selectedView === 'map') ? 'auto' : 'none';
 
-
-
   return style;
 };
 
@@ -165,7 +163,7 @@ export const getBubbleStyle = function (district, ui) {
   }
 
   // change stroke of selected district to white
-  if (selectedView === 'cartogram' && searchOptions.includes(id)) {
+  if (selectedView === 'cartogram' && searchOptions.includes(spatialId)) {
     style.stroke = 'white';
   } else if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === spatialId) {
     style.stroke = 'white';
@@ -175,7 +173,7 @@ export const getBubbleStyle = function (district, ui) {
   // obscure if not among search results
   // hide if not among selected party or selected flipped // obscure if not selected district
   if (selectedView === 'cartogram' && searchOptions.length > 0) {
-    style.fillOpacity = (searchOptions.includes(id)) ? 1 : 0.1;
+    style.fillOpacity = (searchOptions.includes(spatialId)) ? 1 : 0.1;
   } else if ((selectedParty && selectedParty !== partyReg) ||
    (onlyFlipped && !flipped)) {
     style.fillOpacity = 0.1;
@@ -201,12 +199,11 @@ export const getCityBubbleStyle = function (city, ui) {
       }
     }
 
-    // if (ui.onlyFlipped) {
-    //   const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
-    //   if (flippedPercent === 0) {
-    //     style.fillOpacity = 0.2;
-    //   }
-    // }
+    if (ui.onlyFlipped) {
+      if (city.flipped === 0) {
+        style.fillOpacity = 0.2;
+      }
+    }
 
     if (ui.selectedDistrict && city.districts) {
       if (!city.districts.includes(ui.selectedDistrict)) {
@@ -229,12 +226,11 @@ export const getCityBubbleLabelOpacity = function (city, ui) {
       opacity = percentOfParty;
     }
 
-    // if (ui.onlyFlipped) {
-    //   const flippedPercent = DistrictsStore.cityFlippedPercent(city.id, ui.selectedYear);
-    //   if (flippedPercent === 0) {
-    //     opacity = 0.2;
-    //   }
-    // }
+    if (ui.onlyFlipped) {
+      if (city.flipped === 0) {
+        opacity = 0.2;
+      }
+    }
 
     if (ui.selectedDistrict && city.districts && !city.districts.includes(ui.selectedDistrict)) {
       opacity = 0.2;
@@ -251,7 +247,8 @@ export const getStateStyle = function (state, ui) {
   const { mapScale } = DimensionsStore.getDimensions();
   const districtData = DistrictsStore.getElectionDataForDistrict(ui.selectedDistrict);
   const style = {
-    fill: 'transparent',
+    fill: (state.gt) ? 'white' : 'transparent',
+    fillOpacity: 0.1,
     stroke: '#eee',
     pointerEvents: 'none'
   };

@@ -52,9 +52,10 @@ export default class MapContainer extends React.Component {
 
   selectCurrentLocation () {
     if (this.state.geolocation) {
-      const districtId = DistrictStore.findDistrict(this.state.geolocation, this.props.uiState.selectedYear);
-      if (districtId) {
-        this.props.onDistrictSelected(districtId);
+      const spatialId = DistrictStore.findDistrict(this.state.geolocation);
+      if (spatialId) {
+        console.log(spatialId);
+        this.props.onDistrictSelected(spatialId);
       }
     } else {
       this.geolocate();

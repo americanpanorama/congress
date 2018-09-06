@@ -46,7 +46,7 @@ class App extends React.Component {
     this.search = React.createRef();
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded', 'calculateBounds'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -164,7 +164,7 @@ class App extends React.Component {
 
   onDistrictSelected (e) {
     let id = null;
-    if (typeof e === 'string') {
+    if (typeof e === 'number' || typeof e === 'string') {
       id = e;
     } else if (e.currentTarget && parseInt(e.currentTarget.id) !== this.state.selectedDistrict) {
       id = e.currentTarget.id;
@@ -178,13 +178,65 @@ class App extends React.Component {
 
     this.search.current.setEntryText('');
 
-    this.setState({
+    const newState = {
       selectedDistrict: id,
       selectedParty: null,
       onlyFlipped: false,
       searching: false,
       searchOptions: []
-    });
+    };
+
+    if (id) {
+      // determine if the selected district is within the visible bounds
+      const {
+        mapScale,
+        mapProjectionWidth,
+        mapProjectionHeight,
+        mapWidth,
+        mapHeight
+      } = DimensionsStore.getDimensions();
+      const visibleBounds = this.calculateBounds(this.state.x, this.state.y, this.state.zoom);
+      const rawDistrictBounds = (this.state.selectedView === 'map')
+        ? DistrictsStore.getElectionDataForDistrict(id).bounds
+        : DistrictsStore.getBoundsForDistrictAndBubble(id);
+      const districtBounds = [
+        [
+          (rawDistrictBounds[0][0] * mapScale + mapProjectionWidth / 2) / mapProjectionWidth,
+          (rawDistrictBounds[0][1] * mapScale + mapProjectionHeight / 2) / mapProjectionHeight
+        ],
+        [
+          (rawDistrictBounds[1][0] * mapScale + mapProjectionWidth / 2) / mapProjectionWidth,
+          (rawDistrictBounds[1][1] * mapScale + mapProjectionHeight / 2) / mapProjectionHeight
+        ]
+      ];
+
+      if (districtBounds[0][0] < visibleBounds[0][0]
+        || districtBounds[1][0] > visibleBounds[1][0]
+        || districtBounds[0][1] < visibleBounds[0][1]
+        || districtBounds[1][1] > visibleBounds[1][1]) {
+        // calculate the highest zoom level that doesn't expand beyond the bounding box
+        const maxHorizontal = (Math.max(districtBounds[1][0], visibleBounds[1][0]) -
+          Math.min(districtBounds[0][0], visibleBounds[0][0])) * mapScale;
+        let zHorizontal = 1;
+        while (maxHorizontal * zHorizontal < mapWidth / 2) {
+          zHorizontal *= 1.62;
+        }
+        const maxVertical = (Math.max(districtBounds[1][1], visibleBounds[1][1]) -
+          Math.min(districtBounds[0][1], visibleBounds[0][1])) * mapScale;
+        let zVertical = 1;
+        while (maxVertical * zVertical < mapHeight / 2) {
+          zVertical *= 1.62;
+        }
+        // set the zoom not to be below 1; if it is, reset the view entirely
+        newState.zoom = Math.max(Math.round(Math.min(zHorizontal, zVertical) / 1.62 * 100) / 100, 1);
+        if (newState.zoom === 1) {
+          newState.x = 0.5;
+          newState.y = 0.5;
+        }
+      }
+    }
+
+    this.setState(newState);
   }
 
   onZoomToDistrict (e) {
@@ -239,11 +291,9 @@ class App extends React.Component {
     clearTimeout(this.searchTimer);
     const searchingFor = this.search.current.refs.entry.value;
     this.searchTimer = setTimeout(() => {
-      console.log('executed');
-      const searchOptions = DistrictsStore.getSearchData(this.state.selectedYear);
+      const searchOptions = DistrictsStore.getSearchData();
       const filteredOptions = this.search.current.getOptionsForValue(searchingFor, searchOptions);
-      const filteredIds = filteredOptions.map(d => d.id);
-      //this.search.current.getOptionsForValue(this.refs.typeahead.refs.entry.value, CitiesStore.getCitiesListWithDisplacements()).map(c => c.city_id)); 
+      const filteredIds = filteredOptions.map(d => d.spatialId);
 
       this.setState({
         searchOptions: filteredIds
@@ -286,6 +336,22 @@ class App extends React.Component {
       x: halfWidth - (halfWidth - this.state.x) / this.state.zoom,
       y: halfHeight - (halfHeight - this.state.y) / this.state.zoom
     });
+  }
+
+  calculateBounds (x, y, zoom) {
+    const {
+      mapWidth,
+      mapHeight,
+      mapProjectionWidth,
+      mapProjectionHeight
+    } = DimensionsStore.getDimensions();
+    const zoomedWidth = mapProjectionWidth * zoom;
+    const zoomedHeight = mapProjectionHeight * zoom;
+    const xWest = x - (mapWidth / 2) / zoomedWidth;
+    const xEast = x + (mapWidth / 2) / zoomedWidth;
+    const yNorth = y - (mapHeight / 2) / zoomedHeight;
+    const ySouth = y + (mapHeight / 2) / zoomedHeight;
+    return [[xWest, yNorth], [xEast, ySouth]];
   }
 
   storeChanged () { this.setState({}); }
@@ -358,17 +424,14 @@ class App extends React.Component {
           resetView={this.resetView}
           zoomOut={this.zoomOut}
           toggleFlipped={this.toggleFlipped}
-          hasThird={DistrictsStore.getPartyCountForYearAndParty(selectedYear, 'third') > 0}
+          hasThird={DistrictsStore.hasThird()}
         />
 
         <Timeline
           steamgraphPaths={DistrictsStore.getSteamgraphPaths()}
           electionYears={DistrictsStore.getElectionYears()}
-          partyCount={DistrictsStore.getPartyCounts()}
-          partyCountKeys={DistrictsStore.getPartyCountsKeys()}
           maxDemocrats={DistrictsStore.getMaxTopOffset()}
           maxRepublicans={DistrictsStore.getMaxBottomOffset()}
-          congressYears={DistrictsStore.getCongressYears()}
           onYearSelected={this.onYearSelected}
           districtData={(spaceData && spaceData.length > 0) ? spaceData : false}
         />
@@ -376,7 +439,7 @@ class App extends React.Component {
         <TimelineHandle
           selectedYear={selectedYear}
           onYearSelected={this.onYearSelected}
-          partyCounts={DistrictsStore.getRawPartyCounts()}
+          partyCounts={DistrictsStore.getPartyCounts()}
           showPartyCounts={!selectedDistrict}
           districtCircleY={(districtData && districtData.partyReg !== 'third') ? DimensionsStore.timelineDistrictYWithParty(districtData.percent, districtData.partyReg, DistrictsStore.getMaxBottomOffset()) : false}
           districtCircleFill={(districtData) ? getColorForParty(districtData.partyReg) : 'transparent'}

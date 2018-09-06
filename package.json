@@ -25,6 +25,7 @@
     "geojson-dissolve": "^3.1.0",
     "mapshaper": "^0.4.60",
     "parse-full-name": "^1.2.3",
+    "point-in-svg-polygon": "^1.0.20",
     "polylabel": "^1.0.2",
     "prop-types": "^15.6.1",
     "queue-async": "^1.0.7",

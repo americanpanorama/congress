@@ -104,6 +104,7 @@ export default class BubbleCity extends React.Component {
               id={`ArcSegment${this.props.cityLabel.replace(/[,\.\- ]+/g, '')}`}
               d={this.state.dCityLabel}
               ref={this.cityLabelArc}
+              transform='scale(1000)'
             />
           </defs>
           <text
@@ -114,8 +115,9 @@ export default class BubbleCity extends React.Component {
             style={{
               pointerEvents: 'none',
               fillOpacity: this.props.cityLabelOpacity,
-              fontSize: this.state.cityLabelSize
+              fontSize: this.state.cityLabelSize * 1000
             }}
+            transform='scale(0.001)'
           >
             <textPath
               xlinkHref={`#ArcSegment${this.props.cityLabel.replace(/[,\.\- ]+/g, '')}`}

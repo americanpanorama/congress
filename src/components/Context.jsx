@@ -25,6 +25,21 @@ const Context = (props) => {
       }}
       className='context'
     >
+      {(props.selectedYear === 1920) &&
+        <p>Republicans won a landslide set of elections in 1920, the first federal election in which women could vote after ratification of the 19th Amendment.  In the House, <span onClick={toggleFlippedPartyOff}>the GOP picked up 63 seats</span> to run their advantage up to <span onClick={selectPartyFlippedOff} id='republican'>303</span> to <span onClick={selectPartyFlippedOff} id='democrat'>131</span>, with 1 seat held by a Socialist, Meyer London in New York.  In the Senate, the Republicans picked up 10 seats to hold control by a  59-37 margin over Democrats.</p>
+      }
+      {(props.selectedYear === 1922) &&
+        <p>Democrats rolled back the gains Republicans made in the 1920 House election, picking up 76 seats to cut the GOP advantage to <span onClick={selectPartyFlippedOff} id='republican'>225</span>-<span onClick={selectPartyFlippedOff} id='democrat'>207</span>.  The Farmer-Labor Party won 2 seats and the Socialist Party won 1.  In the Senate, Democrats picked up 6 seats to trim Republican control to a 53-42 lead, while the Farmer-Labor party won 1 seat with the victory of Henrik Shipstead in Minnesota.</p>
+      }
+      {(props.selectedYear === 1924) &&
+        <p>Economic growth aided Republican electoral fortunes up and down the ticket, as the GOP held control of the House and Senate in 1924.  In the House, Republicans gained 22 seats to increase their margin over Democrats, <span onClick={selectPartyFlippedOff} id='republican'>247</span>-<span onClick={selectPartyFlippedOff} id='democrat'>183</span>, with Farmer-Labor winning three seats and the Socialist Party one seat.  Nicholas Longworth (R-OH) succeeded the retiring Frederick Gillett (R-MA) as Speaker of the House when the new Congress was seated.  In the Senate, Republicans gained 3 seats to take a 54-41 advantage over Democrats, while the Farmer-Labor party lost a seat to drop to 1.</p>
+      }
+      {(props.selectedYear === 1926) &&
+        <p>No national issue dominated the elections of 1926, and the overall robust economy and lack of international conflicts owing to postwar isolationism meant mixed results in the Congressional elections.  Republicans retained control of the House of Representatives by a <span onClick={selectPartyFlippedOff} id='republican'>238</span>-<span onClick={selectPartyFlippedOff} id='democrat'>194</span> margin as <span onClick={toggleFlippedPartyOff}>Democrats picked up 11 seats</span>. The Farmer-Labor party dropped from 3 seats to 2 and Wisconsin Socialist won re-election.  In the Senate, Republicans lost 6 seats but held control of the chamber, 50-45.</p>
+      }
+      {(props.selectedYear === 1928) &&
+        <p>The booming economy of the 1920s and internal divisions in the Democratic Party led to significant Republican gains in the House and Senate.  The <span onClick={toggleFlippedPartyOff}>GOP picked up 32 seats</span> in the House, increasing their advantage over Democrats to <span onClick={selectPartyFlippedOff} id='republican'>270</span>-<span onClick={selectPartyFlippedOff} id='democrat'>164</span>, with two Farmer-Labor seats and one Socialist seat.  In the Senate, Republicans gained 6 seats for a 53-39 advantage over Democrats, while the Farmer-Labor party held one seat.</p>
+      }
       {(props.selectedYear === 1930) &&
         <p>Voters turned Republicans out of office across the country as the electorate rejected conservative approaches to the Great Depression.  <span onClick={toggleFlippedPartyOff}>Democrats picked up 52 seats</span> in the election, barely missing taking control of the House, 216-218.  However, several special elections after the death of elected members led to Democratic control of the House, 218-217.  <span onClick={props.onDistrictSelected} id='048066072015'>John Nance Garner</span> (D-TX) succeeded <span onClick={props.onDistrictSelected} id='039064072001'>Nicholas Longworth</span> (R-OH) as Speaker of the House.  In the Senate, Democrats picked up 6 seats but Republicans retained control of the chamber, 50-45.</p>
       }

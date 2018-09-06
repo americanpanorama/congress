@@ -25,8 +25,8 @@ const SpatialIds = class SpatialIdsClass extends EventEmitter {
         const districtKeys = Object.keys(elections[year][state]);
         const hasAL = districtKeys.includes('AL') || districtKeys.includes('GT');
         if (hasAL) {
-          const numAL = districtKeys.filter(d => d === 'AL').length;
-          const numGT = districtKeys.filter(d => d === 'GT').length;
+          const numAL = (elections[year][state].AL) ? elections[year][state].AL.length : 0;;
+          const numGT = (elections[year][state].GT) ? elections[year][state].GT.length : 0;
           const numEnumerated = districtKeys.filter(d => d !== 'AL' && d !== 'GT').length;
           // only skip if there are no enumerated districts (e.g. 1, 2, etc.) or multiple AL districts
           const skip = (numGT > 0 || numAL > 1 || numEnumerated > 0);
@@ -220,22 +220,26 @@ const SpatialIds = class SpatialIdsClass extends EventEmitter {
     Object.keys(this.toDos).forEach((congress, i) => {
       setTimeout(() => {
         const year = this.yearForCongress(congress);
-        console.log(`CALCULATING CANDIDATES for Congress ${congress} (${year}`);
+        console.log(`CALCULATING CANDIDATES for Congress ${congress} (${year})`);
 
         const statesArray = this.toDos[congress].map(state => `'${state}'`).join(',');
-        let districtArray = null;
+        let previousSkip = null;
+        let nextSkip = null;
         if (this.districtsToSkip[year]) {
-          districtArray = this.districtsToSkip[year].map(d => `'${d}'`).join(',');
+          previousSkip = this.districtsToSkip[year].map(d => `'${d}'`).join(',');
+        }
+        if (this.districtsToSkip[parseInt(year) + 2]) {
+          nextSkip = this.districtsToSkip[parseInt(year) + 2].map(d => `'${d}'`).join(',');
         }
 
         // get the percentage overlaps for each district that does intersect
-        const queryOverlap = `select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) * st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts where endcong = ${congress} and statename in (${statesArray}) and district != 0 ${(districtArray) ? ` and district not in (${districtArray})` : ''}) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts where startcong = ${parseInt(congress, 10) + 1} and statename in (${statesArray}) ${(districtArray) ? ` and district not in (${districtArray})` : ''}) next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.5 and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) > 0.05 order by overlap desc`;
+        const queryOverlap = `select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) * st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts where endcong = ${congress} and statename in (${statesArray}) and district != 0 ${(previousSkip) ? ` and id not in (${previousSkip})` : ''}) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts where startcong = ${parseInt(congress, 10) + 1} and statename in (${statesArray}) ${(nextSkip) ? ` and id not in (${nextSkip})` : ''}) next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.5 and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) > 0.05 order by overlap desc`;
 
         d3.json(baseUrlJson + queryOverlap, (err, cd) => {
           if (!cd) { 
             console.log(queryOverlap, err, cd);
           } else if (cd && cd.rows) {
-            console.log(`CALCULATED candidates for Congress ${congress} (${year}`);
+            console.log(`CALCULATED candidates for Congress ${congress} (${year})`);
             console.log(cd.rows.length);
             this.candidates[this.yearForCongress(congress)] = cd.rows;
             delete this.toDos[congress];
@@ -331,74 +335,143 @@ const SpatialIds = class SpatialIdsClass extends EventEmitter {
               spatialId += 1;
             }
           });
+          // if (elections[year] && elections[year][this.getStateAbbr(state)] && elections[year][this.getStateAbbr(state)].GT) {
+          //   elections[year][this.getStateAbbr(state)].GT.forEach((district) => {
+          //     this.spatialIds[`spatialId${spatialId}`] = {};
+          //     this.spatialIds[`spatialId${spatialId}`][year] = district;
+          //     spatialId += 1;
+          //   });
+          // }
+
+          // if (elections[year] && elections[year][this.getStateAbbr(state)] && elections[year][this.getStateAbbr(state)].AL) {
+          //   elections[year][this.getStateAbbr(state)].AL.forEach((district) => {
+          //     if (this.districtsToSkip[year] && this.districtsToSkip[year][this.getStateAbbr(state)] && this.districtsToSkip[year][this.getStateAbbr(state)].includes(district)) {
+          //       this.spatialIds[`spatialId${spatialId}`] = {};
+          //       this.spatialIds[`spatialId${spatialId}`][year] = district;
+          //       spatialId += 1;
+          //     }
+          //   });
+          // }
         });
+        // assign ids for skipped districts--general ticket and some at large
+        if (this.districtsToSkip[year]) {
+          this.districtsToSkip[year].forEach((district) => {
+            this.spatialIds[`spatialId${spatialId}`] = {};
+            this.spatialIds[`spatialId${spatialId}`][year] = district;
+            spatialId += 1;
+          });
+        }
       });
 
-      console.log('COMPLETED ASSIGNING spatialIds');
+    console.log('COMPLETED ASSIGNING spatialIds');
 
-      this.emit('spatialIdsAssigned');
+    this.emit('spatialIdsAssigned');
   }
 
   adjustForAtLarge () {
     const baseUrlJson = 'https://digitalscholarshiplab.carto.com/api/v2/sql?format=JSON&q=';
     const candidates = {};
 
-    Object.keys(this.yearsToSkip).forEach((year) => {
-      const theYear = parseInt(year, 10);
-      this.yearsToSkip[year].forEach((state) => {
-        // create a mapping of best matched districts for the congress before the year and the one after, skipping it
-        // note this is more choosy than the initial candidates, looking for 25% overlap or more
-        const queryOverlap = `select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts where endcong =  ${this.congressForYear(theYear - 2)} and statename = '${this.getStateName(state)}' and district != 0) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts where startcong =  ${this.congressForYear(theYear + 2)} and statename = '${this.getStateName(state)}') next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.25 and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) > 0.25 order by overlap desc`;
+    // get the GT elections
+    const yearsToSkip = {};
+    Object.keys(elections).forEach((year) => {
+      Object.keys(elections[year]).forEach((state) => {
+        const districtKeys = Object.keys(elections[year][state]);
+        const isGT = districtKeys.length === 1 && districtKeys[0] === 'GT';
+        if (isGT) {
+          yearsToSkip[year] = yearsToSkip[year] || [];
+          yearsToSkip[year].push(state);
+        }
+      });
+    });
 
-        d3.json(baseUrlJson + queryOverlap, (err, cd) => {
-          if (!cd) { 
-            console.log(queryOverlap, err, cd);
-          } else if (cd && cd.rows) {
-            candidates[theYear - 2] = candidates[theYear - 2] || {}
-            candidates[theYear - 2][state] = cd.rows;
+    // add civil war state
+    yearsToSkip['1862'] = ['VA', 'NC', 'SC', 'GA', 'TN', 'AR', 'FL', 'MS', 'AL', 'LA', 'TX'];
+    yearsToSkip['1864'] = ['VA', 'NC', 'SC', 'GA', 'AR', 'FL', 'MS', 'AL', 'LA', 'TX'];
+    yearsToSkip['1866'] = ['VA', 'MS', 'TX'];
+
+    const skipData = [];
+    Object.keys(yearsToSkip).forEach((year) => {
+      const theYear = parseInt(year);
+      // look backward for the state in the previous election
+      let beforeYear;
+      yearsToSkip[year].forEach((state) => {
+        for (let found, prevYear = theYear - 2; !found; prevYear -= 2) {
+          if (!yearsToSkip[prevYear] || !yearsToSkip[prevYear].includes(state)) {
+            beforeYear = prevYear;
+            found = true;
           }
-          this.yearsToSkip[year] = this.yearsToSkip[year].filter(s => s !== state);
-          if (this.yearsToSkip[year].length === 0) {
-            delete this.yearsToSkip[year];
+        }
+        let afterYear;
+        for (let found, nextYear = theYear + 2; !found; nextYear += 2) {
+          if (!yearsToSkip[nextYear] || !yearsToSkip[nextYear].includes(state)) {
+            afterYear = nextYear;
+            found = true;
           }
+        }
+        skipData.push({
+          state: state,
+          prevYear: beforeYear,
+          nextYear: afterYear
+        });
+      });
+    });
 
-          if (Object.keys(this.yearsToSkip).length === 0) {
-            // iterate through each of these congresses and states adjusting the mappings
-            // this needs to be done badkwards
-            Object.keys(candidates).sort().reverse().forEach((year, i) => {
-              Object.keys(candidates[year]).forEach((state) => {
-                console.log(`starting ${state} for ${year}`);
-                console.log(`${candidates[year][state].length} matches to test`);
+    let numDone = 0;
+    skipData.forEach((sd, i) => {
+      const { state, prevYear, nextYear } = sd;
+      // create a mapping of best matched districts for the congress before the year and the one after, skipping it
+      // note this is more choosy than the initial candidates, looking for 25% overlap or more
+      const queryOverlap = `select previous.id as previous_district, next.id as next_district, st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) as overlap, previous.statename as state from (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename  FROM districts where endcong =  ${this.congressForYear(prevYear)} and statename = '${this.getStateName(state)}' and district != 0) previous join (SELECT distinct on (id) id, cartodb_id, st_makevalid(the_geom) as the_geom, statename FROM districts where startcong = ${this.congressForYear(nextYear)} and statename = '${this.getStateName(state)}') next on previous.statename = next.statename and st_intersects(ST_CollectionExtract(previous.the_geom,3), ST_CollectionExtract(next.the_geom,3)) and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(previous.the_geom) > 0.25 and st_area(st_intersection(previous.the_geom, next.the_geom))/st_area(next.the_geom) > 0.25 order by overlap desc`;
 
-                let currentDistrictLists = Array.from(new Set(candidates[year][state].map(intersection => intersection.previous_district)));
-                let candidatesList = Array.from(new Set(candidates[year][state].map(intersection => intersection.next_district)));
+      d3.json(baseUrlJson + queryOverlap, (err, cd) => {
+        if (!cd) { 
+          console.log(queryOverlap, err, cd);
+        } else if (cd && cd.rows) {
+          candidates[prevYear] = candidates[prevYear] || {};
+          candidates[prevYear][state] = cd.rows;
+        }
+        numDone += 1;
 
-                // iterate through the results one by one assigning candidates
-                candidates[year][state].forEach((intersection) => {
-                  if (currentDistrictLists.length > 0 && candidatesList.length > 0 && currentDistrictLists.includes(intersection.previous_district) && candidatesList.includes(intersection.next_district)) {
-                    // find the spatial ids for the previous and next districts
-                    const idToKeep = this.findSpatialId(intersection.previous_district, year);
-                    const idToMerge = this.findSpatialId(intersection.next_district, parseInt(year) + 4);
-                    if (idToKeep && idToMerge) {
-                      Object.keys(this.spatialIds[idToMerge]).forEach((y) => {
-                        this.spatialIds[idToKeep][y] = this.spatialIds[idToMerge][y];
-                      });
-                      delete this.spatialIds[idToMerge];
-                    }
+        if (numDone === skipData.length) {
 
-                    // remove the mapped district and the potential candidate from the two respective lists
-                    currentDistrictLists = currentDistrictLists.filter(id => id !== intersection.previous_district);
-                    candidatesList = candidatesList.filter(id => id !== intersection.next_district);
+          console.log(candidates);
+          jdsklf;;
+          // iterate through each of these congresses and states adjusting the mappings
+          // this needs to be done badkwards
+          Object.keys(candidates).sort().reverse().forEach((year, i) => {
+            Object.keys(candidates[year]).forEach((state) => {
+              console.log(`starting ${state} for ${year}`);
+              console.log(`${candidates[year][state].length} matches to test`);
+
+              let currentDistrictLists = Array.from(new Set(candidates[year][state].map(intersection => intersection.previous_district)));
+              let candidatesList = Array.from(new Set(candidates[year][state].map(intersection => intersection.next_district)));
+
+              // iterate through the results one by one assigning candidates
+              candidates[year][state].forEach((intersection) => {
+                if (currentDistrictLists.length > 0 && candidatesList.length > 0 && currentDistrictLists.includes(intersection.previous_district) && candidatesList.includes(intersection.next_district)) {
+                  // find the spatial ids for the previous and next districts
+                  const idToKeep = this.findSpatialId(intersection.previous_district, year);
+                  const idToMerge = this.findSpatialId(intersection.next_district, parseInt(year) + 4);
+                  if (idToKeep && idToMerge) {
+                    Object.keys(this.spatialIds[idToMerge]).forEach((y) => {
+                      this.spatialIds[idToKeep][y] = this.spatialIds[idToMerge][y];
+                    });
+                    delete this.spatialIds[idToMerge];
                   }
-                });
+
+                  // remove the mapped district and the potential candidate from the two respective lists
+                  currentDistrictLists = currentDistrictLists.filter(id => id !== intersection.previous_district);
+                  candidatesList = candidatesList.filter(id => id !== intersection.next_district);
+                }
               });
             });
-            
-            console.log('COMPLETED adjusting for at-large districts');
+          });
+          
+          console.log('COMPLETED adjusting for at-large districts');
 
-            this.emit('atLargeCompleted');
-          }
-        });
+          this.emit('atLargeCompleted');
+        }
       });
     });
   }

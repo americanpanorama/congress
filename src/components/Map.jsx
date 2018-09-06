@@ -43,7 +43,7 @@ export default class Map extends React.Component {
       || state.districtBubbles.length === 0
       || selectedYear !== state.lastUiState.selectedYear) {
       newState.districts = DistrictsStore.getElectionDistricts();
-      newState.gtElections = DistrictsStore.getGeneralTicketElections(selectedYear);
+      newState.gtElections = DistrictsStore.getGeneralTicketElections();
       newState.states = DistrictsStore.getStates();
       newState.cityBubbles = DistrictsStore.getCityBubbles();
       newState.districtBubbles = DistrictsStore.getElectionBubbles();
@@ -120,7 +120,6 @@ export default class Map extends React.Component {
     } = this.props;
 
     const {
-      selectedYear,
       selectedView,
       selectedParty,
       selectedDistrict,
@@ -129,9 +128,11 @@ export default class Map extends React.Component {
 
     const transformation = `translate(${dimensions.mapProjectionWidth / 2} ${dimensions.mapProjectionHeight / 2}) scale(${mapScale})`;
 
-    const dataForDistrict = (selectedDistrict) ? DistrictsStore.getElectionDataForDistrict(selectedDistrict) : undefined;
+    const dataForDistrict = (selectedDistrict) ?
+      DistrictsStore.getElectionDataForDistrict(selectedDistrict) : undefined;
 
-    const selectedState = (dataForDistrict) ? this.state.states.find(s => s.state === dataForDistrict.state) : undefined;
+    const selectedState = (dataForDistrict) ?
+      this.state.states.find(s => s.state === dataForDistrict.state) : undefined;
 
     return (
       <div
@@ -211,6 +212,7 @@ export default class Map extends React.Component {
                       onDistrictSelected={this.onDistrictSelected}
                       duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
                       {...getDistrictStyleFromUi(dataForDistrict, uiState)}
+                      key={`selectedDistrict${dataForDistrict.spatialId}`}
                     />
                   }
 
@@ -251,22 +253,22 @@ export default class Map extends React.Component {
                       key={`bubble-${d.spatialId}`}
                     />
                   ))}
-                </g>
 
-                { (selectedView === 'map') &&
-                  <React.Fragment>
-                    { this.state.gtElections.map(state => (
-                      <StateGeneralTicket
-                        key={state.state}
-                        {...state}
-                        d={DistrictsStore.getPath(state.the_geojson)}
-                        length={dimensions.districtR * 1.5}
-                        onDistrictSelected={this.onDistrictSelected}
-                        uiState={uiState}
-                      />
-                    ))}
-                  </React.Fragment>
-                }
+                  { (selectedView === 'map') &&
+                    <React.Fragment>
+                      { this.state.gtElections.map(state => (
+                        <StateGeneralTicket
+                          key={state.state}
+                          {...state}
+                          d={state.elections[0].svg}
+                          length={dimensions.districtR * 1.5}
+                          onDistrictSelected={this.onDistrictSelected}
+                          uiState={uiState}
+                        />
+                      ))}
+                    </React.Fragment>
+                  }
+                </g>
 
                 { (geolocation) &&
                   <g

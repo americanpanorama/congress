@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const d3 = require('d3');
 const dissolve = require('geojson-dissolve');
@@ -9,7 +8,7 @@ const metroNames = require('../../data/metroNames.json');
 
 const project = d3.geoPath(d3.geoAlbersUsa().scale(1).translate([0, 0]));
 const yearForCongress = congress => 1786 + congress * 2;
-const congressForYear = year => Math.round(d3.scaleLinear().domain([1788, 2030]).range([1, 122])(year)); 
+const congressForYear = year => Math.round(d3.scaleLinear().domain([1788, 2030]).range([1, 122])(year));
 
 const processedData = {};
 
@@ -21,7 +20,7 @@ Object.keys(elections).forEach((year) => {
 
   const cityBubbles = bubbles.find(d => d.year === parseInt(year)).cities
     .map((c) => {
-      c.id = metroNames[c.id];
+      c.id = metroNames[c.id.trim()];
       return c;
     });
 
@@ -38,9 +37,17 @@ Object.keys(elections).forEach((year) => {
           electionPlus.districtType = districtType;
           electionPlus.onlyAL = elections[year][state][districtType].length === 1;
 
+          // single AL districts use the districtId, multiple AL districts and all GT elections use the spatialId
+          const theId = (electionPlus.onlyAL) ? districtId : id;
+
+          // if (state === 'WY') {
+          //   console.log(electionPlus);
+          //   console.log(districtId, id, theId);
+          // }
+
           // get the spatialId
-          if (spatialIds[year][districtId]) {
-            electionPlus.spatialId = parseInt(spatialIds[year][districtId].slice(9));
+          if (spatialIds[year][theId]) {
+            electionPlus.spatialId = parseInt(spatialIds[year][theId].slice(9));
 
             // get the bubble coords
             const bubbleForDistrict = bubblesForYear.find(d => d.id === id);
@@ -73,6 +80,10 @@ Object.keys(elections).forEach((year) => {
                 geojsonForState.push(theGeojson);
               }
             }
+
+            // if (state === 'WY') {
+            //   console.log(electionPlus);
+            // }
 
             electionsPlus.push(electionPlus);
           }
@@ -117,8 +128,6 @@ Object.keys(elections).forEach((year) => {
           }
         }
 
-        electionsPlus.push(electionPlus);
-
         // look backwards to see determined flipped or not
         let flipped = false;
         const priorElections = processedData[year - 2];
@@ -129,6 +138,8 @@ Object.keys(elections).forEach((year) => {
           }
         }
         electionPlus.flipped = flipped;
+
+        electionsPlus.push(electionPlus);
 
         // see if it's in a city
         const inCityI = cityBubbles.findIndex((cb) => {
@@ -154,19 +165,38 @@ Object.keys(elections).forEach((year) => {
               cityBubbles[inCityI].parties.whig = cityBubbles[inCityI].parties.whig || 0;
             }
             cityBubbles[inCityI].parties[electionPlus.partyReg] += 1;
+
+            cityBubbles[inCityI].count = cityBubbles[inCityI].count || 0;
+            cityBubbles[inCityI].count += 1;
+
+            cityBubbles[inCityI].flipped = cityBubbles[inCityI].flipped || 0;
+            if (electionPlus.flipped) {
+              cityBubbles[inCityI].flipped += 1;
+            }
           }
         }
       }
     });
 
     if (geojsonForState.length > 0) {
-      const stateGeojson = dissolve(geojsonForState);
-      const stateSVG = project(stateGeojson);
-
-      states.push({
+      const isGT = Object.keys(elections[year][state]).includes('GT');
+      let stateSVG;
+      if (!isGT) {
+        const stateGeojson = dissolve(geojsonForState);
+        stateSVG = project(stateGeojson);
+      } else {
+        stateSVG = electionsPlus.find(e => e.districtType === 'GT' && e.state === state).svg;
+      }
+      const aState = {
         state: state,
         svg: stateSVG
-      });
+      };
+
+      if (isGT) {
+        aState.gt = true;
+      }
+
+      states.push(aState);
     }
   });
 

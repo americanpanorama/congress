@@ -52,22 +52,36 @@ export default class TimelineHandle extends React.Component {
   }
 
   getPartyCount (year, party) {
-    const partyCounts = this.props.partyCounts.find(pc => pc.year === year);
-    const belowMargin = partyCounts[`${party}BelowMargin`];
-    const aboveMargin = partyCounts[`${party}AboveMargin`];
-    return belowMargin + aboveMargin;
+    const {
+      democrat,
+      republican,
+      whig
+    } = this.props.partyCounts.find(pc => pc.year === year);
+    if (party === 'dem') {
+      return democrat;
+    } else if (party === 'rep') {
+      return republican;
+    } else if (party === 'whig') {
+      return whig;
+    }
+    return null;
   }
 
   getPartyText (year, party) {
-    const partyCounts = this.props.partyCounts.find(pc => pc.year === year);
+    const {
+      democrat,
+      republican,
+      whig
+    } = this.props.partyCounts.find(pc => pc.year === year);
+    const notDem = (year >= 1856) ? republican : whig;
+
+    const belowMargin = Math.min(democrat, notDem);
+    const aboveMargin = (party === 'dem') ? Math.max(democrat - notDem, 0) : Math.max(notDem - democrat, 0);
+
     let count = '';
-    if (partyCounts) {
-      const belowMargin = partyCounts[`${party}BelowMargin`];
-      const aboveMargin = partyCounts[`${party}AboveMargin`];
-      count += belowMargin + aboveMargin;
-      if (aboveMargin > 0) {
-        count += ` (+${aboveMargin})`;
-      }
+    count += belowMargin + aboveMargin;
+    if (aboveMargin > 0) {
+      count += ` (+${aboveMargin})`;
     }
     return count;
   }
@@ -81,7 +95,6 @@ export default class TimelineHandle extends React.Component {
     const newYear = this.calculateNewYear();
 
     if (newYear !== this.props.selectedYear) {
-      console.log(this.state.delta, this.state.draggableX + this.state.delta);
       this.setState({
         delta: 0,
         selectedYear: newYear,
