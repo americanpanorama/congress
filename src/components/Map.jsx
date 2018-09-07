@@ -1,5 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
+import * as d3 from 'd3';
 
 import Draggable from 'react-draggable';
 
@@ -17,11 +18,23 @@ export default class Map extends React.Component {
   constructor (props) {
     super(props);
 
+    const dimensions = DimensionsStore.getDimensions();
+    const { zoom, x, y } = props.uiState;
+
     this.state = {
       draggableX: 0,
       draggableY: 0,
-      transitionDuration: 1000
+      transitionDuration: 1000,
+      offsetX: (dimensions.mapProjectionWidth * zoom * x - dimensions.mapWidth / 2) * -1,
+      offsetY: (dimensions.mapProjectionHeight * zoom * y - dimensions.mapHeight / 2) * -1,
+      width: dimensions.mapProjectionWidth * zoom,
+      height: dimensions.mapProjectionHeight * zoom,
+      zoom: zoom
     };
+
+    this.map = React.createRef();
+    this.container = React.createRef();
+    this.mapElements = React.createRef();
 
     // bind handlers
     const handlers = ['handleMouseUp', 'onDistrictSelected'];
@@ -30,13 +43,7 @@ export default class Map extends React.Component {
 
   static getDerivedStateFromProps (props, state) {
     const newState = {};
-
-    const {
-      selectedYear,
-      zoom,
-      x,
-      y
-    } = props.uiState;
+    const { selectedYear } = props.uiState;
 
     // obviously update state if new year or if districts haven't yet loaded
     if (!state.lastUiState || state.districts.length === 0
@@ -49,18 +56,6 @@ export default class Map extends React.Component {
       newState.districtBubbles = DistrictsStore.getElectionBubbles();
     }
 
-    // update if xyz view is different, e.g. zoomed to district
-    if (!state.lastUiState
-      || x !== state.lastUiState.x
-      || y !== state.lastUiState.y
-      || zoom !== state.lastUiState.zoom) {
-      const dimensions = DimensionsStore.getDimensions();
-      newState.offsetX = (dimensions.mapProjectionWidth * zoom * x -
-        dimensions.mapWidth / 2) * -1;
-      newState.offsetY = (dimensions.mapProjectionHeight * zoom * y -
-        dimensions.mapHeight / 2) * -1;
-    }
-
     if (Object.keys(newState).length > 0) {
       newState.lastUiState = props.uiState;
       return newState;
@@ -69,21 +64,38 @@ export default class Map extends React.Component {
     return null;
   }
 
-  // shouldComponentUpdate (nextProps, nextState) {
-  //   return (this.state.districts.length === 0 ||
-  //     this.state.districtBubbles.length === 0 ||
-  //     this.state.cityBubbles.length === 0 ||
-  //     this.props.uiState.onlyFlipped !== nextProps.uiState.onlyFlipped ||
-  //     this.props.uiState.selectedParty !== nextProps.uiState.selectedParty ||
-  //     this.props.uiState.selectedView !== nextProps.uiState.selectedView ||
-  //     this.props.uiState.selectedYear !== nextProps.uiState.selectedYear ||
-  //     this.props.uiState.selectedDistrict !== nextProps.uiState.selectedDistrict ||
-  //     this.props.uiState.winnerView !== nextProps.uiState.winnerView ||
-  //     this.props.uiState.x !== nextProps.uiState.x ||
-  //     this.props.uiState.y !== nextProps.uiState.y ||
-  //     this.props.uiState.zoom !== nextProps.uiState.zoom ||
-  //     this.props.geolocation !== nextProps.geolocation);
-  // }
+  componentDidUpdate (prevProps, prevState) {
+    const { zoom, x, y } = this.props.uiState;
+    if (x !== prevProps.uiState.x || y !== prevProps.uiState.y || zoom !== prevProps.uiState.zoom) {
+      const dimensions = DimensionsStore.getDimensions();
+      const newState = {
+        offsetX: (dimensions.mapProjectionWidth * zoom * x - dimensions.mapWidth / 2) * -1,
+        offsetY: (dimensions.mapProjectionHeight * zoom * y - dimensions.mapHeight / 2) * -1,
+        width: dimensions.mapProjectionWidth * zoom,
+        height: dimensions.mapProjectionHeight * zoom,
+        zoom: zoom
+      };
+
+      d3.select(this.container.current)
+        .transition()
+        .duration(1000)
+        .style('width', `${newState.width}px`)
+        .style('height', `${newState.height}px`)
+        .style('transform', `translate(${newState.offsetX}px, ${newState.offsetY}px)`)
+        .on('end', () => { this.setState(newState); });
+
+      d3.select(this.map.current)
+        .transition()
+        .duration(1000)
+        .attr('width', newState.width)
+        .attr('height', newState.height);
+
+      d3.select(this.mapElements.current)
+        .transition()
+        .duration(1000)
+        .attr('transform', `scale(${newState.zoom})`);
+    }
+  }
 
   onDistrictSelected (e) {
     if (!this.state.wasDrug) {
@@ -96,18 +108,23 @@ export default class Map extends React.Component {
     const vpWidth = dimensions.mapWidth;
     const currentWidth = dimensions.mapProjectionWidth * this.props.uiState.zoom;
     const propOffsetX = (vpWidth / 2 - this.state.offsetX - ui.x) / currentWidth;
+    const offsetX = Math.round((dimensions.mapProjectionWidth * this.state.zoom * propOffsetX -
+        dimensions.mapWidth / 2) * -1 * 1000) / 1000;
     const vpHeight = dimensions.mapHeight;
     const currentHeight = dimensions.mapProjectionHeight * this.props.uiState.zoom;
     const propOffsetY = (vpHeight / 2 - this.state.offsetY - ui.y) / currentHeight;
+    const offsetY = Math.round((dimensions.mapProjectionHeight * this.state.zoom * propOffsetY -
+      dimensions.mapHeight / 2) * -1 * 1000) / 1000;
 
     // calculate whether the map was moved
     const wasDrug = propOffsetX !== this.props.uiState.x || propOffsetY !== this.props.uiState.y;
 
-    this.props.onMapDrag(propOffsetX, propOffsetY);
-
+    // update the map immediately
     this.setState({
-      wasDrug: wasDrug
-    });
+      wasDrug: wasDrug,
+      offsetX: offsetX,
+      offsetY: offsetY
+    }, () => this.props.onMapDrag(propOffsetX, propOffsetY));
   }
 
   render () {
@@ -144,19 +161,21 @@ export default class Map extends React.Component {
       >
         <div
           style={{
-            width: dimensions.mapProjectionWidth * zoom,
-            height: dimensions.mapProjectionHeight * zoom,
+            width: this.state.width,
+            height: this.state.height,
             transform: `translate(${this.state.offsetX}px, ${this.state.offsetY}px)`
           }}
+          ref={this.container}
         >
           <Draggable
             position={{ x: this.state.draggableX, y: this.state.draggableY }}
             onStop={this.handleMouseUp}
           >
             <svg
-              width={dimensions.mapProjectionWidth * zoom}
-              height={dimensions.mapProjectionHeight * zoom}
+              width={this.state.width}
+              height={this.state.height}
               onDoubleClick={onZoomInToPoint}
+              ref={this.map}
             >
               <filter id='glow' x='-50%' y='-10%' width='200%' height='160%'>
                 <feGaussianBlur stdDeviation='10' result='glow' />
@@ -166,7 +185,8 @@ export default class Map extends React.Component {
                 <feGaussianBlur stdDeviation='5' result='blur' />
               </filter>
               <g
-                transform={`scale(${zoom})`}
+                transform={`scale(${this.state.zoom})`}
+                ref={this.mapElements}
               >
 
                 {/* district polygons */}
