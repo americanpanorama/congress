@@ -233,7 +233,12 @@ const DistrictsStore = {
     if (districtData) {
       const { state, districtType } = districtData;
       const stateAbbr = getStateAbbrLong(state);
-      return (['GT', 'AL', '0', 0].includes(districtType)) ? `${stateAbbr} At Large` : `${stateAbbr} ${districtType}`;
+      if (districtType === 'GT') {
+        return `${stateAbbr} General Ticket`;
+      } else if (['AL', '0', 0].includes(districtType)) {
+        return `${stateAbbr} At Large`;
+      }
+      return `${stateAbbr} ${districtType}`;
     }
     return null;
   },

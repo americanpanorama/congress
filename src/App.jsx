@@ -29,7 +29,7 @@ class App extends React.Component {
     const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d, 10)) : [0.5, 0.5, 1];
     this.state = {
       selectedView: theHash.view || 'cartogram',
-      selectedYear: parseInt(theHash.year, 10) || 1952,
+      selectedYear: parseInt(theHash.year, 10) || 2010,
       selectedDistrict: parseInt(theHash.district) || null,
       selectedParty: theHash.party || null,
       onlyFlipped: false,
