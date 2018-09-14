@@ -9,10 +9,13 @@ html {
   font-family: 'Saira Condensed', sans-serif;
 }
 
-
-
 body {
 
+}
+
+input:focus,
+button:focus {
+	outline: none;
 }
 
 header {
@@ -28,15 +31,14 @@ header {
 		line-height: 1;
 	}
 
-	nav {
-		position: absolute;
-		top: 10px;
-		right: 10px;
+}
 
-		h4 {
-			display: inline-block;
-			margin: 0 10px;
-		}
+#mainNav {
+	text-align: center;
+	width: 100%;
+	h4 {
+		display: inline-block;
+		margin: 0 10px;
 	}
 }
 
@@ -46,24 +48,53 @@ header {
 	z-index: 100;
 	overflow-x: visible;
 
+	.typeahead {
+		height: 100%;
+	}
+
 	input {
+		padding: 0 0 0 20px;
 		color: black;
-		border: none;
-		padding: 2px 10px;
+		border: 0;
 		width: 100%;
+		background-color: #ddd;
+		height: 100%;
 	}
 
 	#searchResults {
 		padding-top: 20px;
-		overflow-y: scroll;
-		overflow-x: visible;
-		transform: translate(-100px);
-		width: 400px;
-		background-color: rgba(38, 48, 53, 0.75);
+		overflow-y: hidden;
+		overflow-x: scroll;
+		background-color: rgba(38, 48, 53, 0.9);
+		column-width: 300px;
+		font-size: 1.2em;
 
-		* {
+		.victor {
+			display: inline-block;
+			width: 200px;
+			text-align: right;
+		}
+
+		.partyDot {
+		  height: 12px;
+		  width: 12px;
+		  border-radius: 50%;
+		  display: inline-block;
+		  margin: 0 20px 0 5px;
+		}
+
+
+		.jkdsjflsdj {
 			overflow-x: visible;
 		}
+	}
+
+	.close {
+		position: absolute;
+		padding: 0;
+		border: none;
+		background-color: transparent;
+		vertical-align: middle;
 	}
 }
 
@@ -73,7 +104,24 @@ button {
 
 .theMap {
 	overflow: hidden;
+
+	* {
+		-webkit-transform-style: preserve-3d !important;
+		-webkit-backface-visibility: hidden !important;
+	}
 }
+
+.react-draggable, defs, linearGradient, stop {
+	-webkit-backface-visibility: hidden;
+	-webkit-transform-style: preserve-3d;
+
+	* {
+		-webkit-backface-visibility: hidden !important;
+		-webkit-transform-style: preserve-3d !important;
+	}
+}
+
+svg { transform-box:fill-box; }
 
 #sidebar {
 	position: fixed;
@@ -84,6 +132,7 @@ button {
 
 	&.context {
 		line-height: 1.2;
+		font-weight: 100;
 
 		span {
 			color: #F0B67F;
@@ -167,12 +216,12 @@ button {
 	}
 
 	button {
+		position: absolute;
 		padding: 0;
 		border: none;
 		margin: 0 10px;
 		background-color: transparent;
 		vertical-align: middle;
-		display: inline-block;
 
 		svg {
 			vertical-align: top;

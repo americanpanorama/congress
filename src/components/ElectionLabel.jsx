@@ -17,7 +17,8 @@ const ElectionLabel = props => (
         onClick={(props.previousYear) ? props.onYearSelected : () => false}
         id={props.previousYear}
         style={{
-          marginTop: props.dimensions.nextPreviousButtonHeight / 2
+          left: props.dimensions.nextPreviousButtonHeight / 2 - 1,
+          top: props.dimensions.nextPreviousButtonHeight / 2 - 1
         }}
       >
         <svg
@@ -44,11 +45,15 @@ const ElectionLabel = props => (
     }
 
     <h2
+      onClick={props.onToggleSearch}
       style={{
         fontSize: props.dimensions.electionLabelFontSize
       }}
     >
-      {`Election of ${props.selectedYear}: The ${ordinalSuffixOf(congressForYear(props.selectedYear))} Congress`}
+      {`Election of ${props.selectedYear}`}
+      <span style={{ fontWeight: 100, marginLeft: 10 }}>
+        {`The ${ordinalSuffixOf(congressForYear(props.selectedYear))} Congress`}
+      </span>
     </h2>
 
     { (props.nextYear) &&
@@ -56,7 +61,8 @@ const ElectionLabel = props => (
         onClick={(props.nextYear) ? props.onYearSelected : () => false}
         id={props.nextYear}
         style={{
-          marginTop: props.dimensions.nextPreviousButtonHeight / 2
+          right: props.dimensions.nextPreviousButtonHeight / 2 - 1,
+          top: props.dimensions.nextPreviousButtonHeight / 2 - 1
         }}
       >
         <svg
@@ -81,6 +87,45 @@ const ElectionLabel = props => (
         </svg>
       </button>
     }
+
+    <button
+      onClick={props.onToggleSearch}
+      style={{
+        marginTop: props.dimensions.nextPreviousButtonHeight / 2
+      }}
+    >
+      <svg
+        width={props.dimensions.nextPreviousButtonHeight + 2}
+        height={props.dimensions.nextPreviousButtonHeight + 2}
+      >
+        <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(315)`}>
+          <circle
+            cx={0}
+            cy={0}
+            r={props.dimensions.nextPreviousButtonHeight / 2}
+            fill='silver'
+            fillOpacity={1}
+          />
+          <circle
+            cx={0}
+            cy={props.dimensions.nextPreviousButtonHeight * -0.1}
+            r={props.dimensions.nextPreviousButtonHeight * 0.2}
+            fill='silver'
+            fillOpacity={1}
+            stroke='#233036'
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+          />
+          <line
+            x1={0}
+            x2={0}
+            y1={props.dimensions.nextPreviousButtonHeight * 0.1}
+            y2={props.dimensions.nextPreviousButtonHeight * 0.4}
+            stroke='#233036'
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 8}
+          />
+        </g>
+      </svg>
+    </button>
   </div>
 );
 
@@ -97,6 +142,7 @@ ElectionLabel.propTypes = {
     PropTypes.bool
   ]).isRequired,
   onYearSelected: PropTypes.func.isRequired,
+  onToggleSearch: PropTypes.func.isRequired,
   dimensions: PropTypes.shape({
     electionLabelLeft: PropTypes.number.isRequired,
     electionLabelBottom: PropTypes.number.isRequired,

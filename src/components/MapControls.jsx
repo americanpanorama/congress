@@ -15,7 +15,7 @@ const MapControls = (props) => {
     <div
       id='mapControls'
       style={{
-        top: dimensions.headerHeight
+        top: dimensions.vizControlsTop
       }}
     >
       <div

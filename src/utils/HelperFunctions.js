@@ -107,6 +107,7 @@ export const getDistrictStyleFromUi = function (district, ui) {
       style.strokeOpacity = 1;
     } else {
       style.fillOpacity = 0.1;
+      style.stroke = backgroundColorAdjustment(0.3);
       style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
     }
   } else if (ui.selectedDistrict) {

@@ -115,7 +115,8 @@ export default class BubbleCity extends React.Component {
             style={{
               pointerEvents: 'none',
               fillOpacity: this.props.cityLabelOpacity,
-              fontSize: this.state.cityLabelSize * 1000
+              fontSize: this.state.cityLabelSize * 1000,
+              fontWeight: 100
             }}
             transform='scale(0.001)'
           >

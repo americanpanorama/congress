@@ -16,7 +16,6 @@ export default class TimelineHandle extends React.Component {
       delta: 0,
       selectedYear: this.props.selectedYear,
       displayYear: this.props.selectedYear,
-      controlledPosition: { x: -400, y: 200 },
       demText: this.getPartyText(this.props.selectedYear, 'dem'),
       demTextY: this.getNationalY(this.getPartyCount(this.props.selectedYear, 'dem') / -2),
       notDemText: this.getPartyText(this.props.selectedYear, notDemParty),
@@ -42,6 +41,18 @@ export default class TimelineHandle extends React.Component {
         demTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, 'dem') / -2),
         notDemText: this.getPartyText(nextProps.selectedYear, notDemParty),
         notDemTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, notDemParty) / 2),
+        dragging: false
+      });
+    }
+  }
+
+  onYearSelected (e) {
+    if (!this.state.dragging) {
+      const newYear = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
+      this.props.onYearSelected(newYear);
+    } else {
+      {/* mouse up should have happened, I think */}
+      this.setState({
         dragging: false
       });
     }
@@ -128,25 +139,11 @@ export default class TimelineHandle extends React.Component {
     });
   }
 
-  onYearSelected (e) {
-    if (!this.state.dragging) {
-      const newYear = parseInt((e.currentTarget) ? e.currentTarget.id : e, 10);
-      this.props.onYearSelected(newYear);
-    } else {
-      {/* mouse up should have happened, I think */}
-      this.setState({
-        dragging: false
-      });
-    }
-  }
-
   render () {
     const {
       dimensions,
       timelineXTermSpan,
-      timelineX,
       selectedYear,
-      onYearSelected,
       showPartyCounts,
       districtCircleY,
       districtCircleFill
@@ -172,111 +169,105 @@ export default class TimelineHandle extends React.Component {
           onStop={this.handleMouseUp}
           onDrag={this.handleDrag}
         >
-          <svg
-            width={timelineXTermSpan * 12}
-            height={dimensions.timelineHeight - dimensions.timelineHorizontalGutter}
-            style={{
-              zIndex: 10000,
-              pointerEvents: 'auto'
-            }}
-          >
-            <defs>
-              <linearGradient id='selectedYearBackground'>
-                <stop offset='0%' stopColor='#233036' stopOpacity={0} />
-                <stop offset='50%' stopColor='#233036' stopOpacity={1} />
-
-                <stop offset='100%' stopColor='#233036' stopOpacity={0} />
-              </linearGradient>
-            </defs>
-
-            <g transform={`translate(${timelineXTermSpan * 6})`}>
-              <line
-                x1={0}
-                x2={0}
-                y1={0}
-                y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
-                stroke='#F0B67F'
-                strokeWidth={4}
-              />
-
-              <rect
-                x={timelineXTermSpan * -15}
-                y={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight + 2}
-                width={timelineXTermSpan * 30}
-                height={dimensions.timelineAxisFontSizeSelected}
-                fill='url(#selectedYearBackground)'
-              />
-
-              <text
-                x={0}
-                y={dimensions.timelineSteamgraphHeight +
-                  dimensions.timelineAxisHeight - dimensions.timelineAxisShortTickHeight}
-                textAnchor='middle'
-                fill='#F0B67F'
-                style={{
-                  fontSize: dimensions.timelineAxisFontSizeSelected,
-                  fontWeight: 'bold'
-                }}
-              >
-                {this.state.displayYear}
-              </text>
-
-              { (showPartyCounts) &&
-                <React.Fragment>
-                  <text
-                    x={timelineXTermSpan * -1}
-                    y={this.state.demTextY}
-                    textAnchor='end'
-                    fill='white'
-                    // style={{
-                    //   textShadow: '-1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 1px 1px ' + getColorForMargin('democrat', 1) + ', 1px 0 1px ' + getColorForMargin('democrat', 1) + ', 0 -1px 1px ' + getColorForMargin('democrat', 1)
-                    // }}
-                  >
-                    { this.state.demText }
-                  </text>
-
-                  <text
-                    x={timelineXTermSpan}
-                    y={this.state.notDemTextY}
-                    textAnchor='start'
-                    fill='white'
-                    // style={{
-                    //   textShadow: '-1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 1px 0 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1) + ', 0 -1px 1px ' + getColorForMargin((this.props.selectedYear >= 1856) ? 'republican': 'whig', 1)
-                    // }}
-                  >
-                    { this.state.notDemText }
-                  </text>
-                </React.Fragment>
-              }
-
-              { (districtCircleY && !this.state.dragging) &&
-                <circle
-                  cx={0}
-                  cy={districtCircleY}
-                  r={7}
-                  fill={districtCircleFill}
-                  stroke='#F0B67F'
-                />
+          <div>
+            <svg
+              width={timelineXTermSpan * 12}
+              height={dimensions.timelineHeight - dimensions.timelineHorizontalGutter}
+              style={{
+                zIndex: 10000,
+                pointerEvents: 'auto'
               }}
+            >
+              <defs>
+                <linearGradient id='selectedYearBackground'>
+                  <stop offset='0%' stopColor='#233036' stopOpacity={0} />
+                  <stop offset='50%' stopColor='#233036' stopOpacity={1} />
 
-              {/* clickable areas to select year */}
-              { [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6].map(congressOffset => 
-                <rect
-                  x={timelineXTermSpan * (congressOffset - 0.5) }
-                  y={0}
-                  width={timelineXTermSpan}
-                  height={dimensions.timelineHeight}
-                  fill='transparent'
-                  key={'clickbox'+congressOffset}
-                  id={selectedYear + congressOffset * 2}
-                  onClick={this.onYearSelected}
+                  <stop offset='100%' stopColor='#233036' stopOpacity={0} />
+                </linearGradient>
+              </defs>
+
+              <g transform={`translate(${timelineXTermSpan * 6})`}>
+                <line
+                  x1={0}
+                  x2={0}
+                  y1={0}
+                  y2={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight}
+                  stroke='#F0B67F'
+                  strokeWidth={4}
                 />
-              )}
 
-            </g>
+                <rect
+                  x={timelineXTermSpan * -15}
+                  y={dimensions.timelineSteamgraphHeight + dimensions.timelineAxisLongTickHeight + 2}
+                  width={timelineXTermSpan * 30}
+                  height={dimensions.timelineAxisFontSizeSelected}
+                  fill='url(#selectedYearBackground)'
+                />
 
+                <text
+                  x={0}
+                  y={dimensions.timelineSteamgraphHeight +
+                    dimensions.timelineAxisHeight - dimensions.timelineAxisShortTickHeight}
+                  textAnchor='middle'
+                  fill='#F0B67F'
+                  style={{
+                    fontSize: dimensions.timelineAxisFontSizeSelected,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {this.state.displayYear}
+                </text>
 
-          </svg>
+                { (showPartyCounts) &&
+                  <React.Fragment>
+                    <text
+                      x={timelineXTermSpan * -1}
+                      y={this.state.demTextY}
+                      textAnchor='end'
+                      fill='white'
+                    >
+                      { this.state.demText }
+                    </text>
+
+                    <text
+                      x={timelineXTermSpan}
+                      y={this.state.notDemTextY}
+                      textAnchor='start'
+                      fill='white'
+                    >
+                      { this.state.notDemText }
+                    </text>
+                  </React.Fragment>
+                }
+
+                { (districtCircleY && !this.state.dragging) &&
+                  <circle
+                    cx={0}
+                    cy={districtCircleY}
+                    r={7}
+                    fill={districtCircleFill}
+                    stroke='#F0B67F'
+                  />
+                }
+
+                {/* clickable areas to select year */}
+                { [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6].map(congressOffset => (
+                  <rect
+                    x={timelineXTermSpan * (congressOffset - 0.5)}
+                    y={0}
+                    width={timelineXTermSpan}
+                    height={dimensions.timelineHeight}
+                    fill='transparent'
+                    key={`clickbox${congressOffset}`}
+                    id={selectedYear + congressOffset * 2}
+                    onClick={this.onYearSelected}
+                  />
+                ))}
+
+              </g>
+            </svg>
+          </div>
         </Draggable>
       </aside>
     );

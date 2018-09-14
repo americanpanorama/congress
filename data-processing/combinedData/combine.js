@@ -185,6 +185,8 @@ Object.keys(elections).forEach((year) => {
         const stateGeojson = dissolve(geojsonForState);
         stateSVG = project(stateGeojson);
       } else {
+        console.log(`state: ${state}`);
+        console.log(electionsPlus.find(e => e.state === 'NM'));
         stateSVG = electionsPlus.find(e => e.districtType === 'GT' && e.state === state).svg;
       }
       const aState = {

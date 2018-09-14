@@ -43,8 +43,7 @@ const config = {
       title: 'The People\'s House',
       filename: 'index.html',
       appMountId: 'app-container',
-      scripts: ['https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/cartodb.core.js'],
-      links: ['https://fonts.googleapis.com/css?family=PT+Serif:400|Saira+Condensed']
+      links: ['https://fonts.googleapis.com/css?family=PT+Serif:400|Saira+Condensed:100,400']
     }),
     new ExtractTextPlugin({
       filename: '[name].[contenthash].css',

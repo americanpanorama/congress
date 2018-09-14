@@ -6,6 +6,7 @@ import AppDispatcher from './utils/AppDispatcher';
 import { getColorForParty, formatPersonName } from './utils/HelperFunctions';
 
 import Masthead from './components/Masthead';
+import Navigation from './components/Navigation';
 import TheMap from './components/MapContainer';
 import Context from './components/Context';
 import Timeline from './components/Timeline';
@@ -39,6 +40,7 @@ class App extends React.Component {
       x: x,
       y: y,
       textSubject: null,
+      searchOpen: false,
       searching: false,
       searchOptions: []
     };
@@ -46,7 +48,7 @@ class App extends React.Component {
     this.search = React.createRef();
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded', 'calculateBounds'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded', 'calculateBounds', 'onToggleSearch'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -120,6 +122,17 @@ class App extends React.Component {
     });
   }
 
+  onToggleSearch () {
+    this.setState({
+      searchOpen: !this.state.searchOpen,
+      searchOptions: (this.state.searchOpen) ? [] : this.state.searchOptions
+    }, () => {
+      if (this.state.searchOpen) {
+        this.search.current.focus();
+      }
+    });
+  }
+
   onDistrictInspected (e) {
     //this.setState({ inspectedDistrict: e.target.id });
   }
@@ -176,7 +189,9 @@ class App extends React.Component {
       AppActions.districtSelected(id);
     }
 
-    this.search.current.setEntryText('');
+    if (this.state.searchOpen) {
+      //this.search.current.setEntryText('');
+    }
 
     const newState = {
       selectedDistrict: id,
@@ -389,29 +404,80 @@ class App extends React.Component {
       <div>
         <Masthead
           dimensions={dimensions}
+        />
+
+        <Navigation
+          dimensions={dimensions}
           onModalClick={this.onModalClick}
           onContactUsToggle={() => false}
         />
 
-        <div
-          id='search'
-          style={dimensions.searchStyle}
-        >
-          <Typeahead
-            options={DistrictsStore.getSearchData(selectedYear)}
-            placeholder='search this election'
-            filterOption='searchText'
-            displayOption='searchText'
-            onOptionSelected={this.onDistrictSelected}
-            onKeyDown={this.onSearching}
-            customListComponent={SearchResult}
-            onKeyUp={this.onSearching}
-            //onBlur={ this.onSearchBlur }
-            ref={this.search}
-            //maxVisible={ 8 }
+        { (this.state.searchOpen) &&
+          <div
+            id='search'
+            style={dimensions.zoomControlsStyle}
+          >
+            <button
+              onClick={this.onToggleSearch}
+              className='close'
+              style={{
+                right: dimensions.nextPreviousButtonHeight / 2 - 1,
+                top: dimensions.nextPreviousButtonHeight / 2 - 1
+              }}
+            >
+              <svg
+                width={dimensions.nextPreviousButtonHeight + 2}
+                height={dimensions.nextPreviousButtonHeight + 2}
+              >
+                <g transform={`translate(${dimensions.nextPreviousButtonHeight / 2 + 1} ${dimensions.nextPreviousButtonHeight / 2 + 1}) rotate(135)`}>
+                  <circle
+                    cx={0}
+                    cy={0}
+                    r={dimensions.nextPreviousButtonHeight / 2}
+                    fill='silver'
+                    stroke='#38444a'
+                    strokeWidth={1}
+                  />
+                  <line
+                    x1={0}
+                    x2={0}
+                    y1={dimensions.nextPreviousButtonHeight / 4}
+                    y2={dimensions.nextPreviousButtonHeight / -4}
+                    stroke='#233036'
+                    strokeWidth={dimensions.nextPreviousButtonHeight / 10}
+                  />
+                  <line
+                    x1={dimensions.nextPreviousButtonHeight / -4}
+                    x2={dimensions.nextPreviousButtonHeight / 4}
+                    y1={0}
+                    y2={0}
+                    stroke='#233036'
+                    strokeWidth={dimensions.nextPreviousButtonHeight / 10}
+                  />
+                </g>
+              </svg>
+            </button>
 
-          />
-        </div>
+            <Typeahead
+              options={DistrictsStore.getSearchData(selectedYear)}
+              placeholder={`search the election of ${this.state.selectedYear} by state, name, & party`}
+              filterOption='searchText'
+              displayOption='searchText'
+              onOptionSelected={this.onDistrictSelected}
+              onKeyDown={this.onSearching}
+              customListComponent={SearchResult}
+              onKeyUp={this.onSearching}
+              //onBlur={ this.onSearchBlur }
+              ref={this.search}
+              //maxVisible={ 8 }
+              inputProps={{
+                style: {
+                  fontSize: dimensions.electionLabelFontSize
+                }
+              }}
+            />
+          </div>
+        }
 
         <TheMap
           uiState={this.state}
@@ -455,6 +521,7 @@ class App extends React.Component {
           previousYear={DistrictsStore.getPreviousElectionYear(selectedYear)}
           nextYear={DistrictsStore.getNextElectionYear(selectedYear)}
           onYearSelected={this.onYearSelected}
+          onToggleSearch={this.onToggleSearch}
           dimensions={dimensions}
         />
 

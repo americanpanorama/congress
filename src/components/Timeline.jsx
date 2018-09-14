@@ -47,14 +47,13 @@ const Timeline = (props) => {
           { (props.districtData) ?
             <TimelineDistrictYAxis
               y={yDistrict}
-              shortTickHeight={dimensions.timelineAxisShortTickHeight}
-              axisHeight={dimensions.timelineAxisOffsetForDistrict}
+              dimensions={dimensions}
             /> :
             <TimelineNationalYAxis
               y={y}
-              shortTickHeight={dimensions.timelineAxisShortTickHeight}
               maxDemocrats={props.maxDemocrats}
               maxRepublicans={props.maxRepublicans}
+              dimensions={dimensions}
             />
           }
         </g>

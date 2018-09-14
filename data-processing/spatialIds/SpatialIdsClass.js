@@ -435,8 +435,6 @@ const SpatialIds = class SpatialIdsClass extends EventEmitter {
 
         if (numDone === skipData.length) {
 
-          console.log(candidates);
-          jdsklf;;
           // iterate through each of these congresses and states adjusting the mappings
           // this needs to be done badkwards
           Object.keys(candidates).sort().reverse().forEach((year, i) => {

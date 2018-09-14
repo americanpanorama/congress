@@ -1,7 +1,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 
-const ElectionLabel = props => (
+const Masthead = props => (
   <header
     style={{
       height: props.dimensions.headerHeight,
@@ -15,30 +15,19 @@ const ElectionLabel = props => (
         marginTop: props.dimensions.headerGutter
       }}
     >
-      American Democracy's Landscape
-    </h1>
-    <h2
-      style={{
-        fontSize: props.dimensions.headerSubtitleFontSize,
-        marginTop: props.dimensions.headerGutter
-      }}
-    >
       Electing the House of Representatives
-    </h2>
-    <nav>
-      <h4 onClick={props.onModalClick} id='intro'>Introduction</h4>
-      <h4 onClick={props.onModalClick} id='sources'>Sources & Method</h4>
-      <h4 onClick={props.onModalClick} id='citing'>Citing</h4>
-      <h4 onClick={props.onModalClick} id='about'>About</h4>
-      <h4 onClick={props.onContactUsToggle}>Contact Us</h4>
-    </nav>
+    </h1>
   </header>
 );
 
-export default ElectionLabel;
+export default Masthead;
 
-ElectionLabel.propTypes = {
-  dimensions: PropTypes.object.isRequired,
-  onModalClick: PropTypes.func.isRequired,
-  onContactUsToggle: PropTypes.func.isRequired
+Masthead.propTypes = {
+  dimensions: PropTypes.shape({
+    headerHeight: PropTypes.number,
+    mapWidth: PropTypes.number,
+    gutterPadding: PropTypes.number,
+    headerTitleFontSize: PropTypes.number,
+    headerGutter: PropTypes.number
+  }).isRequired
 };

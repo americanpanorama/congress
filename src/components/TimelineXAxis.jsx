@@ -6,8 +6,8 @@ const TimelineXAxis = (props) => {
   const dimensions = DimensionsStore.getDimensions();
   const longTickHeight = dimensions.timelineAxisLongTickHeight;
   const shortTickHeight = dimensions.timelineAxisShortTickHeight;
-  const height = dimensions.timelineAxisHeight - 2 * dimensions.timelineAxisGutter;
   const fontSize = dimensions.timelineAxisFontSize;
+  const labelY = longTickHeight + fontSize * 1.2;
 
   const decades = props.electionYears.filter(y => y % 10 === 0);
 
@@ -36,13 +36,14 @@ const TimelineXAxis = (props) => {
       { decades.map(year => (
         <text
           x={DimensionsStore.timelineX(year)}
-          y={height}
+          y={labelY}
           textAnchor='middle'
           key={`yearFor-${year}`}
           fill='white'
           style={{
             fontSize: fontSize
           }}
+          fontWeight={100}
         >
           {year}
         </text>

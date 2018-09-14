@@ -81,7 +81,7 @@ export default class Map extends React.Component {
         .duration(1000)
         .style('width', `${newState.width}px`)
         .style('height', `${newState.height}px`)
-        .style('transform', `translate(${newState.offsetX}px, ${newState.offsetY}px)`)
+        .style('transform', `translate3d(${newState.offsetX}px, ${newState.offsetY}px, 0)`)
         .on('end', () => { this.setState(newState); });
 
       d3.select(this.map.current)
@@ -163,7 +163,7 @@ export default class Map extends React.Component {
           style={{
             width: this.state.width,
             height: this.state.height,
-            transform: `translate(${this.state.offsetX}px, ${this.state.offsetY}px)`
+            transform: `translate3d(${this.state.offsetX}px, ${this.state.offsetY}px, 0)`
           }}
           ref={this.container}
         >
@@ -171,175 +171,177 @@ export default class Map extends React.Component {
             position={{ x: this.state.draggableX, y: this.state.draggableY }}
             onStop={this.handleMouseUp}
           >
-            <svg
-              width={this.state.width}
-              height={this.state.height}
-              onDoubleClick={onZoomInToPoint}
-              ref={this.map}
-            >
-              <filter id='glow' x='-50%' y='-10%' width='200%' height='160%'>
-                <feGaussianBlur stdDeviation='10' result='glow' />
-              </filter>
-
-              <filter id='blur' x='-50%' y='-10%' width='200%' height='160%'>
-                <feGaussianBlur stdDeviation='5' result='blur' />
-              </filter>
-              <g
-                transform={`scale(${this.state.zoom})`}
-                ref={this.mapElements}
+            <div>
+              <svg
+                width={this.state.width}
+                height={this.state.height}
+                onDoubleClick={onZoomInToPoint}
+                ref={this.map}
               >
+                <filter id='glow' x='-50%' y='-10%' width='200%' height='160%'>
+                  <feGaussianBlur stdDeviation='10' result='glow' />
+                </filter>
 
-                {/* district polygons */}
-                <g transform={transformation}>
-                  {/* line connecting district and bubble if district is selected on cartogram */}
-                  { (dataForDistrict && selectedView === 'cartogram') &&
-                    <line
-                      x1={dataForDistrict.x}
-                      y1={dataForDistrict.y}
-                      x2={dataForDistrict.xOrigin}
-                      y2={dataForDistrict.yOrigin}
-                      stroke='white'
-                      strokeWidth={1 / mapScale}
-                    />
-                  }
+                <filter id='blur' x='-50%' y='-10%' width='200%' height='160%'>
+                  <feGaussianBlur stdDeviation='5' result='blur' />
+                </filter>
+                <g
+                  transform={`scale(${this.state.zoom})`}
+                  ref={this.mapElements}
+                >
 
-                  { this.state.districts.map(d => (
-                    <District
-                      d={d.svg}
-                      id={d.spatialId}
-                      onDistrictSelected={this.onDistrictSelected}
-                      duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
-                      {...getDistrictStyleFromUi(d, uiState)}
-                      key={`polygon${d.id}`}
-                    />
-                  ))}
-
-                  {/* states */}
-                  { this.state.states.map(s => (
-                    <path
-                      d={s.svg}
-                      key={`stateBoundaries${s.state}`}
-                      filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
-                      style={getStateStyle(s, uiState)}
-                    />
-                  ))}
-
-                  {/* selected district && state on top */}
-                  { (dataForDistrict) &&
-                    <District
-                      d={dataForDistrict.svg}
-                      id={dataForDistrict.spatialId}
-                      onDistrictSelected={this.onDistrictSelected}
-                      duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
-                      {...getDistrictStyleFromUi(dataForDistrict, uiState)}
-                      key={`selectedDistrict${dataForDistrict.spatialId}`}
-                    />
-                  }
-
-                  { (selectedState) &&
-                    <path
-                      d={selectedState.svg}
-                      filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
-                      style={getStateStyle(selectedState, uiState)}
-                    />
-                  }
-
-                  {/* city bubbles */}
-                  { this.state.cityBubbles.map((d, i) => (
-                    <BubbleCity
-                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                      r={(selectedView === 'cartogram') ? d.r : dimensions.districtR}
-                      cityLabel={d.id}
-                      cityLabelOpacity={getCityBubbleLabelOpacity(d, uiState)}
-                      duration={this.state.transitionDuration}
-                      {...getCityBubbleStyle(d, uiState)}
-                      key={d.id}
-                    />
-                  ))}
-
-                  {/* district bubbles */}
-                  { this.state.districtBubbles.map(d => (
-                    <Bubble
-                      cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
-                      cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                      r={dimensions.districtR}
-                      label={(d.flipped && ((!selectedParty || selectedParty === d.partyReg) && (!selectedDistrict || d.districtId === selectedDistrict))) ? 'F' : ''}
-                      labelColor={getColorForParty(d.partyReg)}
-                      duration={this.state.transitionDuration}
-                      id={d.spatialId}
-                      onDistrictSelected={this.onDistrictSelected}
-                      {...getBubbleStyle(d, uiState)}
-                      key={`bubble-${d.spatialId}`}
-                    />
-                  ))}
-
-                  { (selectedView === 'map') &&
-                    <React.Fragment>
-                      { this.state.gtElections.map(state => (
-                        <StateGeneralTicket
-                          key={state.state}
-                          {...state}
-                          d={state.elections[0].svg}
-                          length={dimensions.districtR * 1.5}
-                          onDistrictSelected={this.onDistrictSelected}
-                          uiState={uiState}
-                        />
-                      ))}
-                    </React.Fragment>
-                  }
-                </g>
-
-                { (geolocation) &&
-                  <g
-                    transform={`translate(${geolocation[0]} ${geolocation[1]}) rotate(45)`}
-                    style={{
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    <circle
-                      cx={0}
-                      cy={0}
-                      r={20 / zoom}
-                      fill='silver'
-                      fillOpacity={0.2}
-                      stroke='green'
-                      strokeWidth={0.5 / zoom}
-                    />
-                    <circle
-                      cx={0}
-                      cy={0}
-                      r={8 / zoom}
-                      fill='silver'
-                      fillOpacity={0.75}
-                    >
-                      <animate
-                        attributeName='r'
-                        begin='0s'
-                        dur='4s'
-                        repeatCount='indefinite'
-                        values={`${8 / zoom};${3 / zoom};${8 / zoom}`}
+                  {/* district polygons */}
+                  <g transform={transformation}>
+                    {/* line connecting district and bubble if district is selected on cartogram */}
+                    { (dataForDistrict && selectedView === 'cartogram') &&
+                      <line
+                        x1={dataForDistrict.x}
+                        y1={dataForDistrict.y}
+                        x2={dataForDistrict.xOrigin}
+                        y2={dataForDistrict.yOrigin}
+                        stroke='white'
+                        strokeWidth={1 / mapScale}
                       />
-                    </circle>
-                    <circle
-                      cx={0}
-                      cy={0}
-                      r={6 / zoom}
-                      fill='green'
-                    >
-                      <animate
-                        attributeName='r'
-                        begin='0s'
-                        dur='4s'
-                        repeatCount='indefinite'
-                        values={`${6 / zoom};${1 / zoom};${6 / zoom}`}
+                    }
+
+                    { this.state.districts.map(d => (
+                      <District
+                        d={d.svg}
+                        id={d.spatialId}
+                        onDistrictSelected={this.onDistrictSelected}
+                        duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
+                        {...getDistrictStyleFromUi(d, uiState)}
+                        key={`polygon${d.id}`}
                       />
-                    </circle>
+                    ))}
+
+                    {/* states */}
+                    { this.state.states.map(s => (
+                      <path
+                        d={s.svg}
+                        key={`stateBoundaries${s.state}`}
+                        filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
+                        style={getStateStyle(s, uiState)}
+                      />
+                    ))}
+
+                    {/* selected district && state on top */}
+                    { (dataForDistrict) &&
+                      <District
+                        d={dataForDistrict.svg}
+                        id={dataForDistrict.spatialId}
+                        onDistrictSelected={this.onDistrictSelected}
+                        duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
+                        {...getDistrictStyleFromUi(dataForDistrict, uiState)}
+                        key={`selectedDistrict${dataForDistrict.spatialId}`}
+                      />
+                    }
+
+                    { (selectedState) &&
+                      <path
+                        d={selectedState.svg}
+                        filter={(selectedView === 'cartogram') ? 'url(#blur)' : ''}
+                        style={getStateStyle(selectedState, uiState)}
+                      />
+                    }
+
+                    {/* city bubbles */}
+                    { this.state.cityBubbles.map((d, i) => (
+                      <BubbleCity
+                        cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                        cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                        r={(selectedView === 'cartogram') ? d.r : dimensions.districtR}
+                        cityLabel={d.id}
+                        cityLabelOpacity={getCityBubbleLabelOpacity(d, uiState)}
+                        duration={this.state.transitionDuration}
+                        {...getCityBubbleStyle(d, uiState)}
+                        key={d.id}
+                      />
+                    ))}
+
+                    {/* district bubbles */}
+                    { this.state.districtBubbles.map(d => (
+                      <Bubble
+                        cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
+                        cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
+                        r={dimensions.districtR}
+                        label={(d.flipped && ((!selectedParty || selectedParty === d.partyReg) && (!selectedDistrict || d.districtId === selectedDistrict))) ? 'F' : ''}
+                        labelColor={getColorForParty(d.partyReg)}
+                        duration={this.state.transitionDuration}
+                        id={d.spatialId}
+                        onDistrictSelected={this.onDistrictSelected}
+                        {...getBubbleStyle(d, uiState)}
+                        key={`bubble-${d.spatialId}`}
+                      />
+                    ))}
+
+                    { (selectedView === 'map') &&
+                      <React.Fragment>
+                        { this.state.gtElections.map(state => (
+                          <StateGeneralTicket
+                            key={state.state}
+                            {...state}
+                            d={state.elections[0].svg}
+                            length={dimensions.districtR * 1.5}
+                            onDistrictSelected={this.onDistrictSelected}
+                            uiState={uiState}
+                          />
+                        ))}
+                      </React.Fragment>
+                    }
                   </g>
-                }
 
-              </g>
-            </svg>
+                  { (geolocation) &&
+                    <g
+                      transform={`translate(${geolocation[0]} ${geolocation[1]}) rotate(45)`}
+                      style={{
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <circle
+                        cx={0}
+                        cy={0}
+                        r={20 / zoom}
+                        fill='silver'
+                        fillOpacity={0.2}
+                        stroke='green'
+                        strokeWidth={0.5 / zoom}
+                      />
+                      <circle
+                        cx={0}
+                        cy={0}
+                        r={8 / zoom}
+                        fill='silver'
+                        fillOpacity={0.75}
+                      >
+                        <animate
+                          attributeName='r'
+                          begin='0s'
+                          dur='4s'
+                          repeatCount='indefinite'
+                          values={`${8 / zoom};${3 / zoom};${8 / zoom}`}
+                        />
+                      </circle>
+                      <circle
+                        cx={0}
+                        cy={0}
+                        r={6 / zoom}
+                        fill='green'
+                      >
+                        <animate
+                          attributeName='r'
+                          begin='0s'
+                          dur='4s'
+                          repeatCount='indefinite'
+                          values={`${6 / zoom};${1 / zoom};${6 / zoom}`}
+                        />
+                      </circle>
+                    </g>
+                  }
+
+                </g>
+              </svg>
+            </div>
           </Draggable>
         </div>
       </div>

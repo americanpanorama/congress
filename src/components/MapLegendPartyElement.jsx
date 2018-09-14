@@ -70,7 +70,7 @@ export default class MapLegendParty extends React.Component {
           </g>
         }
 
-        { (this.props.symbolLabel) ?
+        { (this.props.symbolLabel) &&
           <text
             x={dimensions.mapLegendRadius * -2}
             y={dimensions.mapLegendRadius * 1.5}
@@ -84,7 +84,7 @@ export default class MapLegendParty extends React.Component {
             }}
           >
             {this.props.symbolLabel}
-          </text> : ''
+          </text>
         }
       </g>
     );
