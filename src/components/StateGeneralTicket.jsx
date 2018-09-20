@@ -18,6 +18,7 @@ const StateGeneralTicket = (props) => {
           y={Math.floor(i / cols) * props.length}
           length={props.length}
           id={election.spatialId}
+          duration={props.duration}
           onDistrictSelected={props.onDistrictSelected}
           {...getDistrictStyleFromUi(election, props.uiState)}
         />
@@ -43,9 +44,11 @@ StateGeneralTicket.propTypes = {
   }).isRequired,
   elections: PropTypes.arrayOf(PropTypes.object),
   length: PropTypes.number.isRequired,
-  onDistrictSelected: PropTypes.func.isRequired
+  onDistrictSelected: PropTypes.func.isRequired,
+  duration: PropTypes.number
 };
 
 StateGeneralTicket.defaultProps = {
-  elections: []
+  elections: [],
+  duration: 0
 };

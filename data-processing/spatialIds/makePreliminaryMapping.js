@@ -1,6 +1,4 @@
 // queries carto to produce a preliminary mapping of districts across time--i.e. districts that persist across more than one election cycle are mapped to each other; if they don't a null placeholder is entered to be mapped in SOMEFILE 
-
-const yearsToSkip = require('./calculateYearsToSkip.js');
 const d3 = require('d3');
 const fs = require('fs');
 

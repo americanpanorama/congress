@@ -1,7 +1,7 @@
 const fs = require('fs');
 const d3 = require('d3');
 
-const elections = require('../data/elections.json');
+const elections = require('./elections/data/elections.json');
 
 const counts = [];
 
@@ -151,7 +151,7 @@ const maxDemocrats = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.demBelo
 const maxRepublicans = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.repBelowMargin + yd.repAboveMargin));
 
 const x = d3.scaleLinear()
-  .domain([1836, 2010])
+  .domain([1836, 2014])
   .range([0, 1]);
 const y = d3.scaleLinear()
   .domain([-1 * maxDemocrats, maxRepublicans])

@@ -12,14 +12,14 @@ export default class TimelineHandle extends React.Component {
     this.state = {
       activeDrags: 0,
       dragging: false,
-      draggableX: this.props.timelineX - this.props.timelineXTermSpan * 6,
+      draggableX: this.props.timelineX - this.props.timelineXTermSpan * 10,
       delta: 0,
       selectedYear: this.props.selectedYear,
       displayYear: this.props.selectedYear,
       demText: this.getPartyText(this.props.selectedYear, 'dem'),
-      demTextY: this.getNationalY(this.getPartyCount(this.props.selectedYear, 'dem') / -2),
+      demTextY: this.getNationalY(this.getPartyCount(this.props.selectedYear, 'dem') * -1),
       notDemText: this.getPartyText(this.props.selectedYear, notDemParty),
-      notDemTextY: this.getNationalY(this.getPartyCount(this.props.selectedYear, notDemParty) / 2)
+      notDemTextY: this.getNationalY(this.getPartyCount(this.props.selectedYear, notDemParty))
     };
 
     // bind handlers
@@ -36,11 +36,11 @@ export default class TimelineHandle extends React.Component {
       this.setState({
         selectedYear: nextProps.selectedYear,
         displayYear: nextProps.selectedYear,
-        draggableX: nextProps.timelineX - nextProps.timelineXTermSpan * 6,
+        draggableX: nextProps.timelineX - nextProps.timelineXTermSpan * 10,
         demText: this.getPartyText(nextProps.selectedYear, 'dem'),
-        demTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, 'dem') / -2),
+        demTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, 'dem') * -1),
         notDemText: this.getPartyText(nextProps.selectedYear, notDemParty),
-        notDemTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, notDemParty) / 2),
+        notDemTextY: this.getNationalY(this.getPartyCount(nextProps.selectedYear, notDemParty)),
         dragging: false
       });
     }
@@ -89,12 +89,14 @@ export default class TimelineHandle extends React.Component {
     const belowMargin = Math.min(democrat, notDem);
     const aboveMargin = (party === 'dem') ? Math.max(democrat - notDem, 0) : Math.max(notDem - democrat, 0);
 
-    let count = '';
-    count += belowMargin + aboveMargin;
-    if (aboveMargin > 0) {
-      count += ` (+${aboveMargin})`;
-    }
-    return count;
+    const count = <tspan x={this.props.timelineXTermSpan} dy='0.5em'>{belowMargin + aboveMargin}</tspan>;
+    const majority = (aboveMargin > 0)
+      ? <tspan x={this.props.timelineXTermSpan} dy='1.2em' style={{ fontWeight: 100 }}>{`+${aboveMargin}`}</tspan>
+      : '';
+    // if (aboveMargin > 0) {
+    //   count += ` (+${aboveMargin})`;
+    // }
+    return <React.Fragment>{count}{majority}</React.Fragment>;
   }
 
   calculateNewYear (delta) {
@@ -124,9 +126,9 @@ export default class TimelineHandle extends React.Component {
     const newYear = this.calculateNewYear(delta);
     const notDemParty = (newYear >= 1856) ? 'rep' : 'whig';
     const demText = this.getPartyText(newYear, 'dem');
-    const demTextY = this.getNationalY(this.getPartyCount(newYear, 'dem') / -2);
+    const demTextY = this.getNationalY(this.getPartyCount(newYear, 'dem') * -1);
     const notDemText = this.getPartyText(newYear, notDemParty);
-    const notDemTextY = this.getNationalY(this.getPartyCount(newYear, notDemParty) / 2);
+    const notDemTextY = this.getNationalY(this.getPartyCount(newYear, notDemParty));
 
     this.setState({
       displayYear: newYear,
@@ -171,7 +173,7 @@ export default class TimelineHandle extends React.Component {
         >
           <div>
             <svg
-              width={timelineXTermSpan * 12}
+              width={timelineXTermSpan * 20}
               height={dimensions.timelineHeight - dimensions.timelineHorizontalGutter}
               style={{
                 zIndex: 10000,
@@ -187,7 +189,7 @@ export default class TimelineHandle extends React.Component {
                 </linearGradient>
               </defs>
 
-              <g transform={`translate(${timelineXTermSpan * 6})`}>
+              <g transform={`translate(${timelineXTermSpan * 10})`}>
                 <line
                   x1={0}
                   x2={0}
@@ -222,9 +224,9 @@ export default class TimelineHandle extends React.Component {
                 { (showPartyCounts) &&
                   <React.Fragment>
                     <text
-                      x={timelineXTermSpan * -1}
+                      x={timelineXTermSpan}
                       y={this.state.demTextY}
-                      textAnchor='end'
+                      textAnchor='start'
                       fill='white'
                     >
                       { this.state.demText }
@@ -252,7 +254,7 @@ export default class TimelineHandle extends React.Component {
                 }
 
                 {/* clickable areas to select year */}
-                { [-6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6].map(congressOffset => (
+                { [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(congressOffset => (
                   <rect
                     x={timelineXTermSpan * (congressOffset - 0.5)}
                     y={0}

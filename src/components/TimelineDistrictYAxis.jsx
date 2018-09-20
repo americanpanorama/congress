@@ -48,10 +48,11 @@ const TimelineDistrictYAxis = props => (
     ))}
 
     <text
-      x={props.dimensions.timelineAxisShortTickHeight * 2}
+      x={props.dimensions.timelineYAxisWidth}
       y={props.y(-1) - 15}
       fill='white'
-      textAnchor='middle'
+      textAnchor='end'
+      fontWeight={100}
     >
       strength of victory
     </text>
@@ -73,6 +74,7 @@ TimelineDistrictYAxis.propTypes = {
   dimensions: PropTypes.shape({
     timelineAxisOffsetForDistrict: PropTypes.number,
     timelineAxisShortTickHeight: PropTypes.number,
-    timelineAxisFontSize: PropTypes.number
+    timelineAxisFontSize: PropTypes.number,
+    timelineYAxisWidth: PropTypes.number
   }).isRequired
 };

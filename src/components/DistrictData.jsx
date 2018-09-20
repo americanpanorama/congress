@@ -20,14 +20,35 @@ const DistrictData = props => (
           backgroundColor: props.backgroundColor
         }}
       >
-        <h2
-          style={{
-            fontSize: props.dimensions.electionLabelFontSize,
-            paddingRight: props.dimensions.nextPreviousButtonHeight
-          }}
-        >
-          {props.label}
-        </h2>
+        { (!props.label.includes('General Ticket') ?
+          <h2
+            style={{
+              fontSize: props.dimensions.electionLabelFontSize,
+              paddingRight: props.dimensions.nextPreviousButtonHeight
+            }}
+          >
+            {props.label}
+          </h2> :
+          <React.Fragment>
+            <h2
+              style={{
+                fontSize: props.dimensions.electionLabelFontSize
+              }}
+            >
+              {props.label.replace('General Ticket', '')}
+            </h2>
+            <h3
+              style={{
+                fontSize: props.dimensions.electionLabelFontSize / 2.4,
+                paddingRight: props.dimensions.nextPreviousButtonHeight,
+                marginTop: props.dimensions.electionLabelFontSize * 0.25,
+                marginLeft: '0.3em'
+              }}
+            >
+              General<br />Ticket
+            </h3>
+          </React.Fragment>
+        )}
 
         { props.previousDistrict &&
           <button
@@ -139,6 +160,9 @@ const DistrictData = props => (
       </div>
     }
 
+    <p>Won by <span className='electionData'>{props.victor}</span> (<span className='electionData'>{props.party}</span>) with <span className='electionData'>{props.percent}%</span> of the vote.</p>
+
+  {/* JSX Comment 
     <ul className='districtData'>
       <li>
         <div className='label'>Won by</div>
@@ -151,11 +175,12 @@ const DistrictData = props => (
           <div className='data'>{props.party}</div>
         </li>
       }
-    </ul>
+    </ul> */}
 
     <div
       onClick={props.onZoomToDistrict}
       id={props.id}
+      className='zoomTo'
     >
       zoom to district
     </div>
@@ -172,6 +197,7 @@ DistrictData.propTypes = {
   backgroundColor: PropTypes.string,
   victor: PropTypes.string.isRequired,
   party: PropTypes.string.isRequired,
+  percent: PropTypes.number.isRequired,
   previousDistrict: PropTypes.oneOfType([
     PropTypes.number,
     PropTypes.bool

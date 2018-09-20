@@ -6,11 +6,11 @@ import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 const Steamgraph = (props) => {
   const stackColor = {
     demAboveMargin: getColorForParty('democrat'),
-    demBelowMargin: getColorForMargin('democrat', 0.8),
+    demBelowMargin: getColorForMargin('democrat', 0.7),
     thirdCount: getColorForParty('third'),
-    repBelowMargin: getColorForMargin('republican', 0.8),
+    repBelowMargin: getColorForMargin('republican', 0.7),
     repAboveMargin: getColorForParty('republican'),
-    whigBelowMargin: getColorForMargin('whig', 0.8),
+    whigBelowMargin: getColorForMargin('whig', 0.7),
     whigAboveMargin: getColorForParty('whig')
   };
 

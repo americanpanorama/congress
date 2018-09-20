@@ -20,6 +20,12 @@ const Timeline = (props) => {
     .range([y(props.maxRepublicans * 1), y(props.maxRepublicans * -1), y(0), y(0),
       y(0), y(props.maxRepublicans), y(props.maxRepublicans)]);
 
+  const steamgraphTranslateX = 15;
+  const steamgraphTranslateY = dimensions.timelineHorizontalGutter;
+  const steamgraphScaleX = dimensions.timelineWidth - steamgraphTranslateX;
+  const steamgraphScaleY = dimensions.timelineSteamgraphHeight -
+    dimensions.timelineSteamgraphGutter * 2;
+
   return (
     <aside
       id='info'
@@ -69,7 +75,10 @@ const Timeline = (props) => {
                 (y(props.maxRepublicans) - y(props.maxDemocrats * -1))}
             />
           </g> :
-          <g transform={`translate(15 ${dimensions.timelineHorizontalGutter + dimensions.timelineSteamgraphGutter}) scale(${dimensions.timelineWidth - 15} ${dimensions.timelineSteamgraphHeight - dimensions.timelineSteamgraphGutter * 2})`}>
+          <g
+            transform={`translate(${steamgraphTranslateX} ${steamgraphTranslateY})
+              scale(${steamgraphScaleX} ${steamgraphScaleY})`}
+          >
             <Steamgraph
               steamgraphPaths={props.steamgraphPaths}
             />

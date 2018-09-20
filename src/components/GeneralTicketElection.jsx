@@ -7,7 +7,9 @@ export default class GeneralTicketElection extends React.Component {
     super(props);
     this.state = {
       fill: props.fill,
-      fillOpacity: props.fillOpacity
+      stroke: props.stroke,
+      fillOpacity: props.fillOpacity,
+      strokeOpacity: props.strokeOpacity
     };
 
     this.symbol = React.createRef();
@@ -18,19 +20,29 @@ export default class GeneralTicketElection extends React.Component {
 
     if (prevProps.fill !== this.props.fill ||
       prevProps.fillOpacity !== this.props.fillOpacity) {
+
       if (duration > 0) {
         d3.select(this.symbol.current)
           .transition()
           .duration(duration)
           .style('fill', this.props.fill)
+          .style('stroke', this.props.stroke)
+          .style('fill-opacity', this.props.fillOpacity)
+          .style('stroke-opacity', this.props.strokeOpacity)
           .on('end', () => {
             this.setState({
-              fill: this.props.fill
+              fill: this.props.fill,
+              stroke: this.props.stroke,
+              fillOpacity: this.props.fillOpacity,
+              strokeOpacity: this.props.strokeOpacity
             });
           });
       } else {
         this.setState({
-          fill: this.props.fill
+          fill: this.props.fill,
+          stroke: this.props.stroke,
+          fillOpacity: this.props.fillOpacity,
+          strokeOpacity: this.props.strokeOpacity
         });
       }
     }
@@ -55,7 +67,9 @@ export default class GeneralTicketElection extends React.Component {
         style={{
           fill: this.state.fill,
           fillOpacity: this.state.fillOpacity,
-          strokeWidth: this.props.strokeWidth
+          strokeWidth: this.props.strokeWidth,
+          stroke: this.state.stroke,
+          strokeOpacity: this.state.strokeOpacity
         }}
         stroke='#eee'
         onClick={onDistrictSelected}

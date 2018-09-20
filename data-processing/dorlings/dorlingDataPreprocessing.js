@@ -2,7 +2,7 @@ const fs = require('fs');
 const d3 = require('d3');
 
 // load raw data files
-const elections = require('./data/elections.json');
+const elections = require('../elections/data/elections.json');
 const rawCentroids = require('./data/centroids.json');
 const rawPolylabels = require('./data/polylabelCoords.json');
 const rawMetros = require('./data/metro_areas.json');

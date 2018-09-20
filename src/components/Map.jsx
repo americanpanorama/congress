@@ -285,6 +285,7 @@ export default class Map extends React.Component {
                             length={dimensions.districtR * 1.5}
                             onDistrictSelected={this.onDistrictSelected}
                             uiState={uiState}
+                            duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
                           />
                         ))}
                       </React.Fragment>

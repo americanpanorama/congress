@@ -376,3 +376,19 @@ export const formatPersonName = function (name) {
   }
   return formattedName || name;
 };
+
+export const displayParty = function (party, partyReg) {
+  if (partyReg === 'republican') {
+    return 'Republican';
+  }
+  if (partyReg === 'democrat') {
+    return 'Democrat';
+  }
+  if (partyReg === 'whig') {
+    return 'Whig';
+  }
+  return party
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.substring(1).toLowerCase())
+    .join(' ');
+};

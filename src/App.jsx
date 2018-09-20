@@ -3,7 +3,7 @@ import { Typeahead } from 'react-typeahead';
 
 import { AppActions, AppActionTypes } from './utils/AppActionCreator';
 import AppDispatcher from './utils/AppDispatcher';
-import { getColorForParty, formatPersonName } from './utils/HelperFunctions';
+import { getColorForParty, formatPersonName, displayParty } from './utils/HelperFunctions';
 
 import Masthead from './components/Masthead';
 import Navigation from './components/Navigation';
@@ -491,6 +491,7 @@ class App extends React.Component {
           zoomOut={this.zoomOut}
           toggleFlipped={this.toggleFlipped}
           hasThird={DistrictsStore.hasThird()}
+          hasGTElection={DistrictsStore.hasGTElection()}
         />
 
         <Timeline
@@ -531,7 +532,8 @@ class App extends React.Component {
             label={DistrictsStore.getDistrictLabel(selectedDistrict)}
             backgroundColor={getColorForParty(districtData.partyReg)}
             victor={formatPersonName(districtData.victor)}
-            party={(districtData.partyReg === 'third') ? districtData.party : ''}
+            party={displayParty(districtData.party, districtData.partyReg)}
+            percent={Math.round(districtData.percent * 1000) / 10}
             previousDistrict={DistrictsStore.getStatePreviousDistrictId(selectedDistrict)}
             nextDistrict={DistrictsStore.getStateNextDistrictId(selectedDistrict)}
             onDistrictSelected={this.onDistrictSelected}

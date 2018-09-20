@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 import MapLegendPartyElement from './MapLegendPartyElement';
 import DimensionsStore from '../stores/DimensionsStore';
+import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 
 export default class MapLegend extends React.Component {
   render () {
@@ -15,7 +16,22 @@ export default class MapLegend extends React.Component {
       return x(perc);
     };
 
-    const axisY = (this.props.hasThird) ? dimensions.mapLegendElementHeight * 6.5 : dimensions.mapLegendElementHeight * 5;
+    const axisY = (this.props.hasThird)
+      ? dimensions.mapLegendElementHeight * 6.5
+      : dimensions.mapLegendElementHeight * 5;
+
+    const gtY = (this.props.hasThird)
+      ? dimensions.mapLegendElementHeight * 9.5
+      : dimensions.mapLegendElementHeight * 8;
+
+    const gtElectionColor = (n) => {
+      if (n === 0 || n === 8 || n === 3 || n === 4) {
+        return getColorForParty('democrat');
+      } else if (n === 1 || n === 6 || n === 2 || n === 5) {
+        return getColorForParty('republican');
+      }
+      return getColorForParty('third');
+    };
 
     return (
       <svg
@@ -114,6 +130,7 @@ export default class MapLegend extends React.Component {
                   y={dimensions.mapLegendFontSize * 2 / 3}
                   textAnchor='middle'
                   fontSize={dimensions.mapLegendFontSize * 2 / 3}
+                  fontWeight={100}
                   fill='#eee'
                   key={`sovText${sov}`}
                 >
@@ -127,6 +144,7 @@ export default class MapLegend extends React.Component {
                 textAnchor='middle'
                 fontSize={dimensions.mapLegendFontSize * 2 / 3}
                 fill='#eee'
+                fontWeight={100}
               >
                 strength of victory
               </text>
@@ -134,6 +152,34 @@ export default class MapLegend extends React.Component {
           }
 
         </g>
+
+        { (this.props.hasGTElection) &&
+          <g transform={`translate(${dimensions.mapLegendWidth / 2} ${gtY})`}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+              <React.Fragment key={`gtlegend${n}`}>
+                <rect
+                  x={dimensions.mapLegendRadius * -2 - (n % 3) * dimensions.mapLegendRadius}
+                  y={Math.floor(n / 3) * dimensions.mapLegendRadius}
+                  width={dimensions.mapLegendRadius}
+                  height={dimensions.mapLegendRadius}
+                  strokeWidth={1}
+                  stroke='white'
+                  fill={gtElectionColor(n)}
+                  className='gtlegend'
+                />
+
+                <text
+                  fill='white'
+                  fontSize={dimensions.mapLegendFontSize * 2 / 3}
+                >
+                  <tspan x={dimensions.mapLegendRadius} y={0}>General</tspan>
+                  <tspan x={dimensions.mapLegendRadius} y='1.2em'>Ticket</tspan>
+                  <tspan x={dimensions.mapLegendRadius} y='2.4em'>Election</tspan>
+                </text>
+              </React.Fragment>
+            ))}
+          </g>
+        }
       </svg>
     );
   }
@@ -147,7 +193,8 @@ MapLegend.propTypes = {
   winnerView: PropTypes.bool.isRequired,
   onlyFlipped: PropTypes.bool.isRequired,
   toggleFlipped: PropTypes.func.isRequired,
-  hasThird: PropTypes.bool.isRequired
+  hasThird: PropTypes.bool.isRequired,
+  hasGTElection: PropTypes.bool.isRequired
 };
 
 MapLegend.defaultProps = {

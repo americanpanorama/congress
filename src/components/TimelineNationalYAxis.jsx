@@ -35,10 +35,11 @@ const TimelineNationalYAxis = props => (
     ))}
 
     <text
-      x={props.dimensions.timelineAxisShortTickHeight * -2}
+      x={props.dimensions.timelineYAxisWidth}
       y={props.y(props.maxDemocrats * -1) - 5}
       fill='white'
-      textAnchor='middle'
+      textAnchor='end'
+      fontWeight={100}
     >
       number of representatives
     </text>
@@ -51,7 +52,8 @@ TimelineNationalYAxis.propTypes = {
   y: PropTypes.func.isRequired,
   dimensions: PropTypes.shape({
     timelineAxisShortTickHeight: PropTypes.number,
-    timelineAxisFontSize: PropTypes.number
+    timelineAxisFontSize: PropTypes.number,
+    timelineYAxisWidth: PropTypes.number
   }).isRequired,
   maxDemocrats: PropTypes.number.isRequired,
   maxRepublicans: PropTypes.number.isRequired

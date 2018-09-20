@@ -25,6 +25,18 @@ const Context = (props) => {
       }}
       className='context'
     >
+      {(props.selectedYear === 1912) &&
+        <p><span onClick={toggleFlippedPartyOff}>Democrats took the House in a 291-134 landslide</span> as a Progressive faction split from the Republican Party in the 1912 elections.  <span onClick={selectPartyFlippedOff} id='third'>Progressives took 9 seats and an independent 1</span> in the House of Representatives.  In the Senate, Democrats picked up 4 seats in the Midwest and West to take a 47-45 advantage of the chamber.</p>
+      }
+      {(props.selectedYear === 1914) &&
+        <p><span onClick={toggleFlippedPartyOff}>Democrats lost 61 seats in the House of Representatives</span> but maintained control of the chamber, 230-196.  The Midwest was up for grabs, as Republicans pickups were concentrated in Illiois, Ohio, along with a handful in New york.  <span onClick={selectPartyFlippedOff} id='third'>Progressives won 6 seats, Socialists 1, and Prohibitionists 1</span>.  Facing popular election for the first time, Democrats picked up 3 seats in the Senate to increase their advantage to 53-41.  </p>
+      }
+      {(props.selectedYear === 1916) &&
+        <p>Staying out of the Great War was one of the key political issues of the 1916 campaign, and <span onClick={toggleFlippedPartyOff}>Republicans picked up 19 seats</span> to take a 216-214 advantage in the House.  However, Democrats formed a coalition government with <span onClick={selectPartyFlippedOff} id='third'>the 3 Progressives, 1 Socialist, and 1 Prohibitionist also winning seats</span>, to maintain control under Speaker Champ Clark.  In the Senate, Democrats lost a seat but maintained control, with a 55-41 advantage.  Jeannette Rankin (R-MT) was the first woman elected to the Senate.</p>
+      }
+          {(props.selectedYear === 1918) &&
+        <p>American involvement in the Great War was the key issue of the 1918 elections, in which Republicans overcame the coalition government, <span onClick={toggleFlippedPartyOff}>won 24 seats</span>, and took control of the House 240-192 as Frederick Gillette became the Speaker, succeeding Champ Clark.  The Farmer-Labor Party won its first seat, and the Prohibition party held its 1 seat.  In the Senate, all Senators up for election in 1918 were popularly elected.  Republicans picked up 4 seats to create an evenly divided Senate, 48-48, but Democrats, with the Vice Presidency, held sway until special elections when Republicans controlled the chamber.</p>
+      }
       {(props.selectedYear === 1920) &&
         <p>Republicans won a landslide set of elections in 1920, the first federal election in which women could vote after ratification of the 19th Amendment.  In the House, <span onClick={toggleFlippedPartyOff}>the GOP picked up 63 seats</span> to run their advantage up to <span onClick={selectPartyFlippedOff} id='republican'>303</span> to <span onClick={selectPartyFlippedOff} id='democrat'>131</span>, with 1 seat held by a Socialist, Meyer London in New York.  In the Senate, the Republicans picked up 10 seats to hold control by a  59-37 margin over Democrats.</p>
       }

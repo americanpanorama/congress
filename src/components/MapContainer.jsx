@@ -85,7 +85,8 @@ export default class MapContainer extends React.Component {
       onViewSelected,
       onPartySelected,
       toggleFlipped,
-      hasThird
+      hasThird,
+      hasGTElection
     } = this.props;
 
     const {
@@ -127,6 +128,7 @@ export default class MapContainer extends React.Component {
           onlyFlipped={onlyFlipped}
           toggleFlipped={toggleFlipped}
           hasThird={hasThird}
+          hasGTElection={hasGTElection}
         />
 
         <ZoomControls
@@ -166,5 +168,6 @@ MapContainer.propTypes = {
   zoomOut: PropTypes.func.isRequired,
   onMapDrag: PropTypes.func.isRequired,
   resetView: PropTypes.func.isRequired,
-  hasThird: PropTypes.bool.isRequired
+  hasThird: PropTypes.bool.isRequired,
+  hasGTElection: PropTypes.bool.isRequired
 };

@@ -245,6 +245,8 @@ const DistrictsStore = {
 
   hasThird: function () { return this.data.elections.map(e => e.partyReg).includes('third'); },
 
+  hasGTElection: function () { return this.data.elections.map(e => e.districtType).includes('GT'); },
+
   findDistrict: function (point, year) {
     const project = d3.geoAlbersUsa().scale(1).translate([0, 0]);
     const projectedPoint = project(point);

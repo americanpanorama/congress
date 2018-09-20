@@ -16,9 +16,10 @@ const Text = (props) => {
       <React.Fragment>
         <h2>A Note on Sources and Methods</h2>
         <p>This project drew on several sources because there was no authoritative, comprehensive dataset for Congressional election results.</p>
-        <p>The two most significant sources of election data were the reports of Election Statistics from the Clerk of the U.S. House of Representatives, available from the 1920 to 2010 [LINK], and Data Set 0002, “Candidate Name and Constituency Totals, 1788-1990,” from the Inter-University Consortium for Political and Social Research (ICPSR [LINK]).  In addition, Kenneth C. Martis’ book, The Historical Atlas of Political Parties in the United States Congress, 1789-1989 was an essential resource for candidate names and party affiliation, as was the Biographical Directory of the U.S. Congress, 1774 – Present [LINK].  For the earliest election years, we also rely on A New Nation Votes [LINK], a research project from the American Antiquarian Society.</p>
+        <p>The two most significant sources of election data were the reports of Election Statistics from the Clerk of the U.S. House of Representatives, available from the 1920 to 2016, and Data Set 0002, “Candidate Name and Constituency Totals, 1788-1990,” from the Inter-University Consortium for Political and Social Research (ICPSR).  In addition, Kenneth C. Martis’ book, The Historical Atlas of Political Parties in the United States Congress, 1789-1989 was an essential resource for candidate names and party affiliation, as was the Biographical Directory of the U.S. Congress, 1774 – Present.  For the earliest election years, we also rely on A New Nation Votes, a research project from the American Antiquarian Society.</p>
         <p>In cases where data was in conflict, we treated the Election Statistics reports and Biographical Directory as authoritative, followed by Martis and then the ICPSR dataset.  In a number of instances, a candidate’s victory was contested and later overturned for legal reasons, sometimes months later.  In those cases, we represented the winner as it was thought to be on election night, and as our data reflected.</p>
-        <p>The two key sources of geographic information were Jeffrey Lewis’ House district boundaries dataset [LINK] and, for the Senate, the state boundaries dataset from the Minnesota Population Center’s National Historical Geographic Information Systems (NHGIS) repository [LINK].</p>
+        <p>The two key sources of geographic information were Jeffrey Lewis’ House district boundaries dataset and, for the Senate, the state boundaries dataset from the Minnesota Population Center’s National Historical Geographic Information Systems (NHGIS) repository.</p>
+        <p>This atlas features general elections -- special elections will be released in a subsequent revision.</p>
         <p>All of the data for this project is available for download on the site, and is archived at Virginia Tech at https://doi.org/10.7294/W45Q4T11.</p>
       </React.Fragment>
     ),
@@ -26,7 +27,14 @@ const Text = (props) => {
       <div>TO DO</div>
     ),
     about: (
-      <div>TO DO</div>
+      <React.Fragment>
+        <h2>About</h2>
+        <p>"Electing the House of Representatives" was created through the collaboration of Digital Scholarship Lab at the University of Richmond and the Department of History at Virginia Tech.</p>
+        <p>At the Digital Scholarship Lab, Robert K. Nelson designed and developed the project. Justin Madron managed the management and manipulation of the spatial and election data for the project.</p>
+        <p>At Virginia Tech, Matthew Vaughan helped plan the organization of the project, researched, and cleaned much data, while Nick Bolin prepared material for its final publication.  Research assistants Carmen Bolt, Sarah Rouzer, and Rebecca Williams contributed large amounts of data work.</p>
+        <p>Additionally, research assistants Jennalee Beazley, Caitlin Brown, Alexandra Dowrey, Victoria Fowler, Rachel Snyder, Cameron Sorg, L.T. Wilkerson, students in two history classes, and participants in the Digital History Hackathon contributed data to the project.</p>
+        <p>The College of Liberal Arts and Human Sciences, the Department of History at Virginia Tech, and the Virginia Center for Civil War Studies helped fund this project with grants for research and data work.</p>
+      </React.Fragment>
     )
 
   };
@@ -44,7 +52,37 @@ const Text = (props) => {
           right: props.dimensions.textCloseRight
         }}
       >
-        <span>close</span>
+        <svg
+          width={props.dimensions.nextPreviousButtonHeight + 2}
+          height={props.dimensions.nextPreviousButtonHeight + 2}
+        >
+          <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2 + 1} ${props.dimensions.nextPreviousButtonHeight / 2 + 1}) rotate(135)`}>
+            <circle
+              cx={0}
+              cy={0}
+              r={props.dimensions.nextPreviousButtonHeight / 2}
+              fill='silver'
+              stroke='#38444a'
+              strokeWidth={1}
+            />
+            <line
+              x1={0}
+              x2={0}
+              y1={props.dimensions.nextPreviousButtonHeight / 4}
+              y2={props.dimensions.nextPreviousButtonHeight / -4}
+              stroke='#233036'
+              strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+            />
+            <line
+              x1={props.dimensions.nextPreviousButtonHeight / -4}
+              x2={props.dimensions.nextPreviousButtonHeight / 4}
+              y1={0}
+              y2={0}
+              stroke='#233036'
+              strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+            />
+          </g>
+        </svg>
       </button>
       { content[props.subject] }
     </div>

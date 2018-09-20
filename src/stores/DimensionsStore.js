@@ -123,14 +123,14 @@ const DimensionsStore = {
 
     this.data.mapLegendWidth = this.data.sidebarWidth;
     this.data.mapLegendHeight = this.data.timelineHeight;
-    this.data.mapLegendTopGutter = this.data.mapLegendHeight * 2/12;
+    this.data.mapLegendTopGutter = this.data.mapLegendHeight * 1/12;
     this.data.mapLegendRadius = this.data.mapLegendHeight / 24;
     this.data.mapLegendLabelGutter = this.data.mapLegendRadius / 2;
     this.data.mapLegendElementHeight = this.data.mapLegendHeight / 12;
     this.data.mapLegendFontSize = this.data.mapLegendHeight / 12;
     this.data.mapLegendSymbolHeight = this.data.mapLegendFontSize;
 
-    this.data.timelineYAxisWidth = 80;
+    this.data.timelineYAxisWidth = Math.max(60, this.data.windowWidth / 100);
 
     this.data.timelineWidth = this.data.windowWidth - this.data.sidebarWidth * 2 - this.data.timelineYAxisWidth - this.data.gutterPadding * 2;
     this.data.timelineHorizontalGutter = this.data.timelineHeight * 1/12;
@@ -202,7 +202,7 @@ const DimensionsStore = {
 
   timelineX (year) {
     const x = d3.scaleLinear()
-      .domain([1836, 2010])
+      .domain([1836, 2014])
       .range([15, this.data.timelineWidth]);
     return x(year);
   },

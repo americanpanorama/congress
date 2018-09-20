@@ -1,9 +1,9 @@
 const fs = require('fs');
 const d3 = require('d3');
 const dissolve = require('geojson-dissolve');
-const elections = require('../../data/elections.json');
+const elections = require('../elections/data/elections.json');
 const bubbles = require('../../data/bubbleXYs.json');
-const spatialIds = require('../../data/spatialIds.json');
+const spatialIds = require('../spatialIds/data/idMap.json');
 const metroNames = require('../../data/metroNames.json');
 
 const project = d3.geoPath(d3.geoAlbersUsa().scale(1).translate([0, 0]));
@@ -94,7 +94,7 @@ Object.keys(elections).forEach((year) => {
         electionPlus.districtType = districtType;
 
         // get the spatialId
-        electionPlus.spatialId = parseInt(spatialIds[year][id].slice(9));
+        electionPlus.spatialId = (spatialIds[year][id]) ? parseInt(spatialIds[year][id].slice(9)) : -1;
 
         // get the bubble coords
         const bubbleForDistrict = bubblesForYear.find(d => d.id === id);
@@ -185,9 +185,12 @@ Object.keys(elections).forEach((year) => {
         const stateGeojson = dissolve(geojsonForState);
         stateSVG = project(stateGeojson);
       } else {
-        console.log(`state: ${state}`);
-        console.log(electionsPlus.find(e => e.state === 'NM'));
-        stateSVG = electionsPlus.find(e => e.districtType === 'GT' && e.state === state).svg;
+        // console.log(`state: ${state}`);
+        // console.log(electionsPlus.find(e => e.state === 'NM'));
+        const gtDistrict = electionsPlus.find(e => e.districtType === 'GT' && e.state === state);
+        if (gtDistrict && gtDistrict.svg) {
+          stateSVG = gtDistrict.svg;
+        }
       }
       const aState = {
         state: state,
