@@ -23,7 +23,7 @@ const TimelineDistrict = (props) => {
     }
   });
   const getDistrictY = (percent, partyReg) => {
-    if (!percent) {
+    if (Number.isNaN(percent)) {
       return;
     }
     let y = props.y(1) + props.axisHeight;

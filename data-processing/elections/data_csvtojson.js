@@ -17,13 +17,13 @@ const getRegularizedParty = function (party) {
   if (party.includes('whig')) {
     return 'whig';
   }
-  if (party.startsWith('republican')) {
+  if (party.startsWith('repub')) {
     return 'republican';
   }
   if (party.startsWith('democrat')) {
     return 'democrat';
   }
-  if (party.includes('republican')) {
+  if (party.includes('repub')) {
     return 'republican';
   }
   if (party.includes('democrat')) {

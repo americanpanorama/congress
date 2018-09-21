@@ -58,8 +58,9 @@ Object.keys(mapping)
                 const nextYear = parseInt(Object.keys(mapping)
                   .filter(y => parseInt(y) > year)
                   .sort((a, b) => a - b)
+                  // the hasOwnProperty is necessary as the value of the district might be null
                   .filter(futureYear => (mapping[futureYear] && mapping[futureYear][state]
-                    && mapping[futureYear][state][nextDistrict]))[0]);
+                    && mapping[futureYear][state].hasOwnProperty(nextDistrict)))[0]);
                 if (nextYear) {
                   spatialIds[aSpatialId][nextYear] = nextDistrict;
                 }

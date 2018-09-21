@@ -151,7 +151,7 @@ const maxDemocrats = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.demBelo
 const maxRepublicans = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.repBelowMargin + yd.repAboveMargin));
 
 const x = d3.scaleLinear()
-  .domain([1836, 2014])
+  .domain([1840, 2014])
   .range([0, 1]);
 const y = d3.scaleLinear()
   .domain([-1 * maxDemocrats, maxRepublicans])

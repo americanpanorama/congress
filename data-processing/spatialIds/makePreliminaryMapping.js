@@ -11,14 +11,15 @@ const mapping = [];
 const mappingObject = {};
 
 d3.json(baseUrlJson + queryAllDistricts, (err, d) => {
-  if (err) { return console.log(err); }
+  if (err) { return console.warn(err); }
   // obviously, if the district spans multiple years/congresses, the mapping is to itself
   d.rows.forEach((district) => {
-    for (let congress = district.startcong; congress <= district.endcong; congress++) {
+    for (let congress = district.startcong; congress <= district.endcong; congress += 1) {
       mapping.push({
         congress: congress,
         state: district.statename,
         id: district.id,
+        //mapToId: district.id
         mapToId: (district.endcong > congress) ? district.id : null
       });
     }
@@ -39,6 +40,7 @@ d3.json(baseUrlJson + queryAllDistricts, (err, d) => {
     }
     return 0;
   });
+
   mapping.forEach((d2) => {
     mappingObject[yearForCongress(d2.congress)] = mappingObject[yearForCongress(d2.congress)] || {};
     mappingObject[yearForCongress(d2.congress)][d2.state] = mappingObject[yearForCongress(d2.congress)][d2.state] || {};

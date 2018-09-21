@@ -180,9 +180,9 @@ class App extends React.Component {
     if (typeof e === 'number' || typeof e === 'string') {
       id = e;
     } else if (e.currentTarget && parseInt(e.currentTarget.id) !== this.state.selectedDistrict) {
-      id = e.currentTarget.id;
+      ({ id } = e.currentTarget);
     } else if (e.id) {
-      id = e.id;
+      ({ id } = e.id);
     }
     if (id) {
       id = parseInt(id);
@@ -190,7 +190,7 @@ class App extends React.Component {
     }
 
     if (this.state.searchOpen) {
-      //this.search.current.setEntryText('');
+      this.search.current.setEntryText('');
     }
 
     const newState = {

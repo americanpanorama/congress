@@ -64,6 +64,11 @@ const yearToYear = [
     tocongress: 41
   },
   {
+    state: 'Maine',
+    fromcongress: 47,
+    tocongress: 49
+  },
+  {
     state: 'Virginia',
     fromcongress: 72,
     tocongress: 74
@@ -82,7 +87,12 @@ const yearToYear = [
     state: 'Kentucky',
     fromcongress: 72,
     tocongress: 74
-  }
+  },
+  {
+    state: 'Alabama',
+    fromcongress: 87,
+    tocongress: 89 
+  },
 ];
 
 const queryForState = function (state, fromcongress, tocongress) {

@@ -2,9 +2,9 @@ const fs = require('fs');
 const d3 = require('d3');
 const dissolve = require('geojson-dissolve');
 const elections = require('../elections/data/elections.json');
-const bubbles = require('../../data/bubbleXYs.json');
+const bubbles = require('./bubbleXYs.json');
 const spatialIds = require('../spatialIds/data/idMap.json');
-const metroNames = require('../../data/metroNames.json');
+const metroNames = require('./metroNames.json');
 
 const project = d3.geoPath(d3.geoAlbersUsa().scale(1).translate([0, 0]));
 const yearForCongress = congress => 1786 + congress * 2;
