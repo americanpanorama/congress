@@ -98,19 +98,23 @@ Object.keys(elections).forEach((year) => {
 
         // get the bubble coords
         const bubbleForDistrict = bubblesForYear.find(d => d.id === id);
-        const {
-          x,
-          y,
-          xOrigin,
-          yOrigin
-        } = bubbleForDistrict;
-        const stateAbbr = bubbleForDistrict.district.slice(0, 2);
+        if (!bubbleForDistrict) {
+          console.log(`no bubble for: ${year}, ${id}`);
+        } else {
+          const {
+            x,
+            y,
+            xOrigin,
+            yOrigin
+          } = bubbleForDistrict;
+          const stateAbbr = bubbleForDistrict.district.slice(0, 2);
 
-        electionPlus.x = x;
-        electionPlus.y = y;
-        electionPlus.xOrigin = xOrigin;
-        electionPlus.yOrigin = yOrigin;
-        electionPlus.state = stateAbbr;
+          electionPlus.x = x;
+          electionPlus.y = y;
+          electionPlus.xOrigin = xOrigin;
+          electionPlus.yOrigin = yOrigin;
+          electionPlus.state = stateAbbr;
+        }
 
         // get the spatial data
         const feature = features.find(d => d.properties.id === id);

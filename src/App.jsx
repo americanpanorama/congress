@@ -180,7 +180,12 @@ class App extends React.Component {
     if (typeof e === 'number' || typeof e === 'string') {
       id = e;
     } else if (e.currentTarget && parseInt(e.currentTarget.id) !== this.state.selectedDistrict) {
-      ({ id } = e.currentTarget);
+      // use length to determine if it's a district id or a spatial id
+      if (e.currentTarget.id.length === 12 || e.currentTarget.id.length === 14) {
+        id = DistrictsStore.districtToSpatialId(e.currentTarget.id);
+      } else {
+        ({ id } = e.currentTarget);
+      }
     } else if (e.id) {
       ({ id } = e.id);
     }
@@ -399,6 +404,10 @@ class App extends React.Component {
     const districtData = (selectedDistrict) ?
       DistrictsStore.getElectionDataForDistrict(selectedDistrict) : null;
     const spaceData = (selectedDistrict) ? DistrictsStore.getSpaceData() : null;
+
+    if (districtData) {
+      console.log(districtData.id);
+    }
 
     return (
       <div>

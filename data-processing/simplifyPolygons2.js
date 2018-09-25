@@ -87,8 +87,7 @@ const createNotAL = function (congress) {
     `-i ${iDir}/${getInfileName(congress)}`,
     'snap',
     filter,
-    '-simplify weighted 1%',
-    '-clean',
+    '-simplify weighted 5%',
     'keep-shapes',
     `-each '${[
       'id=ID',
@@ -145,5 +144,5 @@ fs.readdir(iDir, (err, files) => {
     .map(f => parseInt(f.slice(9, -5)))
     .sort((a, b) => a - b);
 
-  findExclusions(congresses[0]);
+  findExclusions(congresses[114]);
 });

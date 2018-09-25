@@ -157,18 +157,18 @@ const DimensionsStore = {
     this.data.vizControlsTop = this.data.headerHeight + this.data.navHeight;
     this.data.winnerControlLeft = this.data.gutterPadding*2 + this.data.mapWidth/2;
 
-    this.data.textTop = this.data.headerHeight;
+    this.data.textTop = this.data.headerHeight + this.data.navHeight;
     this.data.textBottom = this.data.gutterPadding;
-    this.data.textLeft = this.data.electionLabelLeft;
-    this.data.textWidth = this.data.electionLabelWidth;
+    this.data.textLeft = this.data.sidebarWidth;
+    this.data.textRight = this.data.sidebarWidth;
     this.data.textCloseTop = this.data.textTop + 10;
-    this.data.textCloseRight = this.data.electionLabelLeft + 10;
+    this.data.textCloseRight = this.data.electionLabelLeft;
 
     this.data.textAreaStyle = {
       top: this.data.textTop,
       bottom: this.data.textBottom,
       left: this.data.textLeft,
-      width: this.data.textWidth
+      right: this.data.textRight
     };
 
     this.emit(AppActionTypes.storeChanged);

@@ -25,6 +25,33 @@ const Context = (props) => {
       }}
       className='context'
     >
+      {(props.selectedYear === 1894) &&
+        <p>In the 1894 elections, Republicans delivered a sound victory over Democrats, taking the House of Representatives by <span onClick={toggleFlippedPartyOff}>picking up 110 seats throughout the midwest and mid-Atlantic</span>. <span onClick={props.onDistrictSelected} id='023049062001'>Thomas Reed</span> (R-ME), took over the Speakership from <span onClick={props.onDistrictSelected} id='013053059003'>Charles Crisp</span> (D-GA), as Republicans controlled the House, 253-93.  Populists lost 4 seats to drop to 9.  In the Senate, Democrats held the chamber, 40-39, with Populists winning one new seat to bring their tally to 4, and Silverites holding 1.</p>
+      }
+      {(props.selectedYear === 1896) &&
+        <p>Republicans gave back nearly half their gains from the 1894 election, as the <span onClick={toggleFlippedPartyOff}>GOP dropped 44 seats in the House</span>, but held control, 210-124 over Democrats.  Populists soared with 13 seat pickups to bring their tally to 22, and the Silver Party won 1 seat. In the Senate, Democrats dropped 7 seats and Republicans, Populists, and pro-Silver candidates split those lost seats.</p>
+      }
+      {(props.selectedYear === 1898) &&
+        <p></p>
+      }
+      {(props.selectedYear === 1900) &&
+        <p>Republicans re-solidified their majority in the House by <span onClick={toggleFlippedPartyOff}>picking up 12 seats</span> and holding a 201-151 split with Democrats, while Populists dropped 1 seat to 5.  In the Senate, Democrats picked up 2 seats but Republicans still held a comfortable advantage, 48-28, with Populists dropping 1 seat to 4 and the 3 silverites holding steady.</p>
+      }
+      {(props.selectedYear === 1902) &&
+        <p></p>
+      }
+      {(props.selectedYear === 1904) &&
+        <p></p>
+      }
+      {(props.selectedYear === 1906) &&
+        <p>The House of Representatives remained under Republican control, 224-167, though <span onClick={toggleFlippedPartyOff}>Democrats gained 32 seats</span> in midwestern battleground districts.  In the Senate, Republicans picked up 3 seats to hold a 60-28 advantage.</p>
+      }
+      {(props.selectedYear === 1908) &&
+        <p></p>
+      }
+      {(props.selectedYear === 1910) &&
+        <p><span onClick={toggleFlippedPartyOff}>Democrats flipped 58 seats in the House of Representatives</span> to take control of the chamber in the 1910 election, 230-163, as the progressive wing and the conservative wing of the Republican Party were in tension and voter turnout was low for the midterm elections. <span onClick={props.onDistrictSelected} id='055058062005'>Victor Berger</span>, a Socialist from Wisconsin, won the party’s first seat in Congress. <span onClick={props.onDistrictSelected} id='029058072009'>Champ Clark</span> (D-MO) became the Speaker of the House, succeeding <span onClick={props.onDistrictSelected} id='017058062018'>Joseph Cannon</span>, (R-IL).</p>
+      }
       {(props.selectedYear === 1912) &&
         <p><span onClick={toggleFlippedPartyOff}>Democrats took the House in a 291-134 landslide</span> as a Progressive faction split from the Republican Party in the 1912 elections.  <span onClick={selectPartyFlippedOff} id='third'>Progressives took 9 seats and an independent 1</span> in the House of Representatives.  In the Senate, Democrats picked up 4 seats in the Midwest and West to take a 47-45 advantage of the chamber.</p>
       }
@@ -32,7 +59,7 @@ const Context = (props) => {
         <p><span onClick={toggleFlippedPartyOff}>Democrats lost 61 seats in the House of Representatives</span> but maintained control of the chamber, 230-196.  The Midwest was up for grabs, as Republicans pickups were concentrated in Illiois, Ohio, along with a handful in New york.  <span onClick={selectPartyFlippedOff} id='third'>Progressives won 6 seats, Socialists 1, and Prohibitionists 1</span>.  Facing popular election for the first time, Democrats picked up 3 seats in the Senate to increase their advantage to 53-41.  </p>
       }
       {(props.selectedYear === 1916) &&
-        <p>Staying out of the Great War was one of the key political issues of the 1916 campaign, and <span onClick={toggleFlippedPartyOff}>Republicans picked up 19 seats</span> to take a 216-214 advantage in the House.  However, Democrats formed a coalition government with <span onClick={selectPartyFlippedOff} id='third'>the 3 Progressives, 1 Socialist, and 1 Prohibitionist also winning seats</span>, to maintain control under Speaker Champ Clark.  In the Senate, Democrats lost a seat but maintained control, with a 55-41 advantage.  Jeannette Rankin (R-MT) was the first woman elected to the Senate.</p>
+        <p>Staying out of the Great War was one of the key political issues of the 1916 campaign, and <span onClick={toggleFlippedPartyOff}>Republicans picked up 19 seats</span> to take a 216-214 advantage in the House.  However, Democrats formed a coalition government with <span onClick={selectPartyFlippedOff} id='third'>the 3 Progressives, 1 Socialist, and 1 Prohibitionist also winning seats</span>, to maintain control under Speaker Champ Clark.  In the Senate, Democrats lost a seat but maintained control, with a 55-41 advantage. <span onClick={props.onDistrictSelected} id='030063065000-1'>Jeannette Rankin</span> (R-MT) was the first woman elected to the Senate.</p>
       }
           {(props.selectedYear === 1918) &&
         <p>American involvement in the Great War was the key issue of the 1918 elections, in which Republicans overcame the coalition government, <span onClick={toggleFlippedPartyOff}>won 24 seats</span>, and took control of the House 240-192 as Frederick Gillette became the Speaker, succeeding Champ Clark.  The Farmer-Labor Party won its first seat, and the Prohibition party held its 1 seat.  In the Senate, all Senators up for election in 1918 were popularly elected.  Republicans picked up 4 seats to create an evenly divided Senate, 48-48, but Democrats, with the Vice Presidency, held sway until special elections when Republicans controlled the chamber.</p>
@@ -143,10 +170,19 @@ const Context = (props) => {
         <p>Democrats made slight gains in both chambers of Congress in 1988.  In the House of Representatives, they <span onClick={toggleFlippedPartyOff}>picked up two seats</span> to take a 260-175 advantage.  The Democrats picked up one seat in the Senate to take a 55-45 advantage over Republicans.  Few headline issues drove the national Congressional campaign, which was seen as a referendum on the preceding years of the Republican Reagan administration.  It largely revolved around competing plans for maintaining economic growth and continuing negotiations with the Soviet Union.</p>
       }
       {(props.selectedYear === 1990) &&
-        <p>The 1990 Congressional mid-term elections revolved around two major issues: growing tensions in the Persian Gulf and President George H. W. Bush's acceptance of a tax increase as part of that year's budget negotiations. Democrats retained control of both the House and Senate, gaining one Senate seat for an advantage of 56 to Republicans 44. In the House, Tom Foley (D-WA) remained Speaker of the House as Democrats <span onClick={toggleFlippedPartyOff}>picked up seven seats</span> for <span onClick={selectPartyFlippedOff} id='democrat'>a total of 267</span>, while the Republicans lost nine for <span onClick={selectPartyFlippedOff} id='republican'>167 total seats</span>. In Vermont, <span onClick={props.onDistrictSelected} id='050098102000'>Bernard Sanders</span> won the state’s at-large House seat for the first time, <span onClick={selectPartyFlippedOff} id='third'>the chamber’s lone independent</span>.</p>
+        <p>The 1990 Congressional mid-term elections revolved around two major issues: growing tensions in the Persian Gulf and President George H. W. Bush's acceptance of a tax increase as part of that year's budget negotiations. Democrats retained control of both the House and Senate, gaining one Senate seat for an advantage of 56 to Republicans 44. In the House, Tom Foley (D-WA) remained Speaker of the House as Democrats <span onClick={toggleFlippedPartyOff}>picked up seven seats</span> for <span onClick={selectPartyFlippedOff} id='democrat'>a total of 267</span>, while the Republicans lost nine for <span onClick={selectPartyFlippedOff} id='republican'>167 total seats</span>. In Vermont, <span onClick={props.onDistrictSelected} id='050098102000-0'>Bernard Sanders</span> won the state’s at-large House seat for the first time, <span onClick={selectPartyFlippedOff} id='third'>the chamber’s lone independent</span>.</p>
       }
       {(props.selectedYear === 1994) &&
         <p>In the 1994 mid-term election, Republicans won control of both the House and the Senate for the first time since 1946. They gained almost ten seats in the Senate, claiming a slim majority of 52 to Democrats' 48. In the House, meanwhile, the <span onClick={toggleFlippedPartyOff}>Republicans gained 54 seats</span>, bringing <span onClick={selectPartyFlippedOff} id='republican'>their total in the chamber to 230</span>, while <span onClick={selectPartyFlippedOff} id='democrat'>Democrats held 204</span>.  Bernard Sanders of Vermont remained the <span onClick={selectPartyFlippedOff} id='third'>sole independent</span> in Congress. The elections saw Republicans gaining near parity in representation with Democrats in the South for the first time.</p>
+      }
+      {(props.selectedYear === 1996) &&
+        <p>After resounding victory in the 1994 elections, Republicans largely defended their majority in 1996.  Democrats picked up 2 seats, but Republicans held a 226-207 advantage, with 2 Independents.  In the Senate, Republicans picked up seats in Arkansas and Georgia, along with Nebraska, for a net gain of two seats to increase their majority to 55-45.</p>
+      }
+      {(props.selectedYear === 1998) &&
+        <p>1998 proved a historic election in that the Democrats, who held the Presidency, performed the rare feat of gaining House seats in the second midterm election amid President Clinton’s scandal and debate over impeachment proceedings.  Democrats picked up 4 seats to cut into Republicans’ 223-211 advantage, with 1 Independent.  Speaker Newt Gingrich (R-GA) resigned and was succeeded by Dennis Hastert (R-IL).  Republicans and Democrats each flipped three seats in Senate contests, resulting in no net change and a 55-45 Republican advantage.</p>
+      }
+      {(props.selectedYear === 2000) &&
+        <p>Stasis reigned in the House as Democrats picked up a single seat in the election, trimming the Republican majority to 221-212.  Democrats picked up 4 seats in the Senate, leading to a 50-50 split until Senator Jim Jeffords (VT) defected from the Republican Party in 2001.</p>
       }
     </div>
   );

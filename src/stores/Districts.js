@@ -18,7 +18,8 @@ const DistrictsStore = {
     elections: [],
     states: [],
     cityBubbles: [],
-    spaceData: []
+    spaceData: [],
+    spatialIdExample: null
   },
 
   loadForYear: function (year, districtId) {
@@ -144,23 +145,22 @@ const DistrictsStore = {
         districtType,
         state,
         victor,
+        party,
         partyReg,
         spatialId,
         id
       } = election;
-      if (districtType !== 'GT') {
-        searchOptions.push({
-          searchText: `${state} ${getStateName(state)} 
-            ${districtType} ${victor} ${partyReg}`,
-          id: id,
-          spatialId: spatialId,
-          state: getStateName(state),
-          stateAbbr: getStateAbbrLong(state),
-          district: districtType,
-          victor: victor,
-          partyReg: partyReg
-        });
-      }
+      searchOptions.push({
+        searchText: `${state} ${getStateName(state)} 
+          ${districtType} ${victor} ${partyReg} ${(partyReg === 'third') ? party : ''}`,
+        id: id,
+        spatialId: spatialId,
+        state: getStateName(state),
+        stateAbbr: getStateAbbrLong(state),
+        district: districtType,
+        victor: victor,
+        partyReg: partyReg
+      });
     });
 
     return searchOptions;
@@ -271,7 +271,11 @@ const DistrictsStore = {
         DimensionsStore.getDimensions().mapProjectionHeight / 2]);
   },
 
-  projectPoint: function (point) { return this.getProjection()(point); }
+  projectPoint: function (point) { return this.getProjection()(point); },
+
+  districtToSpatialId: function (districtId) {
+    return this.data.elections.find(e => e.id === districtId).spatialId;
+  }
 };
 
 // Mixin EventEmitter functionality
