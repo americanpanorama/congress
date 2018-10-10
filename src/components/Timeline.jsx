@@ -20,7 +20,7 @@ const Timeline = (props) => {
     .range([y(props.maxRepublicans * 1), y(props.maxRepublicans * -1), y(0), y(0),
       y(0), y(props.maxRepublicans), y(props.maxRepublicans)]);
 
-  const steamgraphTranslateX = 15;
+  const steamgraphTranslateX = 25;
   const steamgraphTranslateY = dimensions.timelineHorizontalGutter;
   const steamgraphScaleX = dimensions.timelineWidth - steamgraphTranslateX;
   const steamgraphScaleY = dimensions.timelineSteamgraphHeight -

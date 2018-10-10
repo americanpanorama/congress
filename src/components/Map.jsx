@@ -127,6 +127,33 @@ export default class Map extends React.Component {
     }, () => this.props.onMapDrag(propOffsetX, propOffsetY));
   }
 
+  flippedLabel (district) {
+    if (!district.flipped) {
+      return '';
+    }
+
+    const {
+      selectedParty,
+      selectedDistrict,
+      searchOptions
+    } = this.props.uiState;
+
+    // not label if not among search results
+    if (searchOptions.length > 0 && !searchOptions.includes(district.spatialId)) {
+      return '';
+    }
+    // no label if other party selected
+    if (selectedParty && selectedParty !== district.partyReg) {
+      return '';
+    }
+    // no label if not selected district
+    if (selectedDistrict && district.districtId !== selectedDistrict) {
+      return '';
+    }
+
+    return 'F';
+  }
+
   render () {
     const dimensions = DimensionsStore.getDimensions();
     const mapScale = DimensionsStore.getMapScale();
@@ -207,7 +234,7 @@ export default class Map extends React.Component {
                     { this.state.districts.map(d => (
                       <District
                         d={d.svg}
-                        id={d.spatialId}
+                        id={d.id}
                         onDistrictSelected={this.onDistrictSelected}
                         duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
                         {...getDistrictStyleFromUi(d, uiState)}
@@ -229,7 +256,7 @@ export default class Map extends React.Component {
                     { (dataForDistrict) &&
                       <District
                         d={dataForDistrict.svg}
-                        id={dataForDistrict.spatialId}
+                        id={dataForDistrict.id}
                         onDistrictSelected={this.onDistrictSelected}
                         duration={(selectedView === 'map') ? this.state.transitionDuration : 0}
                         {...getDistrictStyleFromUi(dataForDistrict, uiState)}
@@ -264,11 +291,11 @@ export default class Map extends React.Component {
                       <Bubble
                         cx={(selectedView === 'cartogram') ? d.x : d.xOrigin}
                         cy={(selectedView === 'cartogram') ? d.y : d.yOrigin}
-                        r={dimensions.districtR}
-                        label={(d.flipped && ((!selectedParty || selectedParty === d.partyReg) && (!selectedDistrict || d.districtId === selectedDistrict))) ? 'F' : ''}
+                        r={(d.plural) ? Math.sqrt(d.plural * dimensions.districtR * dimensions.districtR) : dimensions.districtR}
+                        label={this.flippedLabel(d, selectedParty, selectedDistrict)}
                         labelColor={getColorForParty(d.partyReg)}
                         duration={this.state.transitionDuration}
-                        id={d.spatialId}
+                        id={d.id}
                         onDistrictSelected={this.onDistrictSelected}
                         {...getBubbleStyle(d, uiState)}
                         key={`bubble-${d.spatialId}`}
@@ -357,7 +384,7 @@ Map.propTypes = {
     selectedYear: PropTypes.number.isRequired,
     selectedParty: PropTypes.string,
     onlyFlipped: PropTypes.bool,
-    selectedDistrict: PropTypes.number,
+    selectedDistrict: PropTypes.string,
     zoom: PropTypes.number,
     x: PropTypes.number,
     y: PropTypes.number,

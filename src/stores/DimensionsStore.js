@@ -113,7 +113,7 @@ const DimensionsStore = {
 
     this.data.zoomControlsStyle = {
       height: this.data.electionLabelHeight,
-      width: this.data.electionLabelWidth - 20,
+      width: this.data.electionLabelWidth,
       left: this.data.electionLabelLeft,
       bottom: this.data.electionLabelBottom
     };
@@ -202,8 +202,8 @@ const DimensionsStore = {
 
   timelineX (year) {
     const x = d3.scaleLinear()
-      .domain([1840, 2014])
-      .range([15, this.data.timelineWidth]);
+      .domain([1840, 2016])
+      .range([25, this.data.timelineWidth]);
     return x(year);
   },
 
@@ -235,7 +235,7 @@ const DimensionsStore = {
     if (percent > 0) {
       if (party === 'democrat') {
         y = this.timelineDistrictY(percent * -1, maxRepublicans);
-      } else if (party === 'republican' || party === 'whig') {
+      } else if (party === 'republican' || party === 'whig' || party === 'opposition') {
         y = this.timelineDistrictY(percent, maxRepublicans);
       }
     }

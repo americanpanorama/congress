@@ -73,7 +73,7 @@ District.propTypes = {
   fill: PropTypes.string.isRequired,
   stroke: PropTypes.string.isRequired,
   fillOpacity: PropTypes.number.isRequired,
-  id: PropTypes.number.isRequired,
+  id: PropTypes.string.isRequired,
   strokeOpacity: PropTypes.number.isRequired,
   strokeWidth: PropTypes.number,
   pointerEvents: PropTypes.string,

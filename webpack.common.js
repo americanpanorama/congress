@@ -40,7 +40,7 @@ const config = {
     new HtmlWebpackPlugin({
       inject: false,
       template: require('html-webpack-template'),
-      title: 'The People\'s House',
+      title: 'Electing the House of Representatives',
       filename: 'index.html',
       appMountId: 'app-container',
       links: ['https://fonts.googleapis.com/css?family=PT+Serif:400|Saira+Condensed:100,400']

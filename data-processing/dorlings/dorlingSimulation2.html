@@ -24,8 +24,8 @@ var year,
   results = [],
   width = 960,
   height = 500,
-  firstYear = 1836,
-  lastYear = 2014;
+  firstYear = 1840,
+  lastYear = 2016;
 
 // initialize svg and the blur filter
 var svg = d3.select("body").append("svg")
@@ -62,7 +62,6 @@ const runSimulation = function(year) {
         }
       });
     }
-  
 
     svg.datum(congresses_data[year].notCity);
 
@@ -121,7 +120,7 @@ const runSimulation = function(year) {
             var bubbles = cityGroup.selectAll("circle")
                   .data(function(d) { return d; })
                 .enter().append("circle")
-                  .attr("r", 5)
+                  .attr("r", function (d) { return d.r; })
                   .attr("id", function(d) { return d.id; })
                   .attr("district", function(d) { return d.district; })
                   .attr("class", function(d) { return d.class; })
@@ -168,9 +167,9 @@ const runSimulation = function(year) {
 
 // use the following function to retrieve the xys
 const getXYs = function(year) {
-  var xys = { "year": year, "districts": [], "cities": [] };
+  const xys = { year: year, districts: [], cities: [] };
 
-  var dorlings = svg.selectAll("circle:not(.city)");
+  const dorlings = svg.selectAll("circle:not(.city)");
   dorlings.each(d => xys.districts.push({ 
     id: d.id, 
     district: d.district,
@@ -207,9 +206,9 @@ const getCityXYs = function() {
   return xys;
 };
 
-const geographyURL = "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json",
-  nodesURL = 'http://localhost:8000/data/dorlingNodes.json',
-  mappingURL = 'http://localhost:8000/data/mapping.json';
+const geographyURL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+const nodesURL = 'http://localhost:8000/data/dorlingNodes.json';
+const mappingURL = 'http://localhost:8000/data/mapping.json';
 
 d3.json(mappingURL, function(err, mappingData) {
   mapping = mappingData;

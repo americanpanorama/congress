@@ -89,10 +89,23 @@ export default class TimelineHandle extends React.Component {
     const belowMargin = Math.min(democrat, notDem);
     const aboveMargin = (party === 'dem') ? Math.max(democrat - notDem, 0) : Math.max(notDem - democrat, 0);
 
-    const count = <tspan x={this.props.timelineXTermSpan} dy='0.5em'>{belowMargin + aboveMargin}</tspan>;
-    const majority = (aboveMargin > 0)
-      ? <tspan x={this.props.timelineXTermSpan} dy='1.2em' style={{ fontWeight: 100 }}>{`+${aboveMargin}`}</tspan>
-      : '';
+    const count = (
+      <tspan
+        x={(year < 1932) ? this.props.timelineXTermSpan : this.props.timelineXTermSpan * -1}
+        dy='0.5em'
+      >
+        {belowMargin + aboveMargin}
+      </tspan>
+    );
+    const majority = (aboveMargin > 0) ? (
+      <tspan
+        x={(year < 1932) ? this.props.timelineXTermSpan : this.props.timelineXTermSpan * -1}
+        dy='1.2em'
+        style={{ fontWeight: 100 }}
+      >
+        {`+${aboveMargin}`}
+      </tspan>
+    ) : '';
     // if (aboveMargin > 0) {
     //   count += ` (+${aboveMargin})`;
     // }
@@ -224,18 +237,18 @@ export default class TimelineHandle extends React.Component {
                 { (showPartyCounts) &&
                   <React.Fragment>
                     <text
-                      x={timelineXTermSpan}
+                      x={(this.state.displayYear < 1932) ? timelineXTermSpan : timelineXTermSpan * -100}
                       y={this.state.demTextY}
-                      textAnchor='start'
+                      textAnchor={(this.state.displayYear < 1932) ? 'start' : 'end'}
                       fill='white'
                     >
                       { this.state.demText }
                     </text>
 
                     <text
-                      x={timelineXTermSpan}
+                      x={(this.state.displayYear < 1932) ? timelineXTermSpan : timelineXTermSpan * -10}
                       y={this.state.notDemTextY}
-                      textAnchor='start'
+                      textAnchor={(this.state.displayYear < 1932) ? 'start' : 'end'}
                       fill='white'
                     >
                       { this.state.notDemText }

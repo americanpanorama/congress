@@ -5,10 +5,9 @@ import DistrictsStore from '../stores/Districts';
 import DimensionsStore from '../stores/DimensionsStore';
 
 const repColor = '#FB6765';
-const repColorLight = '#FACFCF';
 const demColor = '#717EFF';
-const demColorLight = '#D2D2F8';
 const whigColor = '#FF7F50'; //'#D4C685';
+const oppositionColor = '#7851a9';
 const thirdColor = '#D4C685'; // '#98B9AB';
 const equalColor = '#BEBEBE';
 const stateAbbrs = [
@@ -80,7 +79,7 @@ export const getDistrictStyleFromUi = function (district, ui) {
 
   // set base color depending on winner/strength of victory view
   if (ui.winnerView
-    || (ui.selectedView === 'cartogram' && ui.selectedDistrict !== district.spatialId)) {
+    || (ui.selectedView === 'cartogram' && ui.selectedDistrict !== district.id)) {
     style.fill = getColorForParty(district.partyReg);
   } else {
     const percentVote = (district.gtCount)
@@ -111,7 +110,7 @@ export const getDistrictStyleFromUi = function (district, ui) {
       style.strokeOpacity = (ui.selectedView === 'map') ? 1 : 0;
     }
   } else if (ui.selectedDistrict) {
-    if (ui.selectedDistrict === district.spatialId) {
+    if (ui.selectedDistrict === district.id) {
       style.fillOpacity = 1;
       style.strokeOpacity = 1;
     } else {
@@ -121,7 +120,7 @@ export const getDistrictStyleFromUi = function (district, ui) {
     }
   }
 
-  const hasNarrowStrokeWidth = !ui.selectedDistrict || ui.selectedDistrict !== district.spatialId;
+  const hasNarrowStrokeWidth = !ui.selectedDistrict || ui.selectedDistrict !== district.id;
   style.strokeWidth = (hasNarrowStrokeWidth) ? 0.5 / mapScale / ui.zoom : 2 / mapScale / ui.zoom;
 
   style.pointerEvents = (ui.selectedView === 'map') ? 'auto' : 'none';
@@ -166,7 +165,7 @@ export const getBubbleStyle = function (district, ui) {
   // change stroke of selected district to white
   if (selectedView === 'cartogram' && searchOptions.includes(spatialId)) {
     style.stroke = 'white';
-  } else if (selectedView === 'cartogram' && selectedDistrict && selectedDistrict === spatialId) {
+  } else if (selectedView === 'cartogram' && selectedDistrict && DistrictsStore.districtToSpatialId(selectedDistrict) === spatialId) {
     style.stroke = 'white';
     style.strokeWidth = 1 / mapScale;
   }
@@ -178,7 +177,7 @@ export const getBubbleStyle = function (district, ui) {
   } else if ((selectedParty && selectedParty !== partyReg) ||
    (onlyFlipped && !flipped)) {
     style.fillOpacity = 0.1;
-  } else if (selectedDistrict && selectedDistrict !== spatialId) {
+  } else if (selectedDistrict && DistrictsStore.districtToSpatialId(selectedDistrict) !== spatialId) {
     style.fillOpacity = 0.1;
   }
 
@@ -211,6 +210,13 @@ export const getCityBubbleStyle = function (city, ui) {
         style.fillOpacity = 0.2;
       }
     }
+
+    if (ui.searchOptions.length > 0) {
+      const numberInSearch = city.districts.filter(d => ui.searchOptions.includes(d)).length;
+      if (numberInSearch == 0) {
+        style.fillOpacity = 0.2;
+      }
+    }
   }
 
   return style;
@@ -221,6 +227,9 @@ export const getCityBubbleLabelOpacity = function (city, ui) {
 
   if (ui.selectedView === 'map') {
     opacity = 0;
+  } else if (ui.searchOptions.length > 0) {
+    const numberInSearch = city.districts.filter(d => ui.searchOptions.includes(d)).length;
+    opacity = (numberInSearch > 0) ? 1 : 0;
   } else {
     if (ui.selectedParty) {
       const percentOfParty = city.parties[ui.selectedParty] / city.districts.length;
@@ -266,7 +275,13 @@ export const getStateStyle = function (state, ui) {
   return style;
 };
 
-export const getColorForParty = function (party) { return (!party) ? 'yellow' : (party.toLowerCase().includes('republican')) ? repColor : (party.toLowerCase().includes('democrat')) ? demColor : (party.toLowerCase().includes('whig')) ? whigColor : thirdColor; };
+export const getColorForParty = function (party) { 
+  return (!party) ? 'yellow'
+    : (party.toLowerCase().includes('republican')) ? repColor 
+    : (party.toLowerCase().includes('democrat')) ? demColor 
+    : (party.toLowerCase().includes('whig')) ? whigColor 
+    : (party.toLowerCase().includes('opposition')) ? oppositionColor 
+    : thirdColor; };
 
 export const getColorForMargin = function (party, percent) {
   party = party || '';
@@ -286,6 +301,10 @@ export const getColorForMargin = function (party, percent) {
     .domain([-1, 1])
     .range([equalColor, whigColor]);
 
+  const oppositionColorAdjustment = d3.scaleLinear()
+    .domain([-1, 1])
+    .range([equalColor, oppositionColor]);
+
   const thirdColorAdjustment = d3.scaleLinear()
     .domain([-1, 1])
     .range([equalColor, thirdColor]);
@@ -302,6 +321,10 @@ export const getColorForMargin = function (party, percent) {
     .domain([-1, 0.5, 0.55, 1])
     .range([equalColor, equalColor, whigColorAdjustment(-0.2), whigColor]);
 
+  const getOppositionColor = d3.scaleLinear()
+    .domain([-1, 0.5, 0.55, 1])
+    .range([equalColor, equalColor, oppositionColorAdjustment(-0.2), oppositionColor]);
+
   const getThirdColor = d3.scaleLinear()
     .domain([-1, 0.5, 0.55, 1])
     .range([equalColor, equalColor, thirdColorAdjustment(-0.2), thirdColor]);
@@ -316,6 +339,10 @@ export const getColorForMargin = function (party, percent) {
 
   if (party.toLowerCase().includes('whig')) {
     return getWhigColor(percent);
+  }
+
+  if (party.toLowerCase().includes('opposition')) {
+    return getOppositionColor(percent);
   }
 
   if (party.toLowerCase().includes('third')) {

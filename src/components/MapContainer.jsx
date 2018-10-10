@@ -152,7 +152,7 @@ MapContainer.propTypes = {
     selectedView: PropTypes.string.isRequired,
     selectedYear: PropTypes.number.isRequired,
     selectedParty: PropTypes.string,
-    selectedDistrict: PropTypes.number,
+    selectedDistrict: PropTypes.string,
     onlyFlipped: PropTypes.bool,
     zoom: PropTypes.number,
     x: PropTypes.number,

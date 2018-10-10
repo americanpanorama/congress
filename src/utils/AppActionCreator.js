@@ -29,10 +29,11 @@ export const AppActions = {
     });
   },
 
-  congressLoaded: (year) => {
+  congressLoaded: (year, selectedDistrict) => {
     AppDispatcher.dispatch({
       type: AppActionTypes.congressLoaded,
-      year: year
+      year: year,
+      selectedDistrict: selectedDistrict
     });
   },
 

@@ -160,7 +160,27 @@ const DistrictData = props => (
       </div>
     }
 
-    <p>Won by <span className='electionData'>{props.victor}</span> (<span className='electionData'>{props.party}</span>) with <span className='electionData'>{props.percent}%</span> of the vote.</p>
+    {(props.percent > 0) ?
+      <p>Won by <span className='electionData'>{props.victor}</span> (<span className='electionData'>{props.party}{(props.plural) ? 's' : ''}</span>) with <span className='electionData'>{props.percent}%</span> of the vote.</p> :
+      <p>Won by <span className='electionData'>{props.victor}</span> (<span className='electionData'>{props.party}{(props.plural) ? 's' : ''}</span>).</p>
+    }
+
+
+    <div
+      onClick={props.onZoomToDistrict}
+      id={props.id}
+      className='zoomTo'
+    >
+      zoom to district
+    </div>
+
+    {(props.plural) &&
+      <p><em>Note: This was a plural member district that elected {props.plural} congressional representatives. Plural districts were eliminated and single member districts mandated in the Apportionment Act of 1842.</em></p>
+    }
+
+    {(props.label.includes('General Ticket')) &&
+      <p><em>Note: This representative was elected on a general ticket where voters did not elect single members for a particular district but instead voted multiple times to elect multiple representatives. Single member districts were mandated by the Apportionment Act of 1842, though small delegations were often elected by general ticket and there were some exceptions where general tickets were used following reapportionment.</em></p>
+    }
 
   {/* JSX Comment 
     <ul className='districtData'>
@@ -177,20 +197,13 @@ const DistrictData = props => (
       }
     </ul> */}
 
-    <div
-      onClick={props.onZoomToDistrict}
-      id={props.id}
-      className='zoomTo'
-    >
-      zoom to district
-    </div>
   </div>
 );
 
 export default DistrictData;
 
 DistrictData.propTypes = {
-  id: PropTypes.number.isRequired,
+  id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   onZoomToDistrict: PropTypes.func.isRequired,
@@ -206,6 +219,10 @@ DistrictData.propTypes = {
     PropTypes.number,
     PropTypes.bool
   ]).isRequired,
+  plural: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.bool
+  ]),
   dimensions: PropTypes.shape({
     districtLabelLeft: PropTypes.number.isRequired,
     districtLabelBottom: PropTypes.number.isRequired,
@@ -222,5 +239,6 @@ DistrictData.propTypes = {
 };
 
 DistrictData.defaultProps = {
-  backgroundColor: '#38444a'
+  backgroundColor: '#38444a',
+  plural: false
 };

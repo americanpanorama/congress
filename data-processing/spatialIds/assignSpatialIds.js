@@ -15,17 +15,17 @@ let spatialId = 0;
 const spatialIds = {};
 
 // initialize with the first congress's data
-console.log('initializing for 1788');
-Object.keys(mapping['1788']).forEach((state) => {
-  Object.keys(mapping['1788'][state]).forEach((currentDistrict) => {
-    spatialIds[`spatialId${spatialId}`] = { 1788: currentDistrict};
-    if (mapping['1788'][state][currentDistrict]) {
-      spatialIds[`spatialId${spatialId}`]['1790'] = mapping['1788'][state][currentDistrict];
+console.log('initializing for 1792');
+Object.keys(mapping['1792']).forEach((state) => {
+  Object.keys(mapping['1792'][state]).forEach((currentDistrict) => {
+    spatialIds[`spatialId${spatialId}`] = { 1792: currentDistrict};
+    if (mapping['1792'][state][currentDistrict]) {
+      spatialIds[`spatialId${spatialId}`]['1794'] = mapping['1792'][state][currentDistrict];
     }
     spatialId += 1;
   });
 });
-delete mapping['1788'];
+delete mapping['1792'];
 
 Object.keys(mapping)
   .map(year => parseInt(year))
@@ -36,11 +36,19 @@ Object.keys(mapping)
     Object.keys(mapping[year]).forEach((state) => {
       Object.keys(mapping[year][state]).forEach((currentDistrict) => {
         const nextDistrict = mapping[year][state][currentDistrict];
-        const stateAbbr = getStateAbbr(state);
+        const stateAbbr = state; //getStateAbbr(state);
         // see if it's a general ticket election
         if (elections[year] && elections[year][stateAbbr] && elections[year][stateAbbr].GT && currentDistrict.slice(-3) === '000') {
           // assign a spatial id for each
           elections[year][stateAbbr].GT.forEach((gtElection, i) => {
+            const newId = `spatialId${spatialId}`;
+            spatialIds[newId] = {};
+            spatialIds[newId][year] = `${currentDistrict}-${i}`;
+            spatialId += 1;
+          });
+        } else if (elections[year] && elections[year][stateAbbr] && elections[year][stateAbbr].AL && currentDistrict.slice(-3) === '000') {
+          // assign a spatial id for each
+          elections[year][stateAbbr].AL.forEach((gtElection, i) => {
             const newId = `spatialId${spatialId}`;
             spatialIds[newId] = {};
             spatialIds[newId][year] = `${currentDistrict}-${i}`;

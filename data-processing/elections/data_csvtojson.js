@@ -12,7 +12,7 @@ rawParties.forEach(p => {
 
 const yearForCongress = function (congress) { return 1786 + congress * 2; };
 
-const getRegularizedParty = function (party) { 
+const getRegularizedParty = function (party, year) {
   party = (party) ? party.toLowerCase() : '';
   if (party.includes('whig')) {
     return 'whig';
@@ -28,6 +28,9 @@ const getRegularizedParty = function (party) {
   }
   if (party.includes('democrat')) {
     return 'democrat';
+  }
+  if (party.includes('opposition') && year === 1854) {
+    return 'opposition';
   }
   return 'third';
 };
@@ -57,15 +60,23 @@ csv()
   })
   .on('json', (e) => {
     const year = yearForCongress(e.CONGRESS);
-    if (year && e.STATE && e.DISTRICT) {
+    if (year && year >= 1840 && e.STATE && e.DISTRICT) {
       elections[year] = elections[year] || {};
       elections[year][e.STATE] = elections[year][e.STATE] || {};
+
+      let percent = -1;
+      if (e.VICTOR_VOT === -9) {
+        percent = 1;
+      } else if (e.TOTAL_VOTE && e.VICTOR_VOT) {
+        percent = Math.round(parseInt(e.VICTOR_VOT) / parseInt(e.TOTAL_VOTE) * 1000) / 1000;
+      }
       const electionData = {
         party: parties[e.PARTY_OF_1],
-        partyReg: getRegularizedParty(parties[e.PARTY_OF_1]),
-        percent: (e.TOTAL_VOTE && e.VICTOR_VOT) ? Math.round(parseInt(e.VICTOR_VOT) / parseInt(e.TOTAL_VOTE) * 1000) / 1000 : -1,
+        partyReg: getRegularizedParty(parties[e.PARTY_OF_1], year),
+        percent: percent,
         victor: formatPersonName(e.VICTOR).trim(),
-        id: (`000000${e.ID}`).slice(-12)
+        id: (`000000${e.ID}`).slice(-12),
+        plural: (e.Plural) ? parseInt(e.Plural) : false
       };
       if (e.DISTRICT !== 'GT' && e.DISTRICT !== 'AL' && e.DISTRICT !== '0') {
         elections[year][e.STATE][e.DISTRICT] = electionData;

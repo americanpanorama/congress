@@ -14,81 +14,79 @@ const stateJS = "var fipsLookup = { n001: 'Alabama', n002: 'Alaska', n004: 'Ariz
 fs.readdir(iDir, (err, files) => {
   showError(err);
   files.forEach((file, i) => {
-    setTimeout(() => {
-      if (file.includes('43.json')) {
-        // find at large/general ticket elections to exclude
-        // if they share a boundary with an enumerated district it screws up the cleaning
-        const theGeojson = JSON.parse(fs.readFileSync(`${iDir}/${file}`, 'utf8'));
-        let exclude = [];
-        theGeojson.features.forEach((d) => {
-          if (d.properties.ID.slice(-3) === '000') {
-            const stateFIPS = d.properties.ID.slice(0, 3);
-            let shouldExclude = false;
-            theGeojson.features.forEach((d1) => {
-              if (d1.properties.ID.slice(0, 3) === stateFIPS && d1.properties.ID.slice(-3) !== '000') {
-                shouldExclude = true;
-              }
-            });
-            if (shouldExclude) {
-              exclude.push(d.properties.ID);
+    if (file.includes('114.json')) {
+      // find at large/general ticket elections to exclude
+      // if they share a boundary with an enumerated district it screws up the cleaning
+      const theGeojson = JSON.parse(fs.readFileSync(`${iDir}/${file}`, 'utf8'));
+      let exclude = [];
+      theGeojson.features.forEach((d) => {
+        if (d.properties.ID.slice(-3) === '000') {
+          const stateFIPS = d.properties.ID.slice(0, 3);
+          let shouldExclude = false;
+          theGeojson.features.forEach((d1) => {
+            if (d1.properties.ID.slice(0, 3) === stateFIPS && d1.properties.ID.slice(-3) !== '000') {
+              shouldExclude = true;
             }
+          });
+          if (shouldExclude) {
+            exclude.push(d.properties.ID);
           }
-        });
+        }
+      });
 
-        console.log(`processing: ${file}`);
-        const congressNum = parseInt(file.slice(9, -5));
-        const mapshaperOptions = [
-          `-i ${iDir}/${file}`,
-          'snap',
-          '-simplify weighted 1%',
-          `-filter '!${JSON.stringify(exclude)}.includes(ID)'`,
-          '-clean',
-          'keep-shapes',
-          `-each '${[
-            'id=ID',
-            'delete ID',
-            'startcong=parseInt(STARTCONG)',
-            'delete STARTCONG',
-            'endcong=parseInt(ENDCONG)',
-            'delete ENDCONG',
-            'district=parseInt(id.slice(-3))',
-            'delete Shape_Area',
-            'delete Shape_Leng',
-            'fips=id.slice(0,3)'
-          ].join(', ')}'`,
-          `-o precision=0.001 ./simplified-geojson/${congressNum}-notAL.json format=geojson`
-        ];
-        //console.log(mapshaperOptions.join(' '));
-        mapshaper.runCommands(mapshaperOptions.join(' '), showError);
+      console.log(`processing: ${file}`);
+      const congressNum = parseInt(file.slice(9, -5));
+      const mapshaperOptions = [
+        `-i ${iDir}/${file}`,
+        'snap',
+        '-simplify weighted 1%',
+        `-filter '!${JSON.stringify(exclude)}.includes(ID)'`,
+        '-clean',
+        'keep-shapes',
+        `-each '${[
+          'id=ID',
+          'delete ID',
+          'startcong=parseInt(STARTCONG)',
+          'delete STARTCONG',
+          'endcong=parseInt(ENDCONG)',
+          'delete ENDCONG',
+          'district=parseInt(id.slice(-3))',
+          'delete Shape_Area',
+          'delete Shape_Leng',
+          'fips=id.slice(0,3)'
+        ].join(', ')}'`,
+        `-o precision=0.001 ./simplified-geojson/${congressNum}-notAL.json format=geojson`
+      ];
+      //console.log(mapshaperOptions.join(' '));
+      mapshaper.runCommands(mapshaperOptions.join(' '), showError);
 
-        // const simplified = JSON.parse(fs.readFileSync(`./simplified-geojson/${congressNum}.json`, 'utf8'));
-        // console.log(simplified);
-        const fipses = JSON.stringify(exclude.map(id => id.slice(0, 3)));
-        const mapshaperOptions2 = [
-          `-i ./simplified-geojson/${congressNum}-notAL.json`,
-          `-filter '${fipses}.includes(fips)'`,
-          `-dissolve fips`,
-          `-each '${[
-            `id=${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips)`,
-            `startcong=parseInt(${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips).slice(3,6))`,
-            `endcong=parseInt(${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips).slice(6,9))`,
-            'district=0'
-          ].join(', ')}'`,
-          `-o precision=0.001 ./simplified-geojson/${congressNum}-AL.json format=geojson`
-        ];
+      // const simplified = JSON.parse(fs.readFileSync(`./simplified-geojson/${congressNum}.json`, 'utf8'));
+      // console.log(simplified);
+      const fipses = JSON.stringify(exclude.map(id => id.slice(0, 3)));
+      const mapshaperOptions2 = [
+        `-i ./simplified-geojson/${congressNum}-notAL.json`,
+        `-filter '${fipses}.includes(fips)'`,
+        `-dissolve fips`,
+        `-each '${[
+          `id=${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips)`,
+          `startcong=parseInt(${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips).slice(3,6))`,
+          `endcong=parseInt(${JSON.stringify(exclude)}.find(id=>id.slice(0,3)===fips).slice(6,9))`,
+          'district=0'
+        ].join(', ')}'`,
+        `-o precision=0.001 ./simplified-geojson/${congressNum}-AL.json format=geojson`
+      ];
 
-        //console.log(mapshaperOptions2.join(' '));
-        mapshaper.runCommands(mapshaperOptions2.join(' '), showError);
+      //console.log(mapshaperOptions2.join(' '));
+      mapshaper.runCommands(mapshaperOptions2.join(' '), showError);
 
-        // combine the files
-        const mapshaperOptionsCombine = [
-          `-i ./simplified-geojson/${congressNum}-notAL.json ./simplified-geojson/${congressNum}-AL.json combine-files`,
-          '-rename-layers enum,al',
-          '-merge-layers target=enum,al name=merged',
-          `-o ./simplified-geojson/${congressNum}.json format=geojson target=merged`
-        ];
-        mapshaper.runCommands(mapshaperOptionsCombine.join(' '), showError);
-      }
-    }, 0 * i);
-  });
+      // combine the files
+      const mapshaperOptionsCombine = [
+        `-i ./simplified-geojson/${congressNum}-notAL.json ./simplified-geojson/${congressNum}-AL.json combine-files`,
+        '-rename-layers enum,al',
+        '-merge-layers target=enum,al name=merged',
+        `-o ./simplified-geojson/${congressNum}.json format=geojson target=merged`
+      ];
+      mapshaper.runCommands(mapshaperOptionsCombine.join(' '), showError);
+    }
+  }, 0 * i);z
 });

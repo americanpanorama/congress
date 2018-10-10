@@ -5,23 +5,49 @@ const elections = require('./elections/data/elections.json');
 
 const counts = [];
 
-const getPartyCountForYearAndParty = (year, party) => (
-  Object.keys(elections[year]).reduce((accumulator, state) => (
-    accumulator + Object.keys(elections[year][state]).reduce((accumulator2, districtNum) => (
-      accumulator2 + ((elections[year][state][districtNum].partyReg === party) ? 1 : 0) 
-    ), 0)
-  ), 0)
-);
+// const getPartyCountForYearAndParty = (year, party) => (
+//   Object.keys(elections[year]).reduce((accumulator, state) => (
+//     accumulator + Object.keys(elections[year][state]).reduce((accumulator2, districtNum) => (
+//       accumulator2 + ((elections[year][state][districtNum].partyReg === party) ? 1 : 0)
+//     ), 0)
+//   ), 0)
+// );
+
+const getPartyCountForYearAndParty = (year, party) => {
+  let count = 0;
+  Object.keys(elections[year]).forEach((s) => {
+    Object.keys(elections[year][s]).forEach((d) => {
+      if (d === 'GT' || d === 'AL') {
+        elections[year][s][d].forEach((ald) => {
+          if (ald.partyReg === party) {
+            count += 1;
+          }
+        });
+      } else if (elections[year][s][d].partyReg === party) {
+        count += 1;
+      }
+    });
+  });
+  return count;
+};
 
 Object.keys(elections).forEach((year) => {
-  if (year !== 'NaN') {
+  if (year !== 'NaN' && parseInt(year) >= 1840) {
     const repCount = getPartyCountForYearAndParty(year, 'republican');
     const whigCount = getPartyCountForYearAndParty(year, 'whig');
     const demCount = getPartyCountForYearAndParty(year, 'democrat');
+    const oppositionCount = getPartyCountForYearAndParty(year, 'opposition');
     const thirdCount = getPartyCountForYearAndParty(year, 'third');
 
-    const demAboveMargin = (year < 1856) ? Math.max(demCount - whigCount, 0) :
-      Math.max(demCount - repCount, 0);
+    let demAboveMargin;
+    if (parseInt(year) < 1854) {
+      demAboveMargin = Math.max(demCount - whigCount, 0);
+    } else if (parseInt(year) === 1854) {
+      demAboveMargin = Math.max(demCount - oppositionCount - whigCount, 0);
+      console.log(demAboveMargin);
+    } else {
+      demAboveMargin = Math.max(demCount - repCount, 0);
+    }
     const demBelowMargin = (demAboveMargin <= 0) ? demCount : demCount - demAboveMargin;
 
     const repAboveMargin = Math.max(repCount - demCount, 0);
@@ -35,6 +61,7 @@ Object.keys(elections).forEach((year) => {
       demAboveMargin: demAboveMargin,
       demBelowMargin: demBelowMargin,
       thirdCount: thirdCount,
+      oppositionBelowMargin: oppositionCount,
       whigBelowMargin: whigBelowMargin,
       repBelowMargin: repBelowMargin,
       whigAboveMargin: whigAboveMargin,
@@ -44,7 +71,7 @@ Object.keys(elections).forEach((year) => {
 });
 
 const stack = d3.stack()
-  .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'whigBelowMargin', 'repBelowMargin', 'whigAboveMargin', 'repAboveMargin']);
+  .keys(['demAboveMargin', 'demBelowMargin', 'thirdCount', 'whigBelowMargin', 'oppositionBelowMargin', 'repBelowMargin', 'whigAboveMargin', 'repAboveMargin']);
 
 // calculate preliminary steamgraph values
 let stackedData = stack(counts);
@@ -59,7 +86,8 @@ stackedData.forEach((partyCounts, i) => {
       repAboveMargin,
       repBelowMargin,
       whigAboveMargin,
-      whigBelowMargin
+      whigBelowMargin,
+      oppositionBelowMargin
     } = stackData.data;
 
     const formulas0 = {
@@ -68,6 +96,7 @@ stackedData.forEach((partyCounts, i) => {
       thirdCount: () => -1 * (thirdCount / 2),
       repBelowMargin: () => thirdCount / 2,
       whigBelowMargin: () => thirdCount / 2,
+      oppositionBelowMargin: () => thirdCount / 2 + whigBelowMargin,
       repAboveMargin: () => 0,
       whigAboveMargin: () => 0
     };
@@ -77,6 +106,7 @@ stackedData.forEach((partyCounts, i) => {
       thirdCount: () => thirdCount / 2,
       repBelowMargin: () => thirdCount / 2 + repBelowMargin,
       whigBelowMargin: () => thirdCount / 2 + whigBelowMargin,
+      oppositionBelowMargin: () => thirdCount / 2 + whigBelowMargin + oppositionBelowMargin,
       repAboveMargin: () => thirdCount / 2 + repBelowMargin + repAboveMargin,
       whigAboveMargin: () => thirdCount / 2 + whigBelowMargin + whigAboveMargin
     };
@@ -103,7 +133,7 @@ demSpans.forEach((span) => {
   demSeries.push(aDemSeries);
 });
 
-const repMajorityYears = stackedData[6]
+const repMajorityYears = stackedData[7]
   .filter(yd => yd.data.repAboveMargin > 0)
   .map(yd => yd.data.year);
 const repStartYears = repMajorityYears
@@ -113,25 +143,27 @@ const repEndYears = repMajorityYears
 const repSpans = repStartYears.map((sy, i) => [sy, repEndYears[i]]);
 const repSeries = [];
 repSpans.forEach((span) => {
-  const startIndex = stackedData[6].findIndex(yd => yd.data.year === span[0]);
-  const endIndex = stackedData[6].findIndex(yd => yd.data.year === span[1]);
-  const aRepSeries = stackedData[6].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
+  const startIndex = stackedData[7].findIndex(yd => yd.data.year === span[0]);
+  const endIndex = stackedData[7].findIndex(yd => yd.data.year === span[1]);
+  const aRepSeries = stackedData[7].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
   repSeries.push(aRepSeries);
 });
 
-const whigMajorityYears = stackedData[5].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year);
+const whigMajorityYears = stackedData[6].filter(yd => yd.data.whigAboveMargin > 0).map(yd => yd.data.year);
 const whigStartYears = whigMajorityYears.filter((year, i) => i === 0 || !whigMajorityYears.includes(year - 2));
 const whigEndYears = whigMajorityYears.filter((year, i) => i === whigMajorityYears.length -1 || !whigMajorityYears.includes(year + 2));
 const whigSpans = whigStartYears.map((sy, i) => [sy, whigEndYears[i]]);
 const whigSeries = [];
 whigSpans.forEach((span) => {
-  const startIndex = stackedData[5].findIndex(yd => yd.data.year === span[0]);
-  const endIndex = stackedData[5].findIndex(yd => yd.data.year === span[1]);
-  const aWhigSeries = stackedData[5].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
+  const startIndex = stackedData[6].findIndex(yd => yd.data.year === span[0]);
+  const endIndex = stackedData[6].findIndex(yd => yd.data.year === span[1]);
+  const aWhigSeries = stackedData[6].slice(startIndex, (startIndex === endIndex) ? endIndex + 2 : endIndex + 1);
   whigSeries.push(aWhigSeries);
 });
 
-stackedData.splice(5, 2);
+// cut off the last two: 
+
+stackedData.splice(6, 2);
 stackedData.splice(0, 1);
 stackedData = repSeries.concat(stackedData);
 stackedData = whigSeries.concat(stackedData);
@@ -145,13 +177,14 @@ repSeries.forEach(ds => partyCountsKeys.push('repAboveMargin'));
 partyCountsKeys.push('demBelowMargin');
 partyCountsKeys.push('thirdCount');
 partyCountsKeys.push('whigBelowMargin');
+partyCountsKeys.push('oppositionBelowMargin');
 partyCountsKeys.push('repBelowMargin');
 
 const maxDemocrats = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.demBelowMargin + yd.demAboveMargin));
 const maxRepublicans = Math.max(...counts.map(yd => yd.thirdCount / 2 + yd.repBelowMargin + yd.repAboveMargin));
 
 const x = d3.scaleLinear()
-  .domain([1840, 2014])
+  .domain([1840, 2016])
   .range([0, 1]);
 const y = d3.scaleLinear()
   .domain([-1 * maxDemocrats, maxRepublicans])

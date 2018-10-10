@@ -5,7 +5,6 @@ const Navigation = props => (
   <nav id='mainNav' style={props.dimensions.navStyle}>
     <h4 onClick={props.onModalClick} id='intro'>Introduction</h4>
     <h4 onClick={props.onModalClick} id='sources'>Sources & Methods</h4>
-    <h4 onClick={props.onModalClick} id='citing'>Citing</h4>
     <h4 onClick={props.onModalClick} id='about'>About</h4>
     <h4 onClick={props.onContactUsToggle}>Contact Us</h4>
   </nav>

@@ -30,7 +30,7 @@ const TimelineDistrict = (props) => {
     if (percent > 0) {
       if (partyReg === 'democrat') {
         y = props.y(percent * -1);
-      } else if (partyReg === 'republican' || partyReg === 'whig') {
+      } else if (partyReg === 'republican' || partyReg === 'whig' || partyReg === 'opposition') {
         y = props.y(percent);
       }
     }
@@ -54,6 +54,15 @@ const TimelineDistrict = (props) => {
         width={DimensionsStore.timelineX(lastYear) - DimensionsStore.timelineX(1856)}
         height={props.y(1) - props.y(0)}
         fill={getColorForParty('republican')}
+        fillOpacity={0.2}
+      />
+
+      <rect
+        x={DimensionsStore.timelineX(1854)}
+        y={props.y(0)}
+        width={DimensionsStore.timelineX(1856) - DimensionsStore.timelineX(1854)}
+        height={props.y(1) - props.y(0)}
+        fill={getColorForParty('opposition')}
         fillOpacity={0.2}
       />
 
@@ -102,7 +111,7 @@ const TimelineDistrict = (props) => {
 
       { props.districtData.map((yearData) => {
         const { partyReg, percent, year } = yearData;
-        if (['democrat', 'republican', 'whig'].includes(partyReg)) {
+        if (['democrat', 'republican', 'whig', 'opposition'].includes(partyReg)) {
           return (
             <circle
               cx={DimensionsStore.timelineX(year)}

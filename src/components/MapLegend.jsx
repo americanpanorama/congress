@@ -82,7 +82,20 @@ export default class MapLegend extends React.Component {
               />
             }
 
-            { (this.props.selectedYear <= 1854) &&
+            { (this.props.selectedYear === 1854) &&
+              <MapLegendPartyElement
+                party='opposition'
+                label='Opposition'
+                labelColor={(!this.props.selectedParty || this.props.selectedParty === 'opposition') ? '#eee' : '#666'}
+                checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'opposition') ? '#F0B67F' : '#666'}
+                selectedView={this.props.selectedView}
+                winnerView={this.props.winnerView}
+                gradientView={!this.props.winnerView}
+                onClick={this.props.onPartySelected}
+              />
+            }
+
+            { (this.props.selectedYear < 1854) &&
               <MapLegendPartyElement
                 party='whig'
                 label='Whig'
@@ -96,7 +109,36 @@ export default class MapLegend extends React.Component {
             }
           </g>
 
-          { (this.props.hasThird) &&
+          { (this.props.selectedYear === 1854) &&
+            <React.Fragment>
+              <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 5})`}>
+                <MapLegendPartyElement
+                  party='whig'
+                  label='Whig'
+                  labelColor={(!this.props.selectedParty || this.props.selectedParty === 'whig') ? '#eee' : '#666'}
+                  checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'whig') ? '#F0B67F' : '#666'}
+                  selectedView={this.props.selectedView}
+                  winnerView={this.props.winnerView}
+                  gradientView={!this.props.winnerView}
+                  onClick={this.props.onPartySelected}
+                />
+              </g>
+              <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 6.5})`}>
+                <MapLegendPartyElement
+                  party='third'
+                  label='Third'
+                  labelColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#eee' : '#666'}
+                  checkboxColor={(!this.props.selectedParty || this.props.selectedParty === 'third') ? '#F0B67F' : '#666'}
+                  selectedView={this.props.selectedView}
+                  winnerView={this.props.winnerView}
+                  gradientView={!this.props.winnerView}
+                  onClick={this.props.onPartySelected}
+                />
+              </g>
+            </React.Fragment>
+          }
+
+          { (this.props.hasThird && this.props.selectedYear !== 1854) &&
             <g transform={`translate(0 ${dimensions.mapLegendElementHeight * 5})`}>
               <MapLegendPartyElement
                 party='third'
@@ -155,6 +197,7 @@ export default class MapLegend extends React.Component {
 
         { (this.props.hasGTElection) &&
           <g transform={`translate(${dimensions.mapLegendWidth / 2} ${gtY})`}>
+            <title>In general ticket elections, voters did not elect single members for a particular district but instead voted multiple times to elect multiple representatives.</title>
             {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(n => (
               <React.Fragment key={`gtlegend${n}`}>
                 <rect

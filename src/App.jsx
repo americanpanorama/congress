@@ -12,13 +12,17 @@ import Context from './components/Context';
 import Timeline from './components/Timeline';
 import TimelineHandle from './components/TimelineHandle';
 import Text from './components/Text';
+import ContactUs from './components/contactUs';
 import ElectionLabel from './components/ElectionLabel';
 import DistrictData from './components/DistrictData';
 import SearchResult from './components/SearchResult';
+import IntroModal from './components/IntroModal';
+import PanNav from './components/PanNav';
 
 import DistrictsStore from './stores/Districts';
 import DimensionsStore from './stores/DimensionsStore';
 import HashManager from './stores/HashManager';
+import panoramaNavData from '../data/pannav.json';
 
 // main app container
 class App extends React.Component {
@@ -30,8 +34,8 @@ class App extends React.Component {
     const [x, y, z] = (theHash.xyz) ? theHash.xyz.split('/').map(d => parseFloat(d, 10)) : [0.5, 0.5, 1];
     this.state = {
       selectedView: theHash.view || 'cartogram',
-      selectedYear: parseInt(theHash.year, 10) || 2010,
-      selectedDistrict: parseInt(theHash.district) || null,
+      selectedYear: parseInt(theHash.year, 10) || 2016,
+      selectedDistrict: theHash.district || null,
       selectedParty: theHash.party || null,
       onlyFlipped: false,
       inspectedDistrict: null,
@@ -40,15 +44,18 @@ class App extends React.Component {
       x: x,
       y: y,
       textSubject: null,
+      contactUs: false,
       searchOpen: false,
       searching: false,
-      searchOptions: []
+      searchOptions: [],
+      showIntroModal: window.localStorage.getItem('hasViewedIntroModal-congress') !== 'true',
+      showPanoramaMenu: false
     };
 
     this.search = React.createRef();
 
     // bind handlers
-    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded', 'calculateBounds', 'onToggleSearch'];
+    const handlers = ['onWindowResize', 'onYearSelected', 'toggleDorling', 'storeChanged', 'onDistrictInspected', 'onDistrictUninspected', 'onDistrictSelected', 'onPartySelected', 'toggleFlipped', 'dimensionsChanged', 'onModalClick', 'onZoomIn', 'zoomOut', 'onMapDrag', 'resetView', 'onZoomToDistrict', 'onZoomInToPoint', 'onViewSelected', 'onHandleKeyPress', 'onSearching', 'onCongressLoaded', 'calculateBounds', 'onToggleSearch', 'searchFor', 'onDismissIntroModal', 'onContactUs', 'onPanoramaMenuClick'];
     handlers.forEach((handler) => { this[handler] = this[handler].bind(this); });
   }
 
@@ -58,13 +65,17 @@ class App extends React.Component {
     AppDispatcher.register((action) => {
       const updates = {};
       updates[AppActionTypes.congressLoaded] = () => {
-        this.onCongressLoaded(action.year);
+        this.onCongressLoaded(action.year, action.selectedDistrict);
       };
 
       if (updates[action.type]) {
         updates[action.type]();
       }
     });
+
+    if (HashManager.getState().hasOwnProperty('noIntro')) {
+      this.setState({showIntroModal: false});
+    }
   }
 
   componentDidMount () {
@@ -93,18 +104,19 @@ class App extends React.Component {
     AppActions.congressSelected(selectedYear, this.state.selectedDistrict);
   }
 
-  onCongressLoaded (year) {
-    // deselect selectedDistrict if it doesn't exist in the new year
-    let { selectedDistrict } = this.state;
-    if (this.state.selectedDistrict) {
-      const districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedDistrict);
-      if (!districtData) {
-        selectedDistrict = null;
-      }
-    }
+  onCongressLoaded (year, selectedDistrict) {
+    // if (this.state.selectedDistrict) {
+    //   // get the spatial id
+    //   const spatialId = DistrictsStore.districtToSpatialId(this.state.selectedDistrict);
+    //   const newSelectedDistrict = DistrictsStore
+    //   const districtData = DistrictsStore.getElectionDataForDistrict(this.state.selectedDistrict);
+    //   if (!districtData) {
+    //     selectedDistrict = null;
+    //   }
+    // }
     this.setState({
       selectedYear: year,
-      selectedDistrict: (selectedDistrict) ? parseInt(selectedDistrict) : null
+      selectedDistrict: selectedDistrict
     });
   }
 
@@ -179,19 +191,23 @@ class App extends React.Component {
     let id = null;
     if (typeof e === 'number' || typeof e === 'string') {
       id = e;
-    } else if (e.currentTarget && parseInt(e.currentTarget.id) !== this.state.selectedDistrict) {
+    } else if (e.currentTarget && e.currentTarget.id !== this.state.selectedDistrict) {
       // use length to determine if it's a district id or a spatial id
       if (e.currentTarget.id.length === 12 || e.currentTarget.id.length === 14) {
-        id = DistrictsStore.districtToSpatialId(e.currentTarget.id);
-      } else {
         ({ id } = e.currentTarget);
+      } else {
+        id = DistrictsStore.spatialToDistrictId(e.currentTarget.id);
       }
     } else if (e.id) {
-      ({ id } = e.id);
+      if (e.id.length === 12 || e.id.length === 14) {
+        ({ id } = e.id);
+      } else {
+        id = DistrictsStore.spatialToDistrictId(e.id);
+      }
     }
+    const spatialId = DistrictsStore.districtToSpatialId(id);
     if (id) {
-      id = parseInt(id);
-      AppActions.districtSelected(id);
+      AppActions.districtSelected(spatialId);
     }
 
     if (this.state.searchOpen) {
@@ -218,7 +234,7 @@ class App extends React.Component {
       const visibleBounds = this.calculateBounds(this.state.x, this.state.y, this.state.zoom);
       const rawDistrictBounds = (this.state.selectedView === 'map')
         ? DistrictsStore.getElectionDataForDistrict(id).bounds
-        : DistrictsStore.getBoundsForDistrictAndBubble(id);
+        : DistrictsStore.getBoundsForDistrictAndBubble(spatialId);
       const districtBounds = [
         [
           (rawDistrictBounds[0][0] * mapScale + mapProjectionWidth / 2) / mapProjectionWidth,
@@ -293,21 +309,38 @@ class App extends React.Component {
     });
   }
 
-  onModalClick (event) {
-    const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
+  onDismissIntroModal (persist) {
+    if (persist) {
+      window.localStorage.setItem('hasViewedIntroModal-congress', 'true');
+    }
     this.setState({
-      textSubject: subject
+      showIntroModal: false
     });
   }
 
-  onSearching (e) {
+  onModalClick (event) {
+    const subject = (event.currentTarget.id) ? (event.currentTarget.id) : null;
+    this.setState({
+      textSubject: subject,
+      contactUs: false
+    });
+  }
+
+  onContactUs () {
+    this.setState({
+      contactUs: !this.state.contactUs,
+      textSubject: null
+    });
+  }
+
+  onSearching (wait) {
     if (!this.state.searching) {
       this.setState({
         searching: true
       });
     }
 
-    const waitInterval = 1000;
+    const waitInterval = (!isNaN(wait)) ? wait : 1000;
     clearTimeout(this.searchTimer);
     const searchingFor = this.search.current.refs.entry.value;
     this.searchTimer = setTimeout(() => {
@@ -319,6 +352,13 @@ class App extends React.Component {
         searchOptions: filteredIds
       });
     }, waitInterval);
+  }
+
+  onPanoramaMenuClick () {
+
+    this.setState({
+      showPanoramaMenu: !this.state.showPanoramaMenu
+    });
   }
 
   onZoomIn () {
@@ -338,6 +378,19 @@ class App extends React.Component {
       zoom: 1,
       x: 0.5,
       y: 0.5
+    });
+  }
+
+  searchFor (e) {
+    const text = e.currentTarget.id;
+
+    this.setState({
+      searchOpen: true,
+      searching: true
+    }, () => {
+      this.search.current.focus();
+      this.search.current.setEntryText(text);
+      this.onSearching(0);
     });
   }
 
@@ -405,10 +458,6 @@ class App extends React.Component {
       DistrictsStore.getElectionDataForDistrict(selectedDistrict) : null;
     const spaceData = (selectedDistrict) ? DistrictsStore.getSpaceData() : null;
 
-    if (districtData) {
-      console.log(districtData.id);
-    }
-
     return (
       <div>
         <Masthead
@@ -418,7 +467,7 @@ class App extends React.Component {
         <Navigation
           dimensions={dimensions}
           onModalClick={this.onModalClick}
-          onContactUsToggle={() => false}
+          onContactUsToggle={this.onContactUs}
         />
 
         { (this.state.searchOpen) &&
@@ -429,7 +478,7 @@ class App extends React.Component {
             <button
               onClick={this.onToggleSearch}
               className='close'
-              style={{
+            style={{
                 right: dimensions.nextPreviousButtonHeight / 2 - 1,
                 top: dimensions.nextPreviousButtonHeight / 2 - 1
               }}
@@ -548,12 +597,14 @@ class App extends React.Component {
             onDistrictSelected={this.onDistrictSelected}
             onZoomToDistrict={this.onZoomToDistrict}
             dimensions={dimensions}
+            plural={districtData.plural}
           /> :
           <Context
             selectedYear={selectedYear}
             onPartySelected={this.onPartySelected}
             onlyFlipped={this.state.onlyFlipped}
             onDistrictSelected={this.onDistrictSelected}
+            searchFor={this.searchFor}
             toggleView={this.toggleView}
             toggleFlipped={this.toggleFlipped}
             zoomToBounds={this.zoomToBounds}
@@ -567,6 +618,23 @@ class App extends React.Component {
             dimensions={dimensions}
             onModalClick={this.onModalClick}
           />
+        }
+
+        { (this.state.contactUs) &&
+          <ContactUs
+            close={this.onContactUs}
+            dimensions={dimensions}
+          />
+        }
+
+        <PanNav
+          show_menu={this.state.showPanoramaMenu}
+          toggle={this.onPanoramaMenuClick}
+          nav_data={panoramaNavData}
+        />
+
+        { (this.state.showIntroModal) &&
+          <IntroModal onDismiss={this.onDismissIntroModal} />
         }
 
       </div>

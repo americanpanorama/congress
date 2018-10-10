@@ -29,6 +29,7 @@ export default class MapLegendParty extends React.Component {
         transform={`translate(${dimensions.mapLegendWidth / 2})`}
         onClick={this.props.onClick}
         id={this.props.party}
+        className='mapLegendControl'
       >
         <defs>
           <linearGradient id={`${this.props.party}-Gradient`}>

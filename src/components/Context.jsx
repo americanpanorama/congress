@@ -25,6 +25,87 @@ const Context = (props) => {
       }}
       className='context'
     >
+      {(props.selectedYear === 1840) &&
+        <p>In the midst of a major economic depression that began three years earlier in the Panic of 1837, the <span onClick={selectPartyFlippedOff} id='whig'>Whig party won the majority of seats</span> in the House for the first time with a significant margin, 142-98. This was the last election in American history to include plural districts: districts in relatively populous areas that elected multiple representatives. The Maryland 4th, New York 3rd, 8th, 17th, 22d and 23rd, and Pennsylvania 2nd and 4th were plural districts.</p>
+      }
+      {(props.selectedYear === 1842) &&
+        <p>Internally divided, particularly against the nominally Whig president, John Tyler, and perceived as ineffectual in stemming the lingering economic depression, Whigs in the House suffered one of the largest defeats in congressional history in the election of 1842, <span onClick={toggleFlippedPartyOff}>plummeting from 133 seats to 79.</span></p>
+      }
+      {(props.selectedYear === 1844) &&
+        <p>Democrats lost <span onClick={toggleFlippedPartyOff}>a handful of seats</span> but retained a large majority in the House. The nativist, anti-Catholic American Party won its first congressional seats, winning six seats in and around two northern cities, New York and Philadelphia, where thousands of Irish immigrants has settled.</p>
+      }
+      {(props.selectedYear === 1846) &&
+        <p>Whigs regained a very narrow majority in the House despite emerging divisions in the party that posed Conscience Whigs against the Mexican War and the expansion of slavery against Cotton Whigs who were pro-slavery either from southern sympathies or because of the value of slavery to American economic development, not least of which was supplying cotton to the northern textile industry.</p>
+      }
+      {(props.selectedYear === 1848) &&
+        <p>The election of 1848 was the first to produce a House where no party had a majority. The Democrats picked up a single seat while the Whigs lost eight. Foreshadowing the wreckage that the sectional crisis would soon visit on the Whig Party, the newly formed <span onClick={props.searchFor} id='Free Soil'>Free Soil Party</span> won nine seats spanning eight northern states.</p>
+      }
+      {(props.selectedYear === 1850) &&
+        <p>The Democrats <span onClick={toggleFlippedPartyOff}>picked up 17 seats</span>. Once again, new parties formed around the sectional crisis won numerous seats. While the <span onClick={props.searchFor} id='Free Soil'>Free Soil Party</span> lost five of the nine seats it had won two years earlier, two new parties, the <span onClick={props.searchFor} id='Union'>Unionist Party</span> that supported the Compromise of 1850 and the <span onClick={props.searchFor} id='State Right'>States' Rights Party</span> that championed a pro-slavery platform, won respectively ten and three in districts in the lower South.</p>
+      }
+      {(props.selectedYear === 1852) &&
+        <p></p>
+      }
+      {(props.selectedYear === 1854) &&
+        <p>In a country whose politics had been and would be dominated by a two-party system, the election of 1854 was extraordinarily chaotic. The label <span onClick={selectPartyFlippedOff} id='opposition'>“Opposition”</span> does not represent a single party but instead a coalition of candidates and voters who opposed the Democratic Party. This election was the death knell of the Whigs, an inter-sectional party that did not survive growing sectional tensions over slavery. While they remained vital as a party, the Democrats too <span onClick={toggleFlippedPartyOff}>lost dozens of seats</span> in the northern states as more and more northern voters voiced their opposition to the “Slave Power” through the political process.</p>
+      }
+      {(props.selectedYear === 1856) &&
+        <p>The map for 1856 clearly demonstrates the continued acceleration of sectionalism in American politics around the issue of slavery as well as the stabilization of a new two-party system. The newly formed anti-slavery Republican party <span onClick={selectPartyFlippedOff} id='republican'>won most districts north of Iowa’s southern border in the midwestern states and in New York and most of New England</span>. Democrats dominated in <span onClick={selectPartyFlippedOff} id='democrat'>the slave states and southern Indiana and Illinois, which had been settled by white Southerners, as well as most of Pennsylvania and all the districts in and around New York City where Irish immigrants largely supported the Democratic Party</span>.</p>
+      }
+      {(props.selectedYear === 1858) &&
+        <p>No party won a majority in the 1858 election. <span onClick={selectPartyFlippedOff} id='republican'>Republicans won their first plurality in the House</span>. <span onClick={toggleFlippedPartyOff}>Democrats lost several seats in Pennsylvania</span> to the Republicans, who capitalized on growing resentment of the “Slave Power” as the administration of James Buchanan, a Pennsylvanian, aligned itself with pro-slavery settlers in the violently contested Kansas Territory.</p>
+      }
+      {(props.selectedYear === 1860) &&
+        <p>Owing to secession, membership in the House of Representatives dropped to 183 seats in 1860.  Both Democrats and Republicans suffered losses in the House in the midst of the secessionist chaos, as a Unionist coalition emerged to pick up 30 seats, creating an R-D-U split of 108-45-30.  Incumbent House Speaker William Pennington (R-NJ) lost his re-election bid, and Galusha Grow (R-PA) succeeded him.</p>
+      }
+      {(props.selectedYear === 1862) &&
+        <p>Challenges in the Civil War threw the Republican Party into disfavor and the GOP lost their House majority in 1862, as Democrats picked up 27 seats.  This forced Republicans into coalition with the Unionist Party to retain control of the chamber, with and R-D-U split of 87-72-25.  Among Republicans who lost their seats was Speaker Galusha Grow (R-PA), who was succeeded as Speaker by Schuyler Colfax (R-IN).</p>
+      }
+      {(props.selectedYear === 1864) &&
+        <p>Union victories in the Civil War strengthened Republican electoral prospects and the GOP picked up 50 House seats in the presidential election year to regain their majority, despite fluctuating membership, with a Republican-Democrat-Unionist split of 137-38-18.</p>
+      }
+      {(props.selectedYear === 1866) &&
+        <p>Strident disagreement between Radical Republicans in Congress and Democratic President Andrew Johnson over Reconstruction led to a major electoral clash in 1866.  House membership grew to 224 as more states re-entered the Union, meaning all parties picked up seats.  Republicans gained 38 and initially led most delegations from Southern states, giving them a 175-47 advantage, with the Conservative Party of Virginia taking 2.</p>
+      }
+      {(props.selectedYear === 1868) &&
+        <p>Democrats made inroads into the Republican House majority, especially in Southern states, picking up 20 seats as membership grew to 243 Representatives. The GOP retained control 171-67, along with 5 Conservatives from Virginia.  Speaker of the House Schuyler Colfax resigned when he was elected Vice President, serving with Ulysses S. Grant.  He was briefly succeeded as Speaker by Theodore Pomeroy (R-NY) and then James G. Blaine (R-ME).</p>
+      }
+      {(props.selectedYear === 1870) &&
+        <p>Scandals in the Republican administration and re-entry of Southern states into the Union led to dramatic Democratic gains in the House of Representatives.  Democrats won 31 more seats than in 1868, but Republicans retained control of the House, 139-104.</p>
+      }
+      {(props.selectedYear === 1872) &&
+        <p>Republicans dominated the 1872 election in the midst of sustained post-war economic growth.  The GOP took back numerous House seats throughout the South and West among their 64-seat gain from 1870.  Membership in the House rose from 243 to 293 and Republicans held a 203-89 majority over Democrats.</p>
+      }
+      {(props.selectedYear === 1874) &&
+        <p>Democrats benefitted from a stunning electoral reversal, picking up 93 seats and taking a 181-107 majority in the midst of the recession following the Panic of 1873.  Independents held 3 seats.  Michael Kerr (D-IN) succeeded James Blaine (R-ME) as Speaker of the House.</p>
+      }
+      {(props.selectedYear === 1876) &&
+        <p>Republicans rolled back a portion of the gains taken by Democrats in the 1874 election, and third parties lost all their seats in the 1876 election, renowned for the contested Presidential election decided by the lame duck House.  Democrats held onto a 156-137 majority.  Michael Kerr died during the Congress and was succeeded by Samuel Randall (D-PA).</p>
+      }
+      {(props.selectedYear === 1878) &&
+        <p>The midterm elections saw the rise of Western populism, as Democrats held onto the barest of majorities in 1878, 150-128.  Republicans also saw losses and the Greenback Party made up the difference, winning 13 seats among 14 independent Representatives.</p>
+      }
+      {(props.selectedYear === 1880) &&
+        <p>Republicans regained a slim majority in the House by picking up 24 seats over 1878 and holding a 152-130 advantage.  The Greenbacks held onto 10 seats and 2 Readjusters won seats in Virginia, part of a bi-racial coalition within the Democratic Party.  Joseph Keifer (R-OH) succeeded Samuel Randal (D-PA) as Speaker of the House.</p>
+      }
+      {(props.selectedYear === 1882) &&
+        <p>Democrats were resurgent in the midterm elections, exploiting the issue of civil service reform and ending the spoils system of patronage.  The House expanded to 325 seats and Democrats <span onClick={toggleFlippedPartyOff}>picked up 70 seats over 1880</span> to take 200-119 control of the House.  Readjusters won 4 seats in Virginia and Greenbacks won 2 seats, 1 in Iowa and 1 in Pennsylvania.  John Carlisle (D-KY) took the Speaker’s gavel from Joseph Keifer (R-OH).</p>
+      }
+      {(props.selectedYear === 1884) &&
+        <p>Republicans gained back 21 seats, picking up independent seats and several Democratic seats, though Democrats consolidated their hold on Southern states.  The regional divisions that would predominate for the next 80 years were increasingly visible, with a solid Democratic South, a largely Republican New England, Midwest, and West.  Democrats held a 182-140 majority, along with 1 Greenback.</p>
+      }
+      {(props.selectedYear === 1886) &&
+        <p>Republicans gained seats again, trimming the Democrats’ advantage in the House to 170-151, with James Weaver of Iowa holding the last Greenback seat, 2 seats held by the new Labor Party, and 1 Independent.</p>
+      }
+      {(props.selectedYear === 1888) &&
+        <p>Debate over Republicans continued their gains in the House, picking up 22 seats over the preceding election and taking control of the House, 173-156, with 1 Labor seat.  After the decline of the Greenback (National) Party, Western states saw a stirring of the rising Populist party, which split some votes from the Democrats.  Thomas Reed (R-ME) succeeded John Carlisle (D-KY) as Speaker of the House.</p>
+      }
+      {(props.selectedYear === 1890) &&
+        <p>A troubled economy and a Western populist wave contributed to major Democratic gains, picking up 75 seats and taking back the House of Representatives, 231-88.  A new force emerged in Western states as the Populist Party formed from organizations including the Knights of Labor, the Farmers’ Alliance, and the Greenback party, to battle Eastern elites.  Populists won 8 seats in Iowa, Kansas, and Minnesota and shifted Western politics for a generation. Charles Crisp, (D-GA) took over as Speaker of the House from Thomas Reed (R-ME).</p>
+      }
+      {(props.selectedYear === 1892) &&
+        <p>Republicans rolled back some of the Democrats’ gains from 1890 and picked up many of the 23 new seats as the House expanded to 356 seats.  Democrats maintained control over Republicans 220-124 with 11 Populists and 1 Silverite.</p>
+      }
       {(props.selectedYear === 1894) &&
         <p>In the 1894 elections, Republicans delivered a sound victory over Democrats, taking the House of Representatives by <span onClick={toggleFlippedPartyOff}>picking up 110 seats throughout the midwest and mid-Atlantic</span>. <span onClick={props.onDistrictSelected} id='023049062001'>Thomas Reed</span> (R-ME), took over the Speakership from <span onClick={props.onDistrictSelected} id='013053059003'>Charles Crisp</span> (D-GA), as Republicans controlled the House, 253-93.  Populists lost 4 seats to drop to 9.  In the Senate, Democrats held the chamber, 40-39, with Populists winning one new seat to bring their tally to 4, and Silverites holding 1.</p>
       }
@@ -182,7 +263,31 @@ const Context = (props) => {
         <p>1998 proved a historic election in that the Democrats, who held the Presidency, performed the rare feat of gaining House seats in the second midterm election amid President Clinton’s scandal and debate over impeachment proceedings.  Democrats picked up 4 seats to cut into Republicans’ 223-211 advantage, with 1 Independent.  Speaker Newt Gingrich (R-GA) resigned and was succeeded by Dennis Hastert (R-IL).  Republicans and Democrats each flipped three seats in Senate contests, resulting in no net change and a 55-45 Republican advantage.</p>
       }
       {(props.selectedYear === 2000) &&
-        <p>Stasis reigned in the House as Democrats picked up a single seat in the election, trimming the Republican majority to 221-212.  Democrats picked up 4 seats in the Senate, leading to a 50-50 split until Senator Jim Jeffords (VT) defected from the Republican Party in 2001.</p>
+        <p>Stasis reigned in the House as Democrats <span onClick={toggleFlippedPartyOff}>picked up a single seat</span> in the election, trimming the Republican majority to 221-212.  Democrats picked up 4 seats in the Senate, leading to a 50-50 split until Senator Jim Jeffords (VT) defected from the Republican Party in 2001.</p>
+      }
+      {(props.selectedYear === 2002) &&
+        <p>The attacks of September 11, 2001, and the debate over possible war in Iraq shaped the political climate in the fall of 2002.  Republicans performed the rare feat of gaining strength in a midterm election while holding the White House, <span onClick={toggleFlippedPartyOff}>picking up 8 seats in the House of Representatives</span> to increase their majority, 229-205, with 1 Independent.  In the Senate, Republicans gained 1 seat to break the 49-49 impasse and take a 50-49 advantage, with 1 Independent, Jim Jeffords of Vermont.</p>
+      }
+      {(props.selectedYear === 2004) &&
+        <p>The Iraq War and the continuing threat of terrorism characterized the 2004 election, as Republicans <span onClick={toggleFlippedPartyOff}>gained 3 more seats in the House</span> to increase their advantage to 232-202, with 1 Independent.  Southern states including Texas, Oklahoma, and Louisiana continued to flip from Democratic to Republican as part of the regional reordering of the parties.  Popular analyses emphasized the coastal nature of the Democratic Party and interior character of the Republican Party, but we can also see evidence of a rural-metropolitan divide solidifying between the parties.  In the Senate, Republicans gained 4 seats to take a 55-44 advantage, with 1 Independent.</p>
+      }
+      {(props.selectedYear === 2006) &&
+        <p>Dissatisfaction with the Iraq War, the ongoing War on Terror, and instances of corruption coalesced in an electoral reversal that saw the Democrats retake the House after 12 years of Republican control.  Democrats <span onClick={toggleFlippedPartyOff}>picked up 31 seats</span> to take a 233-202 majority in the House.  Nancy Pelosi (D-CA) became Speaker of the House, the first female Speaker in U.S. history, replacing Dennis Hastert (R-IL).  In the Senate, Democrats gained 5 seats to create a 49-49 deadlock, but with two independents who would caucus with the Democrats. Connecticut’s Joe Lieberman had formerly been a Democrat before being defeated in the Senate primary. Vermont’s Bernie Sanders rose from the House to win the seat of the retiring Jim Jeffords.</p>
+      }
+      {(props.selectedYear === 2008) &&
+        <p>An emerging economic crisis further turned public opinion against the Republicans, as Democrats <span onClick={toggleFlippedPartyOff}>gained 21 seats in the House</span> to increase their majority to 257-178.  In the Senate, Democrats picked up 8 seats to solidify control of the chamber by a 57-41 margin, with 2 Independents.  Democrats controlled both chambers for the first time since 1994.</p>
+      }
+      {(props.selectedYear === 2010) &&
+        <p>Slow recovery from the economic crisis and a rising right-wing populist movement known as the Tea Party led to a dramatic reversal of fortunes for Republicans.  In the House, the GOP <span onClick={toggleFlippedPartyOff}>picked up 63 seats</span> to take control of the chamber under new Speaker John Boehner (R-OH), 242-193. Republican gains were largely in exurban and rural areas, nearly completing the geographic transformation of the parties from a regional North/South division to a metropolitan/rural division. In the Senate, Republicans picked up six seats but Democrats maintained control of the chamber, 51-47, with 2 Independents.</p>
+      }
+      {(props.selectedYear === 2012) &&
+        <p>Democrats rolled back a small portion of Republican gains from the 2010 election by <span onClick={toggleFlippedPartyOff}>picking up 8 seats</span> in the House but faced a geographically changed map after decennial redistricting.  Republicans maintained control of the House, 234-201.  In the Senate, Democrats picked up two seats to increase their advantage in the chamber, 53-45, with 2 Independents, Sanders (I-VT) and Angus King (I-ME).</p>
+      }
+      {(props.selectedYear === 2014) &&
+        <p>Republicans solidified their hold on the House by <span onClick={toggleFlippedPartyOff}>picking up 13 seats</span> around the country to raise their advantage to 247-188.  Midway through the Congress, Speaker John Boehner resigned and was succeeded by Paul Ryan (R-WI).  In the Senate, Republicans picked up 9 seats to take control of the chamber, 54-44, with 2 Independents.</p>
+      }
+      {(props.selectedYear === 2016) &&
+        <p>Democrats again made inroads in the Republican majority by <span onClick={toggleFlippedPartyOff}>picking up 6 seats</span>, but the GOP held control of the House, 241-194.  In the Senate, Democrats picked up 2 seats but Republicans maintained control of the chamber, 52-46, with 2 Independents.</p>
       }
     </div>
   );
@@ -193,6 +298,7 @@ export default Context;
 Context.propTypes = {
   onPartySelected: PropTypes.func.isRequired,
   toggleFlipped: PropTypes.func.isRequired,
+  searchFor: PropTypes.func.isRequired,
   onDistrictSelected: PropTypes.func.isRequired,
   selectedYear: PropTypes.number.isRequired,
   dimensions: PropTypes.shape({

@@ -280,6 +280,9 @@ aside#handle {
 	position: fixed;
 	background-color: #233036;
 
+	.mapLegendControl {
+		cursor: pointer;
+	}
 }
 
 #mapControls {
@@ -329,6 +332,33 @@ aside#handle {
 
 	button.close {
 		position: fixed;
+	}
+
+	&.contactUs {
+		input,
+		textarea,
+		submit {
+			display: block;
+			margin: 20px 0 20px 250px;
+			width: 350px;
+		}
+
+		textarea {
+			height: 200px;
+		}
+
+		label {
+			text-align: right;
+			float: left;
+			width: 230px;
+			padding-top: 10px;
+		}
+
+		.contactUsForm {
+			p {
+				margin-left: 160px;
+			}
+		}
 	}
 
 }

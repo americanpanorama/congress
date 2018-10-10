@@ -1,6 +1,5 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import * as d3 from 'd3';
 import { getColorForParty, getColorForMargin } from '../utils/HelperFunctions';
 
 const Steamgraph = (props) => {
@@ -8,6 +7,7 @@ const Steamgraph = (props) => {
     demAboveMargin: getColorForParty('democrat'),
     demBelowMargin: getColorForMargin('democrat', 0.7),
     thirdCount: getColorForParty('third'),
+    oppositionBelowMargin: getColorForParty('opposition'),
     repBelowMargin: getColorForMargin('republican', 0.7),
     repAboveMargin: getColorForParty('republican'),
     whigBelowMargin: getColorForMargin('whig', 0.7),

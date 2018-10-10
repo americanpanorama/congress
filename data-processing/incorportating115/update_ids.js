@@ -17,8 +17,15 @@ toupdate.forEach((oldId) => {
 
   // replace them one by one
   const options = {
-    //files: '../../build/static/elections/*.json',
-    files: ['../elections/data/elections.json', '../dorlings/data/elections.json'],
+    files: [
+      '../../build/static/districts-geojson/*.json',
+      '../../build/static/elections/*.json',
+      '../dorlings/data/polylabelCoords.json',
+      '../dorlings/data/mapping.json',
+      '../elections/data/elections.json',
+      '../spatialIds/data/idMap.json',
+      '../combinedData/bubblesXYs.json'
+    ],
     from: oldId,
     to: newId
   };

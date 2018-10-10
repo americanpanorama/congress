@@ -9,87 +9,87 @@ const stateNames = states.map(s => s.state);
 const yearToYear = [
   // the civil war
   {
-    state: 'Virginia',
+    state: 'VA',
     fromcongress: 36,
     tocongress: 41
   },
   {
-    state: 'North Carolina',
+    state: 'NC',
     fromcongress: 36,
-    tocongress: 40
+    tocongress: 41
   },
   {
-    state: 'South Carolina',
+    state: 'SC',
     fromcongress: 36,
-    tocongress: 40
+    tocongress: 41
   },
   {
-    state: 'Georgia',
+    state: 'GA',
     fromcongress: 36,
-    tocongress: 40
+    tocongress: 41
   },
   {
-    state: 'Tennessee',
+    state: 'TN',
     fromcongress: 36,
     tocongress: 39
   },
   {
-    state: 'Arkansas',
-    fromcongress: 36,
-    tocongress: 40
-  },
-  {
-    state: 'Florida',
+    state: 'AR',
     fromcongress: 36,
     tocongress: 41
   },
   {
-    state: 'Mississippi',
+    state: 'FL',
     fromcongress: 36,
     tocongress: 41
   },
   {
-    state: 'Alabama',
-    fromcongress: 36,
-    tocongress: 40
-  },
-  {
-    state: 'Louisiana',
-    fromcongress: 36,
-    tocongress: 40
-  },
-  {
-    state: 'Texas',
+    state: 'MS',
     fromcongress: 36,
     tocongress: 41
   },
   {
-    state: 'Maine',
+    state: 'AL',
+    fromcongress: 36,
+    tocongress: 41
+  },
+  {
+    state: 'LA',
+    fromcongress: 36,
+    tocongress: 41
+  },
+  {
+    state: 'TX',
+    fromcongress: 36,
+    tocongress: 41
+  },
+  {
+    state: 'ME',
     fromcongress: 47,
     tocongress: 49
   },
   {
-    state: 'Virginia',
+    state: 'VA',
     fromcongress: 72,
     tocongress: 74
   },
   {
-    state: 'Minnesota',
+    state: 'MN',
     fromcongress: 72,
     tocongress: 74
   },
   {
-    state: 'Missouri',
+    state: 'MO',
     fromcongress: 72,
     tocongress: 74
   },
   {
-    state: 'Kentucky',
+    state: 'KY',
     fromcongress: 72,
     tocongress: 74
   },
   {
-    state: 'Alabama',
+    state: 'AL',
     fromcongress: 87,
     tocongress: 89 
   },
@@ -97,7 +97,7 @@ const yearToYear = [
 
 const queryForState = function (state, fromcongress, tocongress) {
   console.log(`starting ${state} ${fromcongress} ${tocongress}`);
-  const theQuery = `select 1786 + theprevious.endcong * 2 as fromyear, 1786 + thenext.startcong * 2 as toyear, theprevious.statename as state, theprevious.id as previousDistrict, thenext.id as nextDistrict, st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/theprevious.area * st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/thenext.area as overlap from districts_copy_1 theprevious, districts_copy_1 thenext where theprevious.endcong = ${fromcongress} and thenext.startcong = ${tocongress} and theprevious.statename = thenext.statename and st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(theprevious.the_geom) * st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(thenext.the_geom) > 0.25 and theprevious.district != 0 and thenext.district != 0 and theprevious.statename = '${state}' order by fromyear, state, overlap desc`;
+  const theQuery = `select 1786 + theprevious.endcong * 2 as fromyear, 1786 + thenext.startcong * 2 as toyear, theprevious.state as state, theprevious.id as previousDistrict, thenext.id as nextDistrict, st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(theprevious.the_geom) * st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(thenext.the_geom) as overlap from congressional_districts theprevious, congressional_districts thenext where theprevious.startcong <= ${fromcongress} and theprevious.endcong >= ${fromcongress} and thenext.startcong <= ${tocongress} and thenext.endcong >= ${tocongress} and theprevious.state = thenext.state and st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(theprevious.the_geom) * st_area(st_intersection(theprevious.the_geom, thenext.the_geom))/st_area(thenext.the_geom) > 0.25 and theprevious.district != 0 and thenext.district != 0 and theprevious.state = '${state}' order by fromyear, state, overlap desc`;
 
   d3.json(`https://digitalscholarshiplab.carto.com/api/v2/sql?format=JSON&q=${encodeURIComponent(theQuery)}`, (err, d) => {
     if (err) {

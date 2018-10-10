@@ -138,12 +138,13 @@ BubbleCity.propTypes = {
   cx: PropTypes.number.isRequired,
   cy: PropTypes.number.isRequired,
   fillOpacity: PropTypes.number,
-  cityLabel: PropTypes.string.isRequired,
+  cityLabel: PropTypes.string,
   cityLabelOpacity: PropTypes.number.isRequired,
   duration: PropTypes.number
 };
 
 BubbleCity.defaultProps = {
   fillOpacity: 1,
-  duration: 1000
+  duration: 1000,
+  cityLabel: ''
 };

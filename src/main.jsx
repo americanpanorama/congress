@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App.jsx';
+import Modal from 'react-modal';
+import App from './App';
+
 require('../scss/main.scss');
 
-ReactDOM.render(<App/>, document.getElementById('app-container'));
+Modal.setAppElement('#app-container');
+
+ReactDOM.render(<App />, document.getElementById('app-container'));

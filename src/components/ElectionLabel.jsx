@@ -91,37 +91,37 @@ const ElectionLabel = props => (
     <button
       onClick={props.onToggleSearch}
       style={{
-        marginTop: props.dimensions.nextPreviousButtonHeight / 2
+        marginTop: props.dimensions.nextPreviousButtonHeight / 4
       }}
     >
       <svg
-        width={props.dimensions.nextPreviousButtonHeight + 2}
-        height={props.dimensions.nextPreviousButtonHeight + 2}
+        width={props.dimensions.nextPreviousButtonHeight * 1.5 + 2}
+        height={props.dimensions.nextPreviousButtonHeight * 1.5 + 2}
       >
-        <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2} ${props.dimensions.nextPreviousButtonHeight / 2}) rotate(315)`}>
+        <g transform={`translate(${props.dimensions.nextPreviousButtonHeight / 2 * 1.5} ${props.dimensions.nextPreviousButtonHeight / 2 * 1.5}) rotate(315)`}>
           <circle
             cx={0}
             cy={0}
-            r={props.dimensions.nextPreviousButtonHeight / 2}
+            r={props.dimensions.nextPreviousButtonHeight / 2 * 1.5}
             fill='silver'
             fillOpacity={1}
           />
           <circle
             cx={0}
-            cy={props.dimensions.nextPreviousButtonHeight * -0.1}
-            r={props.dimensions.nextPreviousButtonHeight * 0.2}
+            cy={props.dimensions.nextPreviousButtonHeight * 1.5  * -0.1}
+            r={props.dimensions.nextPreviousButtonHeight  * 1.5  * 0.2}
             fill='silver'
             fillOpacity={1}
             stroke='#233036'
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 10}
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 9}
           />
           <line
             x1={0}
             x2={0}
-            y1={props.dimensions.nextPreviousButtonHeight * 0.1}
-            y2={props.dimensions.nextPreviousButtonHeight * 0.4}
+            y1={props.dimensions.nextPreviousButtonHeight  * 1.5  * 0.1}
+            y2={props.dimensions.nextPreviousButtonHeight  * 1.5  * 0.4}
             stroke='#233036'
-            strokeWidth={props.dimensions.nextPreviousButtonHeight / 8}
+            strokeWidth={props.dimensions.nextPreviousButtonHeight / 7}
           />
         </g>
       </svg>

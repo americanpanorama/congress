@@ -22,7 +22,9 @@ const DistrictsStore = {
     spatialIdExample: null
   },
 
-  loadForYear: function (year, districtId) {
+  loadForYear: function (year, districtId, yearChange) {
+    // get the spatial id for the selected district if the year has changed
+    const id = (yearChange) ? this.districtToSpatialId(districtId) : districtId;
     fetch(`static/elections/${year}.json`)
       .then((response) => {
         response.json().then((data) => {
@@ -30,17 +32,22 @@ const DistrictsStore = {
           this.data.states = data.states;
           this.data.cityBubbles = data.cityBubbles;
 
-          if (districtId) {
-            this.loadSpaceData(districtId);
+          let newSelectedDistrict;
+          if (id) {
+            this.loadSpaceData(id);
+            newSelectedDistrict = (yearChange) ? this.spatialToDistrictId(id) : districtId;
           }
 
-          AppActions.congressLoaded(year);
+          AppActions.congressLoaded(year, newSelectedDistrict);
         });
       });
   },
 
   loadSpaceData: function (spatialId) {
-    fetch(`static/space-data/${spatialId}.json`)
+    // this can take the id and look up the spatial id
+    const id = (spatialId.length === 12 || spatialId.length === 14) ?
+      this.districtToSpatialId(spatialId) : spatialId;
+    fetch(`static/space-data/${id}.json`)
       .then((response) => {
         response.json().then((data) => {
           this.data.spaceData = data;
@@ -79,7 +86,10 @@ const DistrictsStore = {
   getSpaceData: function () { return this.data.spaceData; },
 
   getElectionDataForDistrict: function (spatialId) {
-    return this.data.elections.find(e => parseInt(e.spatialId) === parseInt(spatialId));
+    // this can take the id and look up the spatial id
+    const id = (spatialId && (spatialId.length === 12 || spatialId.length === 14)) ?
+      this.districtToSpatialId(spatialId) : spatialId;
+    return this.data.elections.find(e => parseInt(e.spatialId) === parseInt(id));
   },
 
   getSteamgraphPaths: function () { return SteamgraphPaths; },
@@ -125,16 +135,20 @@ const DistrictsStore = {
   },
 
   getStatePreviousDistrictId: function (id) {
-    const { state } = this.getElectionDataForDistrict(id);
+    const spatialId = (id.length === 12 || id.length === 14) ?
+      this.districtToSpatialId(id) : id;
+    const { state } = this.getElectionDataForDistrict(spatialId);
     const stateDistricts = this.getDistrictsForState(state);
-    const i = stateDistricts.findIndex(e => e.spatialId === id);
+    const i = stateDistricts.findIndex(e => e.spatialId === spatialId);
     return (i > 0) ? stateDistricts[i - 1].spatialId : false;
   },
 
   getStateNextDistrictId: function (id) {
-    const { state } = this.getElectionDataForDistrict(id);
+    const spatialId = (id.length === 12 || id.length === 14) ?
+      this.districtToSpatialId(id) : id;
+    const { state } = this.getElectionDataForDistrict(spatialId);
     const stateDistricts = this.getDistrictsForState(state);
-    const i = stateDistricts.findIndex(e => e.spatialId === id);
+    const i = stateDistricts.findIndex(e => e.spatialId === spatialId);
     return (i + 1 < stateDistricts.length) ? stateDistricts[i + 1].spatialId : false;
   },
 
@@ -274,7 +288,13 @@ const DistrictsStore = {
   projectPoint: function (point) { return this.getProjection()(point); },
 
   districtToSpatialId: function (districtId) {
-    return this.data.elections.find(e => e.id === districtId).spatialId;
+    const election = this.data.elections.find(e => e.id === districtId);
+    return (election) ? election.spatialId : null;
+  },
+
+  spatialToDistrictId: function (spatialId) {
+    const election = this.data.elections.find(e => e.spatialId === parseInt(spatialId));
+    return (election) ? election.id : null;
   }
 };
 
@@ -293,7 +313,7 @@ AppDispatcher.register((action) => {
   };
 
   updates[AppActionTypes.congressSelected] = () => {
-    DistrictsStore.loadForYear(parseInt(action.year));
+    DistrictsStore.loadForYear(parseInt(action.year), action.selectedDistrict, true);
   };
 
   updates[AppActionTypes.districtSelected] = () => {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const mapshaper = require('mapshaper');
 
-const iDir = './full-geojson/';
+const iDir = './unsimplified-geojson/';
 
 //class MyEmitter extends EventEmitter {}
 
@@ -72,9 +72,11 @@ const findExclusions = function (congress) {
     }
   });
 
+  console.log(`${excludeThese.length} exclusions`);
+
   if (excludeThese.length > 0) {
     exclude[congress] = excludeThese;
-  }
+  } 
 
   eventEmitter.emit('exclusionsFound', congress);
 };
@@ -87,7 +89,7 @@ const createNotAL = function (congress) {
     `-i ${iDir}/${getInfileName(congress)}`,
     'snap',
     filter,
-    '-simplify weighted 5%',
+    '-simplify weighted 50%',
     'keep-shapes',
     `-each '${[
       'id=ID',
@@ -144,5 +146,5 @@ fs.readdir(iDir, (err, files) => {
     .map(f => parseInt(f.slice(9, -5)))
     .sort((a, b) => a - b);
 
-  findExclusions(congresses[114]);
+  findExclusions(congresses[113]);
 });

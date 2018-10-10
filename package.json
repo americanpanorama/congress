@@ -34,6 +34,7 @@
     "react-dom": "^16.3.0",
     "react-download-svg": "0.0.4",
     "react-draggable": "^3.0.5",
+    "react-modal": "^3.6.1",
     "react-toggle-button": "^2.2.0",
     "react-typeahead": "^2.0.0-alpha.8",
     "replace-in-file": "^3.4.2",

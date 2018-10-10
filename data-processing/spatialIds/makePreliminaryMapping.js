@@ -3,7 +3,7 @@ const d3 = require('d3');
 const fs = require('fs');
 
 const baseUrlJson = 'https://digitalscholarshiplab.carto.com/api/v2/sql?format=JSON&q=';
-const queryAllDistricts = 'SELECT distinct on (id) id, statename, district, startcong, endcong FROM districts';
+const queryAllDistricts = 'SELECT distinct on (id) id, state, district, startcong, endcong FROM congressional_districts';
 
 const yearForCongress = congress => 1786 + congress * 2;
 
@@ -14,13 +14,13 @@ d3.json(baseUrlJson + queryAllDistricts, (err, d) => {
   if (err) { return console.warn(err); }
   // obviously, if the district spans multiple years/congresses, the mapping is to itself
   d.rows.forEach((district) => {
-    for (let congress = district.startcong; congress <= district.endcong; congress += 1) {
+    for (let congress = parseInt(district.startcong); congress <= parseInt(district.endcong); congress += 1) {
       mapping.push({
         congress: congress,
-        state: district.statename,
+        state: district.state,
         id: district.id,
         //mapToId: district.id
-        mapToId: (district.endcong > congress) ? district.id : null
+        mapToId: (parseInt(district.endcong) > congress) ? district.id : null
       });
     }
   });

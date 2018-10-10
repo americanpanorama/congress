@@ -1,14 +1,10 @@
 // this calculates the label positions--i.e. the pole of inaccessiblity--for each district
 
 const fs = require('fs');
-const d3 = require('d3');
 const GeojsonArea = require('@mapbox/geojson-area');
 const Polylabel = require('polylabel');
 
-const iDir = './simplified-geojson/';
-
-const projection = d3.geoAlbersUsa();
-const path = d3.geoPath().projection(projection);
+const iDir = './final-simplified-geojson/';
 
 const calculated = [];
 
@@ -20,11 +16,12 @@ fs.readdir(iDir, (err, files) => {
   }
 
   files.forEach((file) => {
-    if (file.includes('.json')) {
+    console.log(file);
+    if (file.includes('.json') && parseInt(file) >= 27) {
       const theGeojson = JSON.parse(fs.readFileSync(`${iDir}/${file}`, 'utf8'));
 
       theGeojson.features.forEach((feature, i) => {
-        const id = feature.properties.ID;
+        const { id } = feature.properties;
 
         if (!calculated.includes(id)) {
           // find the largest polygon
@@ -71,8 +68,6 @@ fs.readdir(iDir, (err, files) => {
           calculated.push(id);
         }
       });
-
-      //fs.writeFileSync(`./processed-simplified-geojson/${file}`, JSON.stringify(theGeojson));
     }
   });
 

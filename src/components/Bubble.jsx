@@ -127,7 +127,7 @@ Bubble.propTypes = {
   labelColor: PropTypes.string,
   onDistrictSelected: PropTypes.func.isRequired,
   pointerEvents: PropTypes.string,
-  id: PropTypes.number,
+  id: PropTypes.string,
   duration: PropTypes.number
 };
 
